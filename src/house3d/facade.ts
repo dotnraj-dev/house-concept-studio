@@ -9,8 +9,8 @@ export function facadePieces(plan:Plan,layout:HouseLayout):FacadePiece[]{
   const pieces:FacadePiece[]=[],style=palette(plan.design?.style),eave=style.eave;
   for(const window of layout.windows){
     const alongX=window.axis==='x',cx=window.x+(alongX?window.width/2:0),cz=window.z+(alongX?0:window.width/2),base=window.floor*FLOOR_HEIGHT;
-    pieces.push({id:window.id+'-chajja',position:[cx+window.outward[0]*(.42+eave*.3),base+6.75,cz+window.outward[1]*(.42+eave*.3)],size:alongX?[window.width+.85,.16,1+eave*.65]:[1+eave*.65,.16,window.width+.85],surface:'concrete',color:'#e3ded3'});
-    pieces.push({id:window.id+'-sill',position:[cx+window.outward[0]*.16,base+2.98,cz+window.outward[1]*.16],size:alongX?[window.width+.35,.13,.48]:[.48,.13,window.width+.35],surface:'stone',color:'#c4b9a8'});
+    pieces.push({id:window.id+'-chajja',position:[cx+window.outward[0]*(.42+eave*.3),base+(window.sill||3)+(window.height||3.4)+.25,cz+window.outward[1]*(.42+eave*.3)],size:alongX?[window.width+.85,.16,1+eave*.65]:[1+eave*.65,.16,window.width+.85],surface:'concrete',color:'#e3ded3'});
+    pieces.push({id:window.id+'-sill',position:[cx+window.outward[0]*.16,base+(window.sill||3)-.04,cz+window.outward[1]*.16],size:alongX?[window.width+.35,.13,.48]:[.48,.13,window.width+.35],surface:'stone',color:'#c4b9a8'});
   }
   const door=layout.doors.find(d=>d.main);
   if(door?.facing){

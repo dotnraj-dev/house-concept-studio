@@ -1,3 +1,4 @@
+import {PresentationEffects} from '../house3d/PresentationEffects';
 import {sunPosition,windPaths} from '../house3d/climate';
 import {ClimateOverlay} from '../house3d/ClimateOverlay';
 import {plotEdges,defaultSite} from '../site-context';
@@ -15,7 +16,7 @@ import { ACESFilmicToneMapping, PCFSoftShadowMap } from 'three';
 import type { Asset, Plan, Room } from '../types';
 import { CameraRig, type ViewCommand, type ViewerMode } from '../house3d/CameraRig';
 import { HouseScene } from '../house3d/HouseScene';
-import { FLOOR_HEIGHT, furnishingFrame, makeHouseLayout, makeInteractions, worldX, worldZ } from '../house3d/layout';
+import { FLOOR_HEIGHT, entrancePose, furnishingFrame, makeHouseLayout, makeInteractions, worldX, worldZ } from '../house3d/layout';
 import {FEET_TO_METRES,prepareExport} from '../house3d/export';
 
 function roomView(plan:Plan,room:Room|undefined,floor:number):ViewCommand{
@@ -30,6 +31,8 @@ function roomView(plan:Plan,room:Room|undefined,floor:number):ViewCommand{
 export function House3D({plan,floor,assets,projectId,canRender=false}:{plan:Plan;floor:number;assets:Asset[];projectId?:string;canRender?:boolean}){
   const {active:loading,progress}=useProgress();
   const [furnished,setFurnished]=useState(plan.design?.furnished!==false),[showServices,setShowServices]=useState(false),[xray,setXray]=useState(false),[exporting,setExporting]=useState(false),[exportError,setExportError]=useState('');
+  const [enhanced,setEnhanced]=useState(true),[mood,setMood]=useState<'day'|'warm'>('warm');
+  const viewerRef=useRef<HTMLDivElement>(null);
   const sceneRef=useRef<Scene|null>(null),cameraRef=useRef<Camera|null>(null);
   const exportTask=useRef<Promise<Blob>|null>(null);
   function cameraPose(){const c=cameraRef.current as PerspectiveCamera|null;return c?{position:c.position.toArray().map(value=>value*FEET_TO_METRES),quaternion:c.quaternion.toArray(),fov:c.fov||52,units:'metres'}:null;}
@@ -106,7 +109,7 @@ export function House3D({plan,floor,assets,projectId,canRender=false}:{plan:Plan
   },[floor,plan]);
 
   const exitPointer=()=>{if(document.pointerLockElement===canvasRef.current)document.exitPointerLock();};
-  const overview=()=>{exitPointer();setHover('');setMode('overview');setCommand(null);};
+  const overview=(aerial=false)=>{exitPointer();setHover('');setMode('overview');const {n}=entrancePose(plan,layout),dist=Math.max(plan.width,plan.depth,(plan.levels||1)*12)*1.3;setCommand({id:Date.now(),floor:0,position:[(n[0]+n[1]*.6)*dist,aerial?Math.max(16,dist*.65):Math.max(6.2,(plan.levels||1)*2.2),(n[1]-n[0]*.6)*dist],look:[0,(plan.levels||1)*4,0]});};
   const walk=()=>{
     setMode('walk');setCommand(null);setHover('');
     canvasRef.current?.requestPointerLock?.().catch(()=>{});
@@ -116,16 +119,16 @@ export function House3D({plan,floor,assets,projectId,canRender=false}:{plan:Plan
     setMode('tour');setTourId(previous=>previous+1);setHover('');
   };
 
-  return <div className="house-viewer">
+  return <div className="house-viewer" ref={viewerRef}>
     <div className="viewer-toolbar" aria-label="3D viewing modes">
       <button className={mode==='overview'&&!cutaway?'active':''} onClick={()=>{overview();setCutaway(false);}}>Exterior</button>
-      <button className={mode==='overview'&&cutaway?'active':''} onClick={()=>{overview();setCutaway(true);}}>All floors</button>
+      <button className={mode==='overview'&&cutaway?'active':''} onClick={()=>{overview(true);setCutaway(true);}}>All floors</button>
       <button className={mode==='tour'?'active':''} onClick={tour}>Guided tour</button>
       <button className={mode==='walk'?'active':''} onClick={walk}>Walk inside</button>
       <label><input type="checkbox" checked={furnished} onChange={e=>setFurnished(e.target.checked)}/> Interiors</label><label><input type="checkbox" checked={showServices} onChange={e=>setShowServices(e.target.checked)}/> Plumbing</label><label><input type="checkbox" checked={xray} onChange={e=>setXray(e.target.checked)}/> Transparent walls</label><button disabled={exporting||loading} onClick={downloadModel}>{exporting?'Exporting…':'Download 3D'}</button><button disabled={loading} onClick={downloadCamera}>Download camera settings</button>
     </div>
     {incompleteBathrooms.length>0&&<p className="scene-review" role="status">Review bathroom sizes: {incompleteBathrooms.map(r=>r.label+' (floor '+r.floor+')').join(', ')}. There is insufficient clear wall space for both basin and toilet; fittings that do not fit are omitted.</p>}
-    <div className="site-toolbar"><label><input type="checkbox" checked={contextVisible} onChange={e=>setContextVisible(e.target.checked)}/> Surroundings</label><label>Room view <select aria-label="Look inside a room" value="" onChange={e=>{const r=plan.rooms.find(o=>o.id===e.target.value);if(!r)return;exitPointer();const d=layout.doors.find(o=>o.rooms?.includes(r.id)),cx=r.x+r.w/2,cz=r.y+r.h/2;let x=d?d.x+(d.axis==='x'?d.width/2:0):cx,z=d?d.z+(d.axis==='z'?d.width/2:0):cz;
+    <div className="site-toolbar"><button className="study-trigger" onClick={()=>document.fullscreenElement?document.exitFullscreen():viewerRef.current?.requestFullscreen()}>Full screen</button><label>Light<select aria-label="Presentation lighting" value={mood} onChange={e=>setMood(e.target.value as 'day'|'warm')}><option value="day">Daylight</option><option value="warm">Warm afternoon</option></select></label><label><input type="checkbox" checked={enhanced} onChange={e=>setEnhanced(e.target.checked)}/> Contact shadows</label><label><input type="checkbox" checked={contextVisible} onChange={e=>setContextVisible(e.target.checked)}/> Surroundings</label><label>Room view <select aria-label="Look inside a room" value="" onChange={e=>{const r=plan.rooms.find(o=>o.id===e.target.value);if(!r)return;exitPointer();const d=layout.doors.find(o=>o.rooms?.includes(r.id)),cx=r.x+r.w/2,cz=r.y+r.h/2;let x=d?d.x+(d.axis==='x'?d.width/2:0):cx,z=d?d.z+(d.axis==='z'?d.width/2:0):cz;
  x=Math.max(r.x+.65,Math.min(r.x+r.w-.65,x));z=Math.max(r.y+.65,Math.min(r.y+r.h-.65,z));const f=r.kind==='bathroom'?bathroomFixtures(r,layout).find(t=>t.kind==='basin'):null;if(f){const candidates=[[r.x+1,r.y+1],[r.x+r.w-1,r.y+1],[r.x+1,r.y+r.h-1],[r.x+r.w-1,r.y+r.h-1]];const point=candidates.sort((a,b)=>Math.hypot(b[0]-f.x,b[1]-f.z)-Math.hypot(a[0]-f.x,a[1]-f.z))[0];[x,z]=point;}setMode('walk');setCommand({id:Date.now(),floor:r.floor,position:[worldX(plan,x),r.floor*9+5.15,worldZ(plan,z)],look:[worldX(plan,f?.x??cx),r.floor*9+3.1,worldZ(plan,f?.z??cz)]});}}><option value="">Choose a room…</option>{plan.rooms.filter(r=>r.floor===floor&&!['portico','stairs','foyer','passage'].includes(r.kind)).map(r=><option key={r.id} value={r.id}>{r.label}</option>)}</select></label><button aria-expanded={study} className="study-trigger" onClick={()=>setStudy(!study)}>{study?'Close':'Open'} sun & breeze study</button></div>
     {contextVisible&&<p className="context-provenance">{plan.design?.siteContext?.edges.length||0} of {plotEdges(plan).length} boundaries recorded · other surroundings are examples. Edit under Form → Plot & setbacks.</p>}
     {study&&<ClimatePanel study={inputs} onChange={setInputs} lat={site.latitude} lon={site.longitude} isDefault={!plan.design?.siteContext} elevation={sun.elevation} paths={paths.length} doors={!!openDoors.size} openDoors={()=>setOpenDoors(openDoors.size?new Set():new Set(layout.doors.filter(d=>!d.arch).map(d=>d.id)))}/>}
@@ -134,17 +137,18 @@ export function House3D({plan,floor,assets,projectId,canRender=false}:{plan:Plan
         onCreated={({gl,scene,camera})=>{sceneRef.current=scene;cameraRef.current=camera;canvasRef.current=gl.domElement;gl.toneMapping=ACESFilmicToneMapping;gl.toneMappingExposure=1.08;gl.shadowMap.type=PCFSoftShadowMap;}}>
         <color attach="background" args={[study&&!sun.daylight?'#404956':'#d6e3e9']}/>
         <fog attach="fog" args={[study&&!sun.daylight?'#404956':'#d6e3e9',extent*2.7,extent*7]}/>
-        <Suspense fallback={null}><Environment files="/assets/materials/daylight.hdr" environmentIntensity={study&&!sun.daylight?.12:.6}/></Suspense>
+        <Suspense fallback={null}><Environment files="/assets/materials/daylight.hdr" background={!(study&&!sun.daylight)} backgroundBlurriness={.13} environmentIntensity={study&&!sun.daylight?.12:.72}/></Suspense>
         <ambientLight intensity={study&&!sun.daylight?.12:.28}/>
         <hemisphereLight args={['#e9f2f6','#b4aa97',study&&!sun.daylight?.14:.55]}/>
-        <directionalLight position={study?[sun.direction[0]*extent*2,sun.direction[1]*extent*2,sun.direction[2]*extent*2]:[-extent,extent*1.5,-extent*.7]} intensity={study?(sun.daylight?2.9*Math.min(1,sun.direction[1]*3):0):2.9} color={study&&sun.elevation<18?'#ffc793':'#fff5df'} shadow-camera-far={extent*4} castShadow shadow-mapSize={[2048,2048]} shadow-bias={-.00018}
+        <directionalLight position={study?[sun.direction[0]*extent*2,sun.direction[1]*extent*2,sun.direction[2]*extent*2]:[-extent,extent*(mood==='warm'?.6:1.5),-extent*.8]} intensity={study?(sun.daylight?2.9*Math.min(1,sun.direction[1]*3):0):(mood==='warm'?3.2:2.7)} color={(study?sun.elevation<18:mood==='warm')?'#ffc793':'#fff5df'} shadow-camera-far={extent*4} castShadow shadow-mapSize={[2048,2048]} shadow-bias={-.00018}
           shadow-camera-left={-extent} shadow-camera-right={extent} shadow-camera-top={extent} shadow-camera-bottom={-extent}/>
         <mesh rotation={[-Math.PI/2,0,0]} position={[0,-.7,0]} receiveShadow><planeGeometry args={[400,400]}/><Suspense fallback={<meshStandardMaterial color="#9ca994"/>}><SiteFinish type="lawn" repeat={[60,60]} color="#dddcca"/></Suspense></mesh>
         {study&&<ClimateOverlay paths={paths} shift={[-plan.width/2,0,-plan.depth/2]}/>}
         <HouseScene contextVisible={contextVisible} plan={displayPlan} layout={layout} interactions={interactions} assets={assets} mode={mode} cutaway={cutaway} showServices={showServices} xray={xray}
           openDoors={openDoors} doorAngles={doorAngles} openShelves={openShelves} tvOn={tvOn} chimneyOn={chimneyOn} onInteract={interact}/>
         <CameraRig plan={plan} layout={layout} interactions={interactions} mode={mode} floor={floor} command={command} tourId={tourId}
-          openDoors={openDoors} doorAngles={doorAngles} onInteract={interact} onHover={setHover} onTourDone={overview} onLockChange={setLocked}/>
+          openDoors={openDoors} doorAngles={doorAngles} onInteract={interact} onHover={setHover} onTourDone={()=>overview()} onLockChange={setLocked}/>
+        {enhanced&&<PresentationEffects/>}
         <OrbitControls enabled={mode==='overview'} enableDamping dampingFactor={.08} target={[0,(plan.levels||1)*4,0]}
           minDistance={9} maxDistance={Math.max(150,(plan.levels||1)*25)} maxPolarAngle={Math.PI*.52}/>
       </Canvas></ViewerBoundary>

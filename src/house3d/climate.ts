@@ -11,7 +11,7 @@ export function sunPosition(date:string,hour:number,lat:number,lon:number){
  const up=Math.sin(l)*Math.sin(dec)+Math.cos(l)*Math.cos(dec)*Math.cos(ha),east=-Math.cos(dec)*Math.sin(ha),north=Math.cos(l)*Math.sin(dec)-Math.sin(l)*Math.cos(dec)*Math.cos(ha);
  return {direction:[east,up,-north] as V3,elevation:Math.asin(Math.max(-1,Math.min(1,up)))/rad,daylight:up>0};
 }
-export const windowCentre=(w:WindowSpec):V3=>[w.x+(w.axis==='x'?w.width*.5:0),w.floor*9+4.65,w.z+(w.axis==='z'?w.width*.5:0)];
+export const windowCentre=(w:WindowSpec):V3=>[w.x+(w.axis==='x'?w.width*.5:0),w.floor*9+(w.sill??3)+(w.height??3.4)/2,w.z+(w.axis==='z'?w.width*.5:0)];
 // Qualitative connectivity: only traverse arches or doors the viewer has actually opened.
 // Each room is rectangular: segments from its centre to its own openings stay within the room.
 export function windPaths(plan:Plan,layout:HouseLayout,from:Direction,floor:number,open:ReadonlySet<string>){

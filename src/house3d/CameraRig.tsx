@@ -52,7 +52,7 @@ export function CameraRig({plan,layout,interactions,mode,floor,command,tourId,op
   };
 
   useEffect(()=>{
-    if(mode==='overview'){const {n}=entrancePose(plan,layout),dist=Math.max(plan.width,plan.depth,(plan.levels||1)*12)*1.3;aim(new Vector3((n[0]+n[1]*.6)*dist,Math.max(16,dist*.46),(n[1]-n[0]*.6)*dist),new Vector3(0,(plan.levels||1)*4,0));}
+    if(mode==='overview'){const {n}=entrancePose(plan,layout),dist=Math.max(plan.width,plan.depth,(plan.levels||1)*12)*1.3;aim(new Vector3((n[0]+n[1]*.6)*dist,Math.max(6.2,(plan.levels||1)*2.2),(n[1]-n[0]*.6)*dist),new Vector3(0,(plan.levels||1)*4,0));}
     if(mode==='walk'&&!command){
       const {x,z,n}=entrancePose(plan,layout);
       aim(new Vector3(worldX(plan,x+n[0]*1.2),5.2,worldZ(plan,z+n[1]*1.2)),new Vector3(worldX(plan,x-n[0]*5),4.7,worldZ(plan,z-n[1]*5)));

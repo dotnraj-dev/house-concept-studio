@@ -43,3 +43,9 @@ AI and rendering providers remain configurable under application Settings.
 Reference-photo quality and the complete textured browser export still require
 visual verification. The hosting deployment does not establish those quality
 milestones.
+
+## Regional design update — live
+
+Release a07af922b427614e0b4af74507fa088eda53b943 was pushed to main and verified at the existing public URL. GitHub Actions passed. The public health response reports build a07af922b427. The hosted HTML loads the new interview code and all checked paint, roof, lawn and road material files. The project API still requires sign-in.
+
+Local checks: 60 automated TypeScript/geometry tests, production build, guided answer edits, regional selection, 3D, environment controls, room-door changes, stable sanitary fittings after re-renders, and a 390 px mobile interview. See REGIONAL-DESIGN-UPDATE.md for limits. No AI or GPU purchase was made.

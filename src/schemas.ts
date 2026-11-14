@@ -7,6 +7,7 @@ const size=z.object({w:number(1000),h:number(1000)});
 export const designSchema=z.object({
  guideAnswers:z.record(z.string().max(40),z.string().max(1800)).refine(r=>Object.keys(r).length<=30).optional(),
  siteContext:z.object({latitude:z.number().finite().min(-90).max(90),longitude:z.number().finite().min(-180).max(180),edges:z.array(z.object({edge:z.string().max(40),use:z.enum(['house','building','trees','open','road']),gap:number(500),width:number(500).positive(),depth:number(500).positive(),height:number(500).positive(),along:number(1)})).max(200)}).optional(),
+ bathroomAccess:z.enum(['attached','mixed','common']).optional(),
  version:z.literal(2),customerEmail:z.string().max(200),language:z.string().max(80),household:z.string().max(3000),authority:z.string().max(200),
  plotMode:z.enum(['rectangle','polygon']),vertices:z.array(z.object({id:z.string().max(40),x:z.number().finite().min(-10000).max(10000),y:z.number().finite().min(-10000).max(10000),setback:number(1000),road:z.boolean()})).max(200),
  surveyImage:z.string().max(1500000).refine(v=>!v||/^data:image\/(png|jpeg|webp);base64,/.test(v)).optional(),measurement:z.enum(['surveyed','approximate']),setbacks:z.object({north:number(1000),east:number(1000),south:number(1000),west:number(1000)}),customSetbacks:z.boolean(),

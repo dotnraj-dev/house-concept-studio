@@ -40,7 +40,7 @@ test('ground and upper stairs align in each concept variant',()=>{
 test('furniture clears doors, stairs enter through the landing, and no inaccessible balconies are invented',()=>{
  for(let variant=0;variant<3;variant++){
   const plan=generatePlan(DEFAULT_REQUIREMENTS,DEFAULT_SETTINGS,variant,DEFAULT_RATIOS),layout=makeHouseLayout(plan),items=makeInteractions(plan,layout);
-  assert.equal(layout.doors.some(d=>d.balcony),false);
+  for(const balcony of plan.rooms.filter(r=>r.kind==='terrace'))assert.ok(layout.doors.some(d=>d.balcony&&d.rooms?.includes(balcony.id)),'Balcony lacks an access door');
   for(const item of items.filter(i=>['tv','shelf'].includes(i.action)))for(const d of layout.doors.filter(d=>d.floor===item.floor)){
    const dx=Math.abs(item.x-(d.x+(d.axis==='x'?d.width/2:0))),dz=Math.abs(item.z-(d.z+(d.axis==='z'?d.width/2:0)));
    assert.ok(dx>(item.size[0]+(d.axis==='x'?d.width:.28))/2||dz>(item.size[2]+(d.axis==='z'?d.width:.28))/2,'Furniture overlaps '+d.id);

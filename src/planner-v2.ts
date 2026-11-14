@@ -45,39 +45,57 @@ export function generatePlan(req:Requirements,settings:Settings,variant:number,r
   if(f===0&&req.pooja)put('pooja','Pooja room');if(f===0&&req.utility)put('utility','Utility');if(f===0&&req.parking)put('portico','Car portico');
   for(const q of d.roomRequests.filter(q=>q.floor===f))if(!items.some(r=>r.id===q.id||r.kind===q.kind))put(q.kind,q.label||q.kind);
   if(!items.length)put('terrace','Open terrace');
-  const weights=(r:Room)=>{const q=requestFor(r),t=req.requestedSizes[r.kind as keyof Requirements['requestedSizes']];return q&&q.w>0&&q.h>0?q.w*q.h:t?.w&&t?.h?t.w*t.h:(AREA[r.kind]||80)*(r.kind==='living'&&req.livingPriority==='spacious'?1.3:r.kind==='kitchen'&&req.kitchenPriority==='spacious'?1.25:1);};
+  const suiteFor=new Map<string,Room>();
+  if(d.bathroomAccess!=='common'&&Math.max(leftW,rightW)>=14.5){
+   const bedrooms=items.filter(r=>r.kind==='bedroom'&&!requestFor(r)),bathrooms=items.filter(r=>r.kind==='bathroom'&&!requestFor(r)&&!rules.some(v=>(v.target===r.id||v.target==='bathroom')&&v.zone!=='any'));
+   const count=Math.min(bedrooms.length,Math.max(0,bathrooms.length-(d.bathroomAccess==='mixed'&&f===0?1:0)));
+   for(let i=0;i<count;i++){const bath=bathrooms[i];suiteFor.set(bedrooms[i].id,bath);items.splice(items.indexOf(bath),1);}
+  }
+  const weights=(r:Room)=>{const q=requestFor(r),t=req.requestedSizes[r.kind as keyof Requirements['requestedSizes']];return q&&q.w>0&&q.h>0?q.w*q.h:t?.w&&t?.h?t.w*t.h:((AREA[r.kind]||80)+(suiteFor.has(r.id)?80:0))*(r.kind==='living'&&req.livingPriority==='spacious'?1.3:r.kind==='kitchen'&&req.kitchenPriority==='spacious'?1.25:1);};
   const ruleFor=(r:Room)=>rules.find(v=>v.target===r.id||v.target===r.kind||(r.kind==='pooja'&&v.target.startsWith('pooja-'))||(r.kind==='kitchen'&&v.target==='cooking'));
   const west:Room[]=[],east:Room[]=[],capacity=[leftW*(fp.h-(levels>1&&stairWest?stairD:0)),rightW*(fp.h-(levels>1&&!stairWest?stairD:0))];
   for(const item of [...items].sort((a,b)=>weights(b)-weights(a))){
    const q=requestFor(item),zone=q?.zone&&q.zone!=='any'?q.zone:ruleFor(item)?.zone||'any';
    let side=zone.includes('west')?0:zone.includes('east')?1:item.kind==='portico'?1:item.kind==='living'?0:-1;
    if(side<0)side=west.reduce((s,r)=>s+weights(r),0)/capacity[0]<=east.reduce((s,r)=>s+weights(r),0)/capacity[1]?0:1;
+   if(suiteFor.has(item.id)&&(side?rightW:leftW)<14.5)side=leftW>=14.5?0:1;
    (side?east:west).push(item);
   }
-  const minDepth=(r:Room)=>requestFor(r)?.mode==='exact'?requestFor(r)!.h:MIN[r.kind]?.[1]||4;
+  const minDepth=(r:Room)=>requestFor(r)?.mode==='exact'?requestFor(r)!.h:suiteFor.has(r.id)?11.5:MIN[r.kind]?.[1]||4;
   for(let attempt=0;attempt<items.length;attempt++){
    const groups=[west,east],caps=[fp.h-(levels>1&&stairWest?stairD:0),fp.h-(levels>1&&!stairWest?stairD:0)],totals=groups.map(g=>g.reduce((s,r)=>s+minDepth(r),0));
    const side=totals[0]>caps[0]+.01?0:totals[1]>caps[1]+.01?1:-1;if(side<0)break;
-   const other=1-side,candidate=groups[side].filter(r=>!['living','portico'].includes(r.kind)&&!(requestFor(r)?.zone||ruleFor(r)?.zone||'any').includes(side?'east':'west')).sort((a,b)=>minDepth(a)-minDepth(b)).find(r=>totals[other]+minDepth(r)<=caps[other]);
+   const other=1-side,candidate=groups[side].filter(r=>!['living','portico'].includes(r.kind)&&!(requestFor(r)?.zone||ruleFor(r)?.zone||'any').includes(side?'east':'west')).sort((a,b)=>minDepth(a)-minDepth(b)).find(r=>totals[other]+minDepth(r)<=caps[other]&&(!suiteFor.has(r.id)||(other?rightW:leftW)>=14.5));
    if(!candidate)break;groups[side].splice(groups[side].indexOf(candidate),1);groups[other].push(candidate);
   }
   [west,east].forEach((group,side)=>{
    const x=side?rightX:0,w=side?rightW:leftW,h=fp.h-(levels>1&&(side===0?stairWest:!stairWest)?stairD:0);
    const order=(r:Room)=>{const q=requestFor(r),z=q?.zone&&q.zone!=='any'?q.zone:ruleFor(r)?.zone||'any';return z.includes('north')?-4:z.includes('south')?4:r.kind==='living'||r.kind==='lounge'||r.kind==='portico'?-3:r.kind==='bedroom'?2:0;};
    group.sort((a,b)=>order(a)-order(b)||(variant===2?b.kind.localeCompare(a.kind):a.kind.localeCompare(b.kind)));
-   const minimum=group.filter(r=>requestFor(r)?.mode!=='exact').reduce((s,r)=>s+(MIN[r.kind]?.[1]||4),0);
+   const minimum=group.filter(r=>requestFor(r)?.mode!=='exact').reduce((s,r)=>s+minDepth(r),0);
    const fixed=group.reduce((s,r)=>{const q=requestFor(r);return s+(q?.mode==='exact'?q.h:0);},0),flex=group.filter(r=>requestFor(r)?.mode!=='exact'),weight=flex.reduce((s,r)=>s+weights(r),0),tooLarge=fixed+minimum>h+.01;
    if(tooLarge)checks.push({id:`sizes-${f}-${side}`,title:'Rooms do not fit comfortably',detail:`Floor ${f}: minimum room depths and locked sizes exceed the available wing. Reduce this floor programme or revise the plot.`,status:'conflict'});
    let y=0;
    group.forEach((item,index)=>{
-    const q=requestFor(item),length=tooLarge?h*weights(item)/Math.max(1,group.reduce((s,r)=>s+weights(r),0)):q?.mode==='exact'?q.h:(MIN[item.kind]?.[1]||4)+Math.max(0,h-fixed-minimum)*weights(item)/Math.max(1,weight);
+    const q=requestFor(item),length=tooLarge?h*weights(item)/Math.max(1,group.reduce((s,r)=>s+weights(r),0)):q?.mode==='exact'?q.h:minDepth(item)+Math.max(0,h-fixed-minimum)*weights(item)/Math.max(1,weight);
     const rh=q?.mode==='exact'&&!tooLarge?Math.min(length,h-y):index===group.length-1?Math.max(.1,h-y):Math.min(length,h-y),rw=q?.mode==='exact'?Math.min(w,q.w||w):w,rx=side?x+w-rw:x;
-    add({...item,label:q?.label||item.label,x:rx,y,w:rw,h:rh});
+    const bath=suiteFor.get(item.id);
+    if(bath&&rw>=14.5&&rh>=11.4){
+     const bw=Math.min(6.1,rw-9),bh=Math.min(7.8,rh-3.4),bx=side?rx+rw-bw:rx,bedX=side?rx:rx+bw;
+     add({...item,label:q?.label||item.label,x:bedX,y,w:rw-bw,h:rh});
+     add({...bath,label:'Attached bath · '+item.label,attachedTo:item.id,x:bx,y:y+rh-bh,w:bw,h:bh});
+     add({id:item.id+'-dressing',attachedTo:item.id,kind:'passage',label:'Dressing',floor:f,x:bx,y,w:bw,h:rh-bh});
+    }else if(bath){add({...item,x:rx,y,w:rw,h:Math.max(.1,rh-6)});add({...bath,attachedTo:item.id,label:'Attached bath · '+item.label,x:rx,y:y+Math.max(.1,rh-6),w:rw,h:Math.min(6,rh-.1)});checks.push({id:'suite-'+item.id,title:'Bedroom suite needs more space',detail:'Increase the footprint or reduce the floor programme.',status:'conflict'});}
+    else add({...item,label:q?.label||item.label,x:rx,y,w:rw,h:rh});
     if(rw<w-.05)add({id:`${item.id}-clearance`,kind:'passage',label:'Clearance',floor:f,x:side?x:rx+rw,y,w:w-rw,h:rh});y+=rh;
     const min=MIN[item.kind];if(min&&(rw+.05<min[0]||rh+.05<min[1]))checks.push({id:`comfort-${item.id}`,title:`${item.label} needs more space`,detail:`${rounded(rw)} × ${rounded(rh)} ft falls below the concept comfort target of ${min[0]} × ${min[1]} ft.`,status:'warning',target:item.id});
    });
    if(y<h-.05)add({id:floorId(f,side),kind:'passage',label:'Flexible space',floor:f,x,y,w,h:h-y});
   });
+ }
+ for(let f=1;f<levels;f++){
+  const lounge=rooms.find(r=>r.floor===f&&r.kind==='lounge'&&r.y<.05&&r.h>=14);
+  if(lounge){const depth=4.5;add({id:f+'-balcony',kind:'terrace',label:'Sit-out balcony',floor:f,x:lounge.x,y:0,w:lounge.w,h:depth});lounge.y=depth;lounge.h=rounded(lounge.h-depth);}
  }
  // Keep north-up survey coordinates; the entrance/front can be on any side.
  if(turn)for(const r of rooms){const {x,y,w,h}=r;if(turn===1)Object.assign(r,{x:fp.h-y-h,y:x,w:h,h:w});else if(turn===2)Object.assign(r,{x:fp.w-x-w,y:fp.h-y-h});else Object.assign(r,{x:y,y:fp.w-x-w,w:h,h:w});r.x=rounded(r.x);r.y=rounded(r.y);}

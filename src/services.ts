@@ -1,10 +1,12 @@
-import {furnishingFrame} from './house3d/layout';
+import {bathroomFixtures} from './house3d/bathroom';
+import {furnishingFrame,makeHouseLayout} from './house3d/layout';
 import { pointInPolygon, pointSegmentDistance } from './geometry';
 import type { DesignCheck, Plan, Point, ServiceNode } from './types';
 export type PipeRoute={id:string;system:'supply'|'waste'|'rain';points:[number,number,number][];label:string};
 export const PIPE_COLORS={supply:'#2b83b7',waste:'#9b7249',rain:'#4c9a71'};
 export function serviceLayout(plan:Plan){
  const d=plan.design;if(!d)return {nodes:[] as ServiceNode[],pipes:[] as PipeRoute[],checks:[] as DesignCheck[]};
+ const wallLayout=makeHouseLayout(plan);
  const nodes=d.services,pipes:PipeRoute[]=[],checks:DesignCheck[]=[];
  const sx=plan.offsetX,sy=plan.offsetY,W=plan.width,H=plan.depth;
  const riser:Point={x:d.pipeSide==='west'?sx-.35:d.pipeSide==='east'?sx+W+.35:sx+W*.65,y:d.pipeSide==='north'?sy-.35:d.pipeSide==='south'?sy+H+.35:sy+H*.65};
@@ -21,7 +23,8 @@ export function serviceLayout(plan:Plan){
  if(tank)pipes.push({id:'tank-riser',system:'supply',label:'Storage to supply riser',points:[point(tank),[riser.x-sx,tank.level*9+.6,tank.y-sy],rp(tank.level)]});
  for(const room of plan.rooms.filter(r=>['bathroom','kitchen','utility'].includes(r.kind))){
   const frame=furnishingFrame(plan,room),local=frame.local,cx=local.x+local.w/2;
-  const [x,z]=frame.transform(room.kind==='kitchen'?cx-1.3:room.kind==='bathroom'?cx+1.3:cx,room.kind==='bathroom'?local.y+local.h/2:local.y+local.h-1.1),level=room.floor;
+  const fixture=room.kind==='bathroom'?bathroomFixtures(room,wallLayout).find(f=>f.kind==='basin'):null;
+  const [x,z]=fixture?[fixture.x,fixture.z]:frame.transform(room.kind==='kitchen'?cx-1.3:room.kind==='bathroom'?cx+1.3:cx,room.kind==='bathroom'?local.y+local.h/2:local.y+local.h-1.1),level=room.floor;
   pipes.push({id:'supply-'+room.id,system:'supply',label:room.label+' water',points:[rp(level),[riser.x-sx,level*9+1,z],[x,level*9+1,z]]});
   pipes.push({id:'waste-'+room.id,system:'waste',label:room.label+' waste',points:[[x,level*9+.3,z],[riser.x-sx,level*9+.3,z],rp(level)]});
  }

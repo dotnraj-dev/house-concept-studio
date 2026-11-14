@@ -1,3 +1,5 @@
+import {Architecture,EntryGarden} from './Architecture';
+import {architecturalBox} from './box-uv';
 import {plotEdges} from '../site-context';
 import {bathroomFixtures} from './bathroom';
 import {HipRoof,SiteWorld,SiteFinish} from './SiteWorld';
@@ -26,7 +28,7 @@ function PbrMaterial({surface,size,color,metalness,opacity,emissive}:{surface:Pb
   const maps=useMemo(()=>loaded.map((source,index)=>{
     const texture=source.clone();
     texture.wrapS=texture.wrapT=RepeatWrapping;
-    texture.repeat.set(Math.max(.15,(size[1]>1?Math.max(size[0],size[2]):size[0])/5),Math.max(.15,(size[1]>1?size[1]:size[2])/5));
+    texture.repeat.set(1,1);
     texture.anisotropy=8;
     if(index===0)texture.colorSpace=SRGBColorSpace;
     texture.needsUpdate=true;
@@ -34,15 +36,17 @@ function PbrMaterial({surface,size,color,metalness,opacity,emissive}:{surface:Pb
   }),[loaded[0],loaded[1],loaded[2],size[0],size[1],size[2]]);
   useEffect(()=>()=>maps.forEach(map=>map.dispose()),[maps]);
   return <meshStandardMaterial color={color} map={maps[0]} normalMap={maps[1]} normalScale={new Vector2(.35,.35)} roughnessMap={maps[2]}
-    roughness={surface==='woodfloor' ? .85 : .95} metalness={metalness} transparent={opacity<1} opacity={opacity}
+    roughness={surface==='marble'?.32:surface==='woodfloor'?.65:.92} metalness={metalness} transparent={opacity<1} opacity={opacity}
     emissive={emissive||'#000000'} emissiveIntensity={emissive ? .35 : 0}/>;
 }
 
-function Block({position,size,color,metalness=0,opacity=1,emissive,surface,solid=false}:{position:[number,number,number];size:[number,number,number];color:string;metalness?:number;opacity?:number;emissive?:string;surface?:Surface;solid?:boolean}){
+export function Block({position,size,color,metalness=0,opacity=1,emissive,surface,solid=false}:{position:[number,number,number];size:[number,number,number];color:string;metalness?:number;opacity?:number;emissive?:string;surface?:Surface;solid?:boolean}){
   const pbr=surface&&PBR_SURFACES.includes(surface as PbrSurface);
   const map=useMemo(()=>surface&&!pbr?surfaceTexture(surface,size):null,[surface,pbr,size[0],size[1],size[2]]);
   useEffect(()=>()=>{map?.dispose();},[map]);
-  return <mesh userData={{solid}} position={position} castShadow={opacity===1} receiveShadow><boxGeometry args={size}/>
+  const geometry=useMemo(()=>architecturalBox(size,position,surface==='stackstone'?6.5:5),[...size,...position,surface]);
+  useEffect(()=>()=>geometry.dispose(),[geometry]);
+  return <mesh geometry={geometry} userData={{solid}} position={position} castShadow={opacity===1} receiveShadow>
     {pbr?<Suspense fallback={<meshStandardMaterial color={color}/>}><PbrMaterial surface={surface as PbrSurface} size={size} color={color}
       metalness={metalness} opacity={opacity} emissive={emissive}/></Suspense>:
       <meshStandardMaterial color={color} map={map} metalness={metalness} roughness={opacity<1 ? .12 : surface==='concrete' ? .88 : .78}
@@ -60,8 +64,9 @@ function Door({door,open,angles}:{door:DoorSpec;open:boolean;angles:Map<string,n
     <Block position={alongX?[door.width,3.45,0]:[0,3.45,door.width]} size={[.19,6.9,.19]} color="#d8c5a7" surface="timber"/>
     <Block position={alongX?[door.width/2,6.82,0]:[0,6.82,door.width/2]} size={alongX?[door.width+.19,.18,.22]:[.22,.18,door.width+.19]} color="#d8c5a7" surface="timber"/>
     <group ref={pivot} position={[alongX?.06:0,0,alongX?0:.06]} userData={{actionId:door.id,label:door.main?'Open / close entrance door':'Open / close room door'}}>
-      <Block position={alongX?[door.width/2,3.35,0]:[0,3.35,door.width/2]} size={alongX?[door.width-.1,6.65,.13]:[.13,6.65,door.width-.1]} color={door.main?'#c5a078':'#d4b58f'} surface="timber"/>
-      {[2.05,4.75].map(y=><Block key={y} position={alongX?[door.width/2,y,-.075]:[-.075,y,door.width/2]} size={alongX?[door.width-.5,2.13,.035]:[.035,2.13,door.width-.5]} color="#e5cead" surface="timber"/>)}
+      <Block position={alongX?[door.width/2,3.35,0]:[0,3.35,door.width/2]} size={alongX?[door.width-.1,6.65,.13]:[.13,6.65,door.width-.1]} color={door.balcony?'#bad3d5':door.main?'#765136':'#ae8c66'} surface={door.balcony?undefined:'timber'} opacity={door.balcony?.2:1}/>
+      {door.balcony&&[.12,door.width-.12].map(u=><Block key={u} position={alongX?[u,3.35,0]:[0,3.35,u]} size={alongX?[.1,6.65,.16]:[.16,6.65,.1]} color="#444a45"/>)}
+      {(!door.balcony?[2.05,4.75]:[.08,6.62]).map(y=><Block key={y} position={alongX?[door.width/2,y,-.075]:[-.075,y,door.width/2]} size={alongX?[door.width-.25,door.balcony?.1:2.13,.035]:[.035,door.balcony?.1:2.13,door.width-.25]} color={door.balcony?'#444a45':'#c8aa7f'} surface={door.balcony?undefined:'timber'}/>)}
       <Block position={alongX?[door.width*.83,3.25,-.18]:[-.18,3.25,door.width*.83]} size={alongX?[.13,.17,.25]:[.25,.17,.13]} color="#a98043" metalness={.65}/>
     </group>
   </group>;
@@ -90,21 +95,21 @@ function CurtainPanel({width,height,x}:{width:number;height:number;x:number}){
 }
 
 function Window({window,assets,furnished}:{window:WindowSpec;assets:Asset[];furnished:boolean}){
-  const base=window.floor*FLOOR_HEIGHT;
+  const base=window.floor*FLOOR_HEIGHT,height=window.height||3.4,half=height/2;
   const alongX=window.axis==='x';
   const x=window.x+(alongX?window.width/2:0),z=window.z+(alongX?0:window.width/2);
-  return <group position={[x,base+4.7,z]}>
-    <Block position={[0,0,0]} size={alongX?[window.width,3.35,.18]:[.18,3.35,window.width]} color="#c2d7da" opacity={.16}/>
-    <Block position={[0,0,0]} size={alongX?[.07,3.4,.25]:[.25,3.4,.07]} color="#e5e6df"/>
+  return <group position={[x,base+(window.sill??3)+half,z]}>
+    <Block position={[0,0,0]} size={alongX?[window.width,height,.18]:[.18,height,window.width]} color="#c2d7da" opacity={.16}/>
+    <Block position={[0,0,0]} size={alongX?[.07,height,.25]:[.25,height,.07]} color="#e5e6df"/>
     <Block position={[0,0,0]} size={alongX?[window.width,.07,.25]:[.25,.07,window.width]} color="#e5e6df"/>
-    {[-1,1].map(side=><Block key={`edge-${side}`} position={[0,side*1.7,0]} size={alongX?[window.width+.25,.12,.28]:[.28,.12,window.width+.25]} color="#ebe7dd"/>)}
+    {[-1,1].map(side=><Block key={`edge-${side}`} position={[0,side*half,0]} size={alongX?[window.width+.25,.12,.28]:[.28,.12,window.width+.25]} color="#ebe7dd"/>)}
     {[-1,1].map(side=><Block key={side} position={alongX?[side*(window.width/2-.1),0,.12]:[.12,0,side*(window.width/2-.1)]}
-      size={alongX?[.35,3.5,.2]:[.2,3.5,.35]} color="#a78070" opacity={.9}/>)}
+      size={alongX?[.35,height+.18,.2]:[.2,height+.18,.35]} color="#a78070" opacity={.9}/>)}
     {furnished&&<group position={[-window.outward[0]*.25,0,-window.outward[1]*.25]} rotation={[0,Math.atan2(-window.outward[0],-window.outward[1]),0]}>
-      <Block position={[0,1.95,.1]} size={[window.width+.65,.055,.055]} color="#6f6251" metalness={.55}/>
+      <Block position={[0,half+.22,.1]} size={[window.width+.65,.055,.055]} color="#6f6251" metalness={.55}/>
       {assets.some(asset=>asset.category.toLowerCase()==='curtain')?
-        <AssetModel category="curtain" assets={assets} position={[0,-1.6,.18]} size={[window.width,3.4,.3]} fit="stretch"/>:
-        <Suspense fallback={null}>{[-1,1].map(side=><CurtainPanel key={side} width={window.width*.26} height={3.55} x={side*window.width*.47}/>)}</Suspense>}
+        <AssetModel category="curtain" assets={assets} position={[0,-half,.18]} size={[window.width,height,.3]} fit="stretch"/>:
+        <Suspense fallback={null}>{[-1,1].map(side=><CurtainPanel key={side} width={window.width*.26} height={height+.15} x={side*window.width*.47}/>)}</Suspense>}
     </group>}
   </group>;
 }
@@ -133,6 +138,7 @@ function RoomLight({room}:{room:Room}){
     <primitive object={target} position={[0,.1,0]}/>
     <spotLight position={[0,8.05,0]} target={target} color="#fff2df" intensity={65} angle={1.12} penumbra={.72} castShadow={['living','lounge'].includes(room.kind)}
       distance={24} decay={2} shadow-mapSize={[512,512]} shadow-bias={-.0008} shadow-normalBias={.025}/>
+    {['living','lounge','dining'].includes(room.kind)&&[-1,1].flatMap(a=>[-1,1].map(b=><group key={a+'-'+b} position={[a*room.w*.31,8.77,b*room.h*.31]}><mesh><cylinderGeometry args={[.19,.19,.04,20]}/><meshStandardMaterial color="#eee8d9" emissive="#ffd9a0" emissiveIntensity={1.8}/></mesh></group>))}
     <mesh position={[0,8.18,0]}><cylinderGeometry args={[.4,.4,.065,24]}/><meshStandardMaterial color="#fff4d9" emissive="#ffe2a9" emissiveIntensity={1.1}/></mesh>
   </group>;
 }
@@ -156,7 +162,8 @@ function Furniture({room,layout,assets,openShelves,tvOn,chimneyOn,toiletStyle,fu
       <Block position={[rug.x,base+.055,rug.z]} size={[rug.w,.05,rug.d]} color="#d7cab8" surface="fabric"/>
       <AssetModel category="sofa" assets={assets} position={[featureX,base+.1,sofaZ]} size={[sofa.w,2.7,sofa.d]} rotation={Math.PI}/>
       <Block position={[tv.x,base+4.1,tv.z]} size={[tv.w,2.15,tv.d]} color="#181e20" metalness={.16}/>
-      <Block position={[featureX,base+4.1,room.y+.61]} size={[3.28,1.91,.04]} color={tvOn.has(`tv-${room.id}`)?'#9cb6bd':'#13191b'} emissive={tvOn.has(`tv-${room.id}`)?'#2f7284':undefined}/>
+      <Block position={[tv.x,base+4.1,tv.z+.11]} size={[3.28,1.91,.04]} color={tvOn.has(`tv-${room.id}`)?'#9cb6bd':'#13191b'} emissive={tvOn.has(`tv-${room.id}`)?'#2f7284':undefined}/>
+      <Block solid position={[tv.x,base+.72,tv.z+.45]} size={[3.7,1.3,1.05]} color="#b79c78" surface="timber"/>
       <AssetModel category="coffee" assets={assets} position={[coffee.x,base+.1,coffee.z]} size={[coffee.w,1.4,coffee.d]}/>
       <Shelf position={[sx,base,sz]} open={openShelves.has(`shelf-${room.id}`)} assets={assets}/>
       <AssetModel category="plant" assets={assets} position={[room.x+room.w-1.05,base+.1,room.y+room.h-1.1]} size={[.9,2.1,.9]}/>
@@ -232,7 +239,7 @@ export function HouseScene({plan,layout,interactions,assets,mode,cutaway,context
   const furnished=plan.design?.furnished!==false;
   const shellCutaway=mode==='overview'&&cutaway;
   return <group name="HouseExport" userData={{exportRoot:true}} position={[-plan.width/2,0,-plan.depth/2]}>
-    <Site plan={plan}/>{contextVisible&&<SiteWorld plan={plan}/>}
+    <Site plan={plan}/>{!shellCutaway&&<><Architecture plan={plan} layout={layout} assets={assets}/><EntryGarden plan={plan} layout={layout} assets={assets}/></>}{contextVisible&&<SiteWorld plan={plan}/>}
     <Block position={[plan.width/2,-.2,plan.depth/2]} size={[plan.width,.4,plan.depth]} color="#ddd8ce" surface="concrete"/>
     {plan.rooms.filter(room=>room.floor>0&&room.kind!=='stairs').map(room=><Block key={`slab-${room.id}`}
       position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT-.17,room.y+room.h/2]} size={[room.w,.34,room.h]} color="#ddd8ce" surface="concrete" opacity={shellCutaway ? .56 : 1}/>)}
@@ -252,9 +259,10 @@ export function HouseScene({plan,layout,interactions,assets,mode,cutaway,context
     </group>)}
     {layout.walls.filter(wall=>!(shellCutaway&&wall.exterior&&wall.z<.25&&wall.d<.4)).map(wall=><Block key={wall.id}
       position={[wall.x+wall.w/2,wall.floor*FLOOR_HEIGHT+wall.bottom+wall.height/2,wall.z+wall.d/2]}
-      size={[wall.w,wall.height,wall.d]} color={wall.exterior?finish.wall:'#f6f1e6'} opacity={xray?.18:1} surface={plan.design?.wallFinish==='stone'?'stone':plan.design?.wallFinish==='timber'?'timber':'paint'}/>)}
+      size={[wall.w,wall.height,wall.d]} color={wall.exterior?finish.wall:'#f6f1e6'} opacity={xray?.18:1} surface={wall.rooms?.some(id=>plan.rooms.find(r=>r.id===id)?.kind==='bathroom')?'marble':plan.design?.wallFinish==='stone'?'stone':plan.design?.wallFinish==='timber'?'timber':'paint'}/>)}
+    {layout.walls.filter(w=>w.bottom===0&&w.height>1).map(w=><Block key={'skirt-'+w.id} position={[w.x+w.w/2,w.floor*9+.18,w.z+w.d/2]} size={[w.w+.015,.25,w.d+.035]} color="#bfb6a8" surface="limestone"/>)}
     {layout.doors.filter(door=>!door.arch).map(door=><Door key={door.id} door={door} open={openDoors.has(door.id)} angles={doorAngles}/>)}
-    {layout.windows.map(window=><Window key={window.id} window={window} assets={assets} furnished={furnished}/>)}
+    {layout.windows.map(window=><Window key={window.id} window={window} assets={assets} furnished={furnished&&!plan.rooms.some(r=>r.id===window.roomId&&r.kind==='bathroom')}/>)}
     {!shellCutaway&&facadePieces(plan,layout).map(piece=><Block key={piece.id} position={piece.position} size={piece.size} color={piece.surface==='timber'?finish.trim:piece.color} surface={piece.surface}/>)}
     {!shellCutaway&&(!plan.design?.roof||plan.design.roof==='flat')&&<>
       <Block position={[plan.width/2,floorCount*FLOOR_HEIGHT+.15,plan.depth/2]} size={[plan.width+1,.35,plan.depth+1]} color="#f1eee7" surface="concrete"/>

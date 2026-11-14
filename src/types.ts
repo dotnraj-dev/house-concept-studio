@@ -51,7 +51,7 @@ export type Project = { id: string; title: string; requirements: Requirements; p
 export type Ratios = { front: number; middle: number; livingShare: number; kitchenShare: number };
 export const DEFAULT_RATIOS: Ratios = { front: .34, middle: .29, livingShare: .57, kitchenShare: .5 };
 export type RoomKind = 'living'|'dining'|'kitchen'|'bedroom'|'bathroom'|'portico'|'utility'|'pooja'|'lounge'|'terrace'|'stairs'|'passage'|'foyer';
-export type Room = { id: string; kind: RoomKind; label: string; floor: number; x: number; y: number; w: number; h: number };
+export type Room = { featureX?:number; attachedTo?:string; id: string; kind: RoomKind; label: string; floor: number; x: number; y: number; w: number; h: number };
 export type Plan = { rooms: Room[]; valid: boolean; width: number; depth: number; plotWidth: number; plotDepth: number; offsetX: number; offsetY: number; roadSide: Requirements['roadSide']; toiletStyle: Requirements['toiletStyle']; pooja: boolean; warnings: string[]; variantName: string; site?: SiteAnalysis; design?: DesignBrief; checks?: DesignCheck[]; levels?: number; mainDoorFacing?: Direction };
 export type Asset = { id: string; name: string; category: string; width: number; depth: number; height: number; license: string; source: string; fileUrl: string; createdAt: string };
 export type Settings = { companyName: string; costPerSqft: number; sideSetback: number; frontSetback: number; rearSetback: number; currency: string };
@@ -77,6 +77,7 @@ export type DesignBrief = {
   plotMode:'rectangle'|'polygon'; vertices:PlotVertex[]; surveyImage?:string; measurement:'surveyed'|'approximate';
   setbacks:{ north:number; east:number; south:number; west:number }; customSetbacks:boolean;
   houseFacing:Direction; mainDoorFacing:Direction; twoDoors:boolean; outerFacing:Direction; shoeRack:boolean;
+  bathroomAccess?:'attached'|'mixed'|'common';
   furnished:boolean; style:string; wallFinish:string; floorFinish:string; roof:'flat'|'kerala'|'terracotta';
   vastuMode:'strict'|'semi'|'none'; vastuRules:VastuRule[]; roomRequests:RoomRequest[];
   levels:LevelProgram[]; services:ServiceNode[]; pipeSide:Direction; maintenanceWidth:number; sewerAvailable:boolean;
@@ -86,7 +87,7 @@ export type DesignBrief = {
 export const DEFAULT_DESIGN: DesignBrief = {
   version:2,customerEmail:'',language:'Tamil / English',household:'',authority:'',plotMode:'rectangle',vertices:[],measurement:'approximate',
   setbacks:{north:5,east:3,south:3,west:3},customSetbacks:false,houseFacing:'north',mainDoorFacing:'north',
-  twoDoors:false,outerFacing:'north',shoeRack:true,furnished:true,style:'tn-contemporary',wallFinish:'plaster',floorFinish:'tile',roof:'flat',
+  bathroomAccess:'attached',twoDoors:false,outerFacing:'north',shoeRack:true,furnished:true,style:'tn-contemporary',wallFinish:'plaster',floorFinish:'tile',roof:'flat',
   vastuMode:'semi',vastuRules:[],roomRequests:[],levels:[],services:[],pipeSide:'east',maintenanceWidth:2.5,sewerAvailable:true,
   quoteRate:0,quoteOverride:false,quoteTax:0,quoteDiscount:0,quoteExtras:[],includeInteriors:false,balconyFactor:1,porticoFactor:.5,quoteValidity:30,
 };
