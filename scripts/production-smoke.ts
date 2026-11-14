@@ -1,0 +1,8 @@
+import assert from 'node:assert/strict';
+const base='http://127.0.0.1:3002';
+const page=await fetch(base+'/');assert.equal(page.status,200);const html=await page.text();assert.ok(html.includes('House Concept Studio'));const module=html.match(/src="([^\"]+\.js)"/);assert.ok(module);const js=await fetch(base+module[1]);assert.equal(js.status,200);assert.ok(js.headers.get('content-type')?.includes('javascript'));
+for(const file of ['/assets/materials/daylight.hdr','/assets/materials/tile-color.jpg','/assets/free/furniture-kit/loungesofa.glb']){const r=await fetch(base+file,{method:'HEAD'});assert.equal(r.status,200,file);assert.ok(Number(r.headers.get('content-length'))>100);}
+assert.equal((await fetch(base+'/api/projects')).status,401);assert.equal((await fetch(base+'/api/render-input/00000000-0000-4000-8000-000000000001')).status,403);assert.equal((await fetch(base+'/api/unknown')).status,404);
+const login=await fetch(base+'/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:process.env.ADMIN_EMAIL,password:process.env.ADMIN_PASSWORD})});assert.equal(login.status,200);assert.ok(login.headers.get('set-cookie')?.includes('Secure'));const cookie=login.headers.get('set-cookie')!.split(';')[0];assert.equal((await fetch(base+'/api/projects',{headers:{cookie}})).status,200);
+const forbidden=await fetch(base+'/api/settings',{method:'PATCH',headers:{'content-type':'application/json',origin:'https://another-domain.invalid',cookie},body:'{}'});assert.equal(forbidden.status,403);
+await fetch(base+'/api/logout',{method:'POST',headers:{cookie}});console.log('Production smoke passed: compiled app, JS, HDR/PBR/GLB delivery, secure cookies, authenticated APIs and origin checks.');

@@ -1,0 +1,16 @@
+node_modules
+.local_pg
+dist
+dist-server
+.env
+uploads
+.git
+*.log
+.env.*
+!.env.example
+.work
+.secrets
+render-output
+backups
+.local-app.pid.json
+**/__pycache__

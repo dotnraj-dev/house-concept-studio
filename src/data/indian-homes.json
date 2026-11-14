@@ -1,0 +1,759 @@
+{
+  "schema_version": "0.1-research",
+  "reviewed_on": "2026-11-13",
+  "status": "reference_catalogue_integrated_2026_11_13",
+  "scope": "Initial India-oriented residential knowledge seed with Tamil Nadu emphasis.",
+  "limitations": [
+    "Not an exhaustive catalogue of all Indian homes or all current building regulations.",
+    "No numerically enforceable setback, structural, fire or plumbing rule profiles have been certified.",
+    "Strict/semi/none are user-defined application modes.",
+    "Customer instructions and regional reference examples are not scientific or regulatory guarantees.",
+    "Proposed request patterns require implementation and evaluation before claims of automatic understanding."
+  ],
+  "sources": [
+    {
+      "id": "S01",
+      "title": "Tamil Nadu building rules, original 2019",
+      "publisher": "Government of Tamil Nadu / CMDA",
+      "url": "https://www.cmdachennai.gov.in/pdfs/TNCDBR-2019.pdf",
+      "retrieval_status": "opened; subsequent page retrievals timed out",
+      "note": "Base text; amendments must be consolidated before numerical enforcement.",
+      "reviewed_on": "2026-11-13"
+    },
+    {
+      "id": "S02",
+      "title": "Third-party certification amendment, 28 October 2026",
+      "publisher": "Government of Tamil Nadu",
+      "url": "https://www.stationeryprinting.tn.gov.in/gazette/2026/43_III_1A_2026.pdf",
+      "retrieval_status": "opened",
+      "note": "Confirms continuing rule amendments; not a consolidated rulebook.",
+      "reviewed_on": "2026-11-13"
+    },
+    {
+      "id": "S03",
+      "title": "Residential energy and comfort guidance",
+      "publisher": "Bureau of Energy Efficiency",
+      "url": "https://beeindia.gov.in/show_content.php?lang=1&level=2&lid=328&ls_id=202",
+      "retrieval_status": "opened",
+      "note": "Heat gain/loss, ventilation and daylight guidance; applicability is project-specific.",
+      "reviewed_on": "2026-11-13"
+    },
+    {
+      "id": "S04",
+      "title": "Chettinad heritage description",
+      "publisher": "Permanent Delegation of India to UNESCO",
+      "url": "https://whc.unesco.org/en/tentativelists/5920/",
+      "retrieval_status": "opened",
+      "note": "Courtyard planning and climate-responsive materials are documented heritage features.",
+      "reviewed_on": "2026-11-13"
+    },
+    {
+      "id": "S05",
+      "title": "Tamil Nadu merchant house",
+      "publisher": "DakshinaChitra",
+      "url": "https://www.dakshinachitra.net/tamilnadu",
+      "retrieval_status": "opened",
+      "note": "A reconstructed merchant-house veranda, courtyard and doorway provide an example.",
+      "reviewed_on": "2026-11-13"
+    },
+    {
+      "id": "S06",
+      "title": "Traditional Kerala architecture",
+      "publisher": "Kerala Tourism",
+      "url": "https://www.keralatourism.org/faq/what-makes-keralas-traditional-architecture-unique",
+      "retrieval_status": "opened",
+      "note": "Pitched roofs, clay tiles, timber and courtyards are documented features.",
+      "reviewed_on": "2026-11-13"
+    },
+    {
+      "id": "S07",
+      "title": "Chikmagalur house",
+      "publisher": "DakshinaChitra",
+      "url": "https://www.dakshinachitra.net/the_chikmagalur_house",
+      "retrieval_status": "opened",
+      "note": "Specific heritage example combining regional, colonial and Muslim manor influences.",
+      "reviewed_on": "2026-11-13"
+    },
+    {
+      "id": "S08",
+      "title": "Coastal Andhra house",
+      "publisher": "DakshinaChitra",
+      "url": "https://www.dakshinachitra.net/coastal_andhra_house",
+      "retrieval_status": "opened",
+      "note": "Documents a chuttillu example and its vernacular materials.",
+      "reviewed_on": "2026-11-13"
+    },
+    {
+      "id": "S09",
+      "title": "Kutch reconstruction",
+      "publisher": "Hunnarshala Foundation",
+      "url": "https://www.hunnarshala.org/kutch-earthquake-rehabilitation.html",
+      "retrieval_status": "opened",
+      "note": "Documents tested earth-building work and bhunga rebuilding.",
+      "reviewed_on": "2026-11-13"
+    },
+    {
+      "id": "S10",
+      "title": "Shekhawati havelis",
+      "publisher": "Permanent Delegation of India to UNESCO",
+      "url": "https://whc.unesco.org/en/tentativelists/7028/",
+      "retrieval_status": "opened",
+      "note": "Documents courtyard havelis in a specific regional setting.",
+      "reviewed_on": "2026-11-13"
+    },
+    {
+      "id": "S11",
+      "title": "Goan architectural heritage",
+      "publisher": "Government of Goa Tourism Department",
+      "url": "https://goatourism.gov.in/wp-content/uploads/2019/09/Appendix-II.pdf",
+      "retrieval_status": "indexed excerpt; direct open failed",
+      "note": "Heritage source; use as reference, not engineering authority.",
+      "reviewed_on": "2026-11-13"
+    },
+    {
+      "id": "S12",
+      "title": "Majuli housing references",
+      "publisher": "Assam Tourism",
+      "url": "https://assamtourism.gov.in/pdf/Majuli_Tourism_2025.pdf",
+      "retrieval_status": "opened; stilt-house reference also indexed",
+      "note": "Regional reference; no claim that all Assamese housing shares this form.",
+      "reviewed_on": "2026-11-13"
+    },
+    {
+      "id": "S13",
+      "title": "PAHAL house design typologies",
+      "publisher": "Ministry of Rural Development / PIB",
+      "url": "https://www.pib.gov.in/newsite/PrintRelease.aspx?lang=2&reg=48&relid=196104",
+      "retrieval_status": "opened",
+      "note": "Housing zones account for local resources, hazards, livelihood and culture.",
+      "reviewed_on": "2026-11-13"
+    },
+    {
+      "id": "S14",
+      "title": "Septage management advisory, 2013",
+      "publisher": "CPHEEO / Ministry of Urban Development",
+      "url": "https://cpheeo.gov.in/upload/uploadfiles/files/Advisory%20Note%20on%20Septage%20Management%20in%20Urban%20India.pdf",
+      "retrieval_status": "indexed excerpt; direct retrieval timed out",
+      "note": "Maintenance and safe servicing need planning; verify current technical requirements separately.",
+      "reviewed_on": "2026-11-13"
+    },
+    {
+      "id": "S15",
+      "title": "Himachal architectural heritage",
+      "publisher": "Himachal Tourism",
+      "url": "https://himachaltourism.gov.in/destination/architectural/",
+      "retrieval_status": "indexed excerpt; direct retrieval timed out",
+      "note": "Heritage references include timber-and-stone forms; not a structural prescription.",
+      "reviewed_on": "2026-11-13"
+    },
+    {
+      "id": "S16",
+      "title": "Planning sanitation systems in a southern Indian town",
+      "publisher": "Primary research article, 2021",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7876546/",
+      "retrieval_status": "indexed primary research excerpt",
+      "note": "Case study identifies obstructed containment access; it is not a national prevalence estimate.",
+      "reviewed_on": "2026-11-13"
+    }
+  ],
+  "regional_references": [
+    {
+      "id": "tn_merchant_courtyard",
+      "label": "Tamil courtyard / Chettinad-inspired",
+      "regions": [
+        "Tamil Nadu"
+      ],
+      "reference_elements": [
+        "columned veranda",
+        "courtyard",
+        "defined entry",
+        "lime/terracotta/wood palette"
+      ],
+      "source_ids": [
+        "S04",
+        "S05"
+      ],
+      "type": "heritage_reference",
+      "modern_adaptation": "Requires a site-specific design and professional review; not a state-wide customer stereotype.",
+      "asset_licence": "Reference only; imagery and plans are not automatically reusable assets."
+    },
+    {
+      "id": "kerala_traditional",
+      "label": "Kerala traditional-inspired",
+      "regions": [
+        "Kerala"
+      ],
+      "reference_elements": [
+        "pitched tiled roof",
+        "deep veranda",
+        "timber details",
+        "optional courtyard"
+      ],
+      "source_ids": [
+        "S06"
+      ],
+      "type": "heritage_reference",
+      "modern_adaptation": "Requires a site-specific design and professional review; not a state-wide customer stereotype.",
+      "asset_licence": "Reference only; imagery and plans are not automatically reusable assets."
+    },
+    {
+      "id": "karnataka_heritage",
+      "label": "Karnataka heritage references",
+      "regions": [
+        "Karnataka"
+      ],
+      "reference_elements": [
+        "locally selected heritage detailing",
+        "lime/stucco reference palette"
+      ],
+      "source_ids": [
+        "S07"
+      ],
+      "type": "heritage_reference",
+      "modern_adaptation": "Requires a site-specific design and professional review; not a state-wide customer stereotype.",
+      "asset_licence": "Reference only; imagery and plans are not automatically reusable assets."
+    },
+    {
+      "id": "andhra_coastal",
+      "label": "Coastal Andhra chuttillu reference",
+      "regions": [
+        "Andhra Pradesh"
+      ],
+      "reference_elements": [
+        "rounded forms",
+        "protected wall edges",
+        "natural-material references"
+      ],
+      "source_ids": [
+        "S08"
+      ],
+      "type": "heritage_reference",
+      "modern_adaptation": "Requires a site-specific design and professional review; not a state-wide customer stereotype.",
+      "asset_licence": "Reference only; imagery and plans are not automatically reusable assets."
+    },
+    {
+      "id": "kutch_earth",
+      "label": "Kutch earth-building reference",
+      "regions": [
+        "Gujarat"
+      ],
+      "reference_elements": [
+        "earth material palette",
+        "compact rounded forms",
+        "craft details"
+      ],
+      "source_ids": [
+        "S09"
+      ],
+      "type": "heritage_reference",
+      "modern_adaptation": "Requires a site-specific design and professional review; not a state-wide customer stereotype.",
+      "asset_licence": "Reference only; imagery and plans are not automatically reusable assets."
+    },
+    {
+      "id": "shekhawati",
+      "label": "Shekhawati haveli-inspired",
+      "regions": [
+        "Rajasthan"
+      ],
+      "reference_elements": [
+        "courtyard",
+        "shaded openings",
+        "regional decorative references"
+      ],
+      "source_ids": [
+        "S10"
+      ],
+      "type": "heritage_reference",
+      "modern_adaptation": "Requires a site-specific design and professional review; not a state-wide customer stereotype.",
+      "asset_licence": "Reference only; imagery and plans are not automatically reusable assets."
+    },
+    {
+      "id": "goan_heritage",
+      "label": "Goan heritage-inspired",
+      "regions": [
+        "Goa"
+      ],
+      "reference_elements": [
+        "veranda/balcao reference",
+        "tiled roof",
+        "colour and joinery palette"
+      ],
+      "source_ids": [
+        "S11"
+      ],
+      "type": "heritage_reference",
+      "modern_adaptation": "Requires a site-specific design and professional review; not a state-wide customer stereotype.",
+      "asset_licence": "Reference only; imagery and plans are not automatically reusable assets."
+    },
+    {
+      "id": "assam_chang_ghar",
+      "label": "Assam chang ghar reference",
+      "regions": [
+        "Assam"
+      ],
+      "reference_elements": [
+        "raised dwelling reference",
+        "lightweight material appearance"
+      ],
+      "source_ids": [
+        "S12"
+      ],
+      "type": "heritage_reference",
+      "modern_adaptation": "Requires a site-specific design and professional review; not a state-wide customer stereotype.",
+      "asset_licence": "Reference only; imagery and plans are not automatically reusable assets."
+    },
+    {
+      "id": "himalayan_heritage",
+      "label": "Western Himalayan heritage reference",
+      "regions": [
+        "Himachal Pradesh"
+      ],
+      "reference_elements": [
+        "timber and stone palette",
+        "regional roof references"
+      ],
+      "source_ids": [
+        "S15"
+      ],
+      "type": "heritage_reference",
+      "modern_adaptation": "Requires a site-specific design and professional review; not a state-wide customer stereotype.",
+      "asset_licence": "Reference only; imagery and plans are not automatically reusable assets."
+    }
+  ],
+  "proposed_modern_presets": [
+    {
+      "id": "tn_contemporary",
+      "label": "Tamil Nadu contemporary",
+      "type": "product_proposal",
+      "elements": [
+        "site-specific shading",
+        "balanced openings",
+        "configurable veranda",
+        "modern material palette"
+      ]
+    },
+    {
+      "id": "kerala_contemporary",
+      "label": "Kerala contemporary",
+      "type": "product_proposal",
+      "elements": [
+        "customisable roof expression",
+        "veranda",
+        "modern interior palette"
+      ]
+    },
+    {
+      "id": "custom_mix",
+      "label": "Custom mix",
+      "type": "product_proposal",
+      "elements": [
+        "independent roof",
+        "independent facade",
+        "independent interior style"
+      ]
+    }
+  ],
+  "customer_request_patterns": [
+    {
+      "id": "north_road_east_entry",
+      "example": "The road is north, but the main door must face east.",
+      "structured_targets": [
+        "road_boundaries",
+        "gate.position",
+        "entrance_sequence",
+        "main_door.outward_facing"
+      ],
+      "clarifying_question": "Does the first north-facing door mean the compound gate or a lobby door?",
+      "origin": "proposed_product_pattern",
+      "default_priority": "ask_customer"
+    },
+    {
+      "id": "two_stage_foyer",
+      "example": "Keep a shoe rack between the two entrance doors.",
+      "structured_targets": [
+        "foyer",
+        "shoe_storage_recess",
+        "door_swings",
+        "clear_entry_path"
+      ],
+      "clarifying_question": "Should this be enclosed or a covered outdoor entrance?",
+      "origin": "proposed_product_pattern",
+      "default_priority": "ask_customer"
+    },
+    {
+      "id": "pooja_location_orientation",
+      "example": "Put pooja in this corner, and I should pray facing this direction.",
+      "structured_targets": [
+        "pooja.zone",
+        "worshipper.facing",
+        "deity.facing"
+      ],
+      "clarifying_question": "Please confirm whether the direction refers to the worshipper, deity or room door.",
+      "origin": "proposed_product_pattern",
+      "default_priority": "ask_customer"
+    },
+    {
+      "id": "kitchen_location_cook",
+      "example": "Kitchen here, but I want to face east while cooking.",
+      "structured_targets": [
+        "kitchen.zone",
+        "hob.orientation",
+        "cook.facing",
+        "ventilation"
+      ],
+      "clarifying_question": "Is the location mandatory or a preference?",
+      "origin": "proposed_product_pattern",
+      "default_priority": "ask_customer"
+    },
+    {
+      "id": "fixed_hall_size",
+      "example": "Keep the hall 16 by 20 feet.",
+      "structured_targets": [
+        "room_instance.clear_width",
+        "room_instance.clear_depth",
+        "dimension_lock"
+      ],
+      "clarifying_question": "Are these finished internal dimensions, and may the hall rotate?",
+      "origin": "proposed_product_pattern",
+      "default_priority": "ask_customer"
+    },
+    {
+      "id": "auto_room_sizes",
+      "example": "Make a spacious house; decide the room sizes.",
+      "structured_targets": [
+        "household",
+        "space_priorities",
+        "auto_size",
+        "furniture_clearance"
+      ],
+      "clarifying_question": "Which spaces matter most if the plot cannot fit every preference?",
+      "origin": "proposed_product_pattern",
+      "default_priority": "ask_customer"
+    },
+    {
+      "id": "ground_storage",
+      "example": "Keep the water tank at ground level on this side.",
+      "structured_targets": [
+        "water_storage.type",
+        "position",
+        "level",
+        "pump_requirement",
+        "service_access"
+      ],
+      "clarifying_question": "Is this a storage tank or an underground sump?",
+      "origin": "proposed_product_pattern",
+      "default_priority": "ask_customer"
+    },
+    {
+      "id": "pipe_side",
+      "example": "Run the downpipe along this side and leave walking space.",
+      "structured_targets": [
+        "service_riser",
+        "pipe_route",
+        "maintenance_corridor"
+      ],
+      "clarifying_question": "Is this supply, waste or rainwater piping?",
+      "origin": "proposed_product_pattern",
+      "default_priority": "ask_customer"
+    },
+    {
+      "id": "septic_customer_location",
+      "example": "Keep the septic tank near this corner.",
+      "structured_targets": [
+        "sanitation_system",
+        "containment.position",
+        "inspection_cover",
+        "service_route"
+      ],
+      "clarifying_question": "Is a public sewer available, and can the servicing route reach this location?",
+      "origin": "proposed_product_pattern",
+      "default_priority": "ask_customer"
+    },
+    {
+      "id": "rental_upper",
+      "example": "Keep upstairs separate so tenants do not enter our house.",
+      "structured_targets": [
+        "floor_program",
+        "independent_entry",
+        "stair_access",
+        "metering"
+      ],
+      "clarifying_question": "How many rental units and which floors?",
+      "origin": "proposed_product_pattern",
+      "default_priority": "ask_customer"
+    },
+    {
+      "id": "future_floor",
+      "example": "Build ground now and leave provision for more floors.",
+      "structured_targets": [
+        "present_levels",
+        "future_levels",
+        "stair_extension",
+        "engineering_review"
+      ],
+      "clarifying_question": "How many future floors should be considered in the structural brief?",
+      "origin": "proposed_product_pattern",
+      "default_priority": "ask_customer"
+    },
+    {
+      "id": "elder_access",
+      "example": "Parents should have a bedroom downstairs with an easy bathroom.",
+      "structured_targets": [
+        "ground_bedroom",
+        "bathroom_access",
+        "step_free_route"
+      ],
+      "clarifying_question": "What mobility or assistance needs should the route accommodate?",
+      "origin": "proposed_product_pattern",
+      "default_priority": "ask_customer"
+    },
+    {
+      "id": "kitchen_privacy",
+      "example": "Guests should not see the kitchen from the front door.",
+      "structured_targets": [
+        "sightline_rule",
+        "entry_to_kitchen_visibility",
+        "kitchen_enclosure"
+      ],
+      "clarifying_question": "Do you prefer a closed kitchen or a screening partition?",
+      "origin": "proposed_product_pattern",
+      "default_priority": "ask_customer"
+    },
+    {
+      "id": "courtyard_roof_mix",
+      "example": "Use a Kerala roof with a Tamil courtyard and modern interiors.",
+      "structured_targets": [
+        "roof_style",
+        "courtyard",
+        "interior_style",
+        "drainage"
+      ],
+      "clarifying_question": "Should the courtyard be open to the sky or covered?",
+      "origin": "proposed_product_pattern",
+      "default_priority": "ask_customer"
+    },
+    {
+      "id": "mixed_toilets",
+      "example": "One Indian toilet and western toilets elsewhere.",
+      "structured_targets": [
+        "bathroom_instances",
+        "toilet_style_per_instance"
+      ],
+      "clarifying_question": "Which bathroom should use each style?",
+      "origin": "proposed_product_pattern",
+      "default_priority": "ask_customer"
+    },
+    {
+      "id": "terrace_services",
+      "example": "Keep drying space, solar and tanks without blocking terrace access.",
+      "structured_targets": [
+        "terrace_zones",
+        "solar_clearance",
+        "water_storage",
+        "circulation"
+      ],
+      "clarifying_question": "What equipment is planned now versus reserved for later?",
+      "origin": "proposed_product_pattern",
+      "default_priority": "ask_customer"
+    }
+  ],
+  "proposed_core_fields": {
+    "plot": [
+      "vertices",
+      "survey_method",
+      "measurement_confidence",
+      "north_rotation",
+      "roads",
+      "edge_setbacks",
+      "local_authority",
+      "rule_profile_version"
+    ],
+    "constraints": [
+      "target_id",
+      "floor_id",
+      "location_zone",
+      "facing_direction",
+      "dimension_type",
+      "priority",
+      "source",
+      "locked",
+      "status"
+    ],
+    "levels": [
+      "id",
+      "type",
+      "label",
+      "elevation",
+      "height",
+      "present_or_future",
+      "dwelling_units",
+      "rooms",
+      "stairs",
+      "voids",
+      "service_shafts"
+    ],
+    "services": [
+      "sources",
+      "sumps",
+      "storage_tanks",
+      "pumps",
+      "risers",
+      "pipes",
+      "valves",
+      "inspection_points",
+      "outfalls",
+      "maintenance_paths"
+    ],
+    "quote": [
+      "measurement_policy",
+      "billable_areas_per_floor",
+      "rate_per_sqft",
+      "included_items",
+      "extras",
+      "interior_scope",
+      "tax_configuration",
+      "discounts",
+      "validity",
+      "version"
+    ]
+  },
+  "vastu_modes": [
+    {
+      "id": "strict",
+      "meaning": "Enforce reviewed customer locks; explain conflicts; never silently relax."
+    },
+    {
+      "id": "semi",
+      "meaning": "Enforce selected mandatory items and optimise weighted preferences."
+    },
+    {
+      "id": "none",
+      "meaning": "Apply no Vastu rules; keep other customer, site and building requirements."
+    }
+  ],
+  "priority_order": [
+    "reviewed_regulatory_and_safety_requirements",
+    "customer_mandatory_constraints",
+    "functional_clearances_and_access",
+    "customer_weighted_preferences",
+    "aesthetic_optimisation"
+  ],
+  "material_catalogue_categories": [
+    "structure",
+    "walling",
+    "roofing",
+    "waterproofing",
+    "thermal_layer",
+    "floor_finish",
+    "wall_finish",
+    "joinery",
+    "railings",
+    "plumbing",
+    "electrical",
+    "interior_furniture"
+  ],
+  "material_record_required_fields": [
+    "id",
+    "category",
+    "appearance",
+    "technical_specification_reference",
+    "source",
+    "review_date",
+    "regional_availability",
+    "admin_rate",
+    "rate_unit",
+    "asset_licence",
+    "limitations"
+  ],
+  "tamil_intake_terms": [
+    {
+      "en": "courtyard",
+      "ta": "முற்றம்",
+      "aliases": [
+        "mutram",
+        "muttram"
+      ]
+    },
+    {
+      "en": "front veranda",
+      "ta": "திண்ணை",
+      "aliases": [
+        "thinnai"
+      ]
+    },
+    {
+      "en": "kitchen",
+      "ta": "சமையலறை",
+      "aliases": [
+        "kitchen",
+        "samayalarai"
+      ]
+    },
+    {
+      "en": "bedroom",
+      "ta": "படுக்கையறை",
+      "aliases": [
+        "bedroom"
+      ]
+    },
+    {
+      "en": "bathroom",
+      "ta": "குளியலறை",
+      "aliases": [
+        "bathroom"
+      ]
+    },
+    {
+      "en": "pooja room",
+      "ta": "பூஜை அறை",
+      "aliases": [
+        "pooja",
+        "puja"
+      ]
+    },
+    {
+      "en": "water tank",
+      "ta": "தண்ணீர் தொட்டி",
+      "aliases": [
+        "water tank"
+      ]
+    },
+    {
+      "en": "vastu",
+      "ta": "வாஸ்து",
+      "aliases": [
+        "vasthu",
+        "vaastu",
+        "vastu"
+      ]
+    }
+  ],
+  "open_discussion_items": [
+    {
+      "id": "unfurnished_scope",
+      "proposed_default": "Hide loose furniture/decor; preserve fixed kitchen and bath fittings.",
+      "status": "confirmed_by_user_2026-11-13"
+    },
+    {
+      "id": "interior_quote_scope",
+      "proposed_default": "Separate construction rate from itemised interiors/extras.",
+      "status": "confirmed_by_user_2026-11-13"
+    },
+    {
+      "id": "vastu_rulebook",
+      "proposed_default": "Editable client-reviewed presets plus project-specific customer locks.",
+      "status": "needs_client_rule_content_before_verified_preset"
+    },
+    {
+      "id": "local_rule_profiles",
+      "proposed_default": "Configurable per-edge setbacks; professionally consolidate current rules before automatic compliance claims.",
+      "status": "requires_professional_review"
+    }
+  ],
+  "no_api_key_behaviour": {
+    "core": "Forms, measured geometry, explicit constraints, 3D interaction and quotation should remain available.",
+    "paragraph": "Store notes and interpret only implemented local patterns; do not claim unrestricted language understanding.",
+    "voice": "Recording available; transcription needs a configured provider or installed local model.",
+    "photorealism": "Depends on assets, materials, lighting and a renderer; no API key is required for a local renderer, but hardware and render time still matter."
+  }
+}

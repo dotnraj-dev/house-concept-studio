@@ -1,0 +1,1209 @@
+{
+  "source": "Kenney assets via https://github.com/Hidencod/tge-assets",
+  "revision": "3ddcc695adbba9fb918cf31b7c139b3f95b76910",
+  "license": "CC0-1.0",
+  "models": [
+    {
+      "id": "car-kit/sedan",
+      "name": "Sedan",
+      "fileUrl": "/assets/free/car-kit/sedan.glb",
+      "thumbUrl": "/assets/free/car-kit/thumbs/sedan.webp",
+      "bytes": 184504,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/bathroomcabinet",
+      "name": "Bathroomcabinet",
+      "fileUrl": "/assets/free/furniture-kit/bathroomcabinet.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/bathroomcabinet.webp",
+      "bytes": 7216,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/bathroomcabinetdrawer",
+      "name": "Bathroomcabinetdrawer",
+      "fileUrl": "/assets/free/furniture-kit/bathroomcabinetdrawer.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/bathroomcabinetdrawer.webp",
+      "bytes": 34744,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/bathroommirror",
+      "name": "Bathroommirror",
+      "fileUrl": "/assets/free/furniture-kit/bathroommirror.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/bathroommirror.webp",
+      "bytes": 6792,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/bathroomsink",
+      "name": "Bathroomsink",
+      "fileUrl": "/assets/free/furniture-kit/bathroomsink.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/bathroomsink.webp",
+      "bytes": 22536,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/bathroomsinksquare",
+      "name": "Bathroomsinksquare",
+      "fileUrl": "/assets/free/furniture-kit/bathroomsinksquare.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/bathroomsinksquare.webp",
+      "bytes": 15108,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/bathtub",
+      "name": "Bathtub",
+      "fileUrl": "/assets/free/furniture-kit/bathtub.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/bathtub.webp",
+      "bytes": 35500,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/bear",
+      "name": "Bear",
+      "fileUrl": "/assets/free/furniture-kit/bear.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/bear.webp",
+      "bytes": 11884,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/bedbunk",
+      "name": "Bedbunk",
+      "fileUrl": "/assets/free/furniture-kit/bedbunk.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/bedbunk.webp",
+      "bytes": 40784,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/beddouble",
+      "name": "Beddouble",
+      "fileUrl": "/assets/free/furniture-kit/beddouble.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/beddouble.webp",
+      "bytes": 23368,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/bedsingle",
+      "name": "Bedsingle",
+      "fileUrl": "/assets/free/furniture-kit/bedsingle.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/bedsingle.webp",
+      "bytes": 18636,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/bench",
+      "name": "Bench",
+      "fileUrl": "/assets/free/furniture-kit/bench.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/bench.webp",
+      "bytes": 10756,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/benchcushion",
+      "name": "Benchcushion",
+      "fileUrl": "/assets/free/furniture-kit/benchcushion.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/benchcushion.webp",
+      "bytes": 12500,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/benchcushionlow",
+      "name": "Benchcushionlow",
+      "fileUrl": "/assets/free/furniture-kit/benchcushionlow.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/benchcushionlow.webp",
+      "bytes": 10268,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/bookcaseclosed",
+      "name": "Bookcaseclosed",
+      "fileUrl": "/assets/free/furniture-kit/bookcaseclosed.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/bookcaseclosed.webp",
+      "bytes": 23132,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/bookcasecloseddoors",
+      "name": "Bookcasecloseddoors",
+      "fileUrl": "/assets/free/furniture-kit/bookcasecloseddoors.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/bookcasecloseddoors.webp",
+      "bytes": 22644,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/bookcaseclosedwide",
+      "name": "Bookcaseclosedwide",
+      "fileUrl": "/assets/free/furniture-kit/bookcaseclosedwide.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/bookcaseclosedwide.webp",
+      "bytes": 23140,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/bookcaseopen",
+      "name": "Bookcaseopen",
+      "fileUrl": "/assets/free/furniture-kit/bookcaseopen.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/bookcaseopen.webp",
+      "bytes": 18020,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/bookcaseopenlow",
+      "name": "Bookcaseopenlow",
+      "fileUrl": "/assets/free/furniture-kit/bookcaseopenlow.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/bookcaseopenlow.webp",
+      "bytes": 11520,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/books",
+      "name": "Books",
+      "fileUrl": "/assets/free/furniture-kit/books.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/books.webp",
+      "bytes": 6864,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/cabinetbed",
+      "name": "Cabinetbed",
+      "fileUrl": "/assets/free/furniture-kit/cabinetbed.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/cabinetbed.webp",
+      "bytes": 7496,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/cabinetbeddrawer",
+      "name": "Cabinetbeddrawer",
+      "fileUrl": "/assets/free/furniture-kit/cabinetbeddrawer.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/cabinetbeddrawer.webp",
+      "bytes": 16088,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/cabinetbeddrawertable",
+      "name": "Cabinetbeddrawertable",
+      "fileUrl": "/assets/free/furniture-kit/cabinetbeddrawertable.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/cabinetbeddrawertable.webp",
+      "bytes": 12200,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/cabinettelevision",
+      "name": "Cabinettelevision",
+      "fileUrl": "/assets/free/furniture-kit/cabinettelevision.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/cabinettelevision.webp",
+      "bytes": 10524,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/cabinettelevisiondoors",
+      "name": "Cabinettelevisiondoors",
+      "fileUrl": "/assets/free/furniture-kit/cabinettelevisiondoors.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/cabinettelevisiondoors.webp",
+      "bytes": 16876,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/cardboardboxclosed",
+      "name": "Cardboardboxclosed",
+      "fileUrl": "/assets/free/furniture-kit/cardboardboxclosed.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/cardboardboxclosed.webp",
+      "bytes": 5400,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/cardboardboxopen",
+      "name": "Cardboardboxopen",
+      "fileUrl": "/assets/free/furniture-kit/cardboardboxopen.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/cardboardboxopen.webp",
+      "bytes": 5404,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/ceilingfan",
+      "name": "Ceilingfan",
+      "fileUrl": "/assets/free/furniture-kit/ceilingfan.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/ceilingfan.webp",
+      "bytes": 15284,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/chair",
+      "name": "Chair",
+      "fileUrl": "/assets/free/furniture-kit/chair.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/chair.webp",
+      "bytes": 10756,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/chaircushion",
+      "name": "Chaircushion",
+      "fileUrl": "/assets/free/furniture-kit/chaircushion.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/chaircushion.webp",
+      "bytes": 12588,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/chairdesk",
+      "name": "Chairdesk",
+      "fileUrl": "/assets/free/furniture-kit/chairdesk.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/chairdesk.webp",
+      "bytes": 39016,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/chairmoderncushion",
+      "name": "Chairmoderncushion",
+      "fileUrl": "/assets/free/furniture-kit/chairmoderncushion.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/chairmoderncushion.webp",
+      "bytes": 7376,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/chairmodernframecushion",
+      "name": "Chairmodernframecushion",
+      "fileUrl": "/assets/free/furniture-kit/chairmodernframecushion.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/chairmodernframecushion.webp",
+      "bytes": 18592,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/chairrounded",
+      "name": "Chairrounded",
+      "fileUrl": "/assets/free/furniture-kit/chairrounded.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/chairrounded.webp",
+      "bytes": 17156,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/coatrack",
+      "name": "Coatrack",
+      "fileUrl": "/assets/free/furniture-kit/coatrack.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/coatrack.webp",
+      "bytes": 9948,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/coatrackstanding",
+      "name": "Coatrackstanding",
+      "fileUrl": "/assets/free/furniture-kit/coatrackstanding.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/coatrackstanding.webp",
+      "bytes": 13288,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/computerkeyboard",
+      "name": "Computerkeyboard",
+      "fileUrl": "/assets/free/furniture-kit/computerkeyboard.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/computerkeyboard.webp",
+      "bytes": 3476,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/computermouse",
+      "name": "Computermouse",
+      "fileUrl": "/assets/free/furniture-kit/computermouse.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/computermouse.webp",
+      "bytes": 5868,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/computerscreen",
+      "name": "Computerscreen",
+      "fileUrl": "/assets/free/furniture-kit/computerscreen.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/computerscreen.webp",
+      "bytes": 6404,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/desk",
+      "name": "Desk",
+      "fileUrl": "/assets/free/furniture-kit/desk.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/desk.webp",
+      "bytes": 15048,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/deskcorner",
+      "name": "Deskcorner",
+      "fileUrl": "/assets/free/furniture-kit/deskcorner.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/deskcorner.webp",
+      "bytes": 17984,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/doorway",
+      "name": "Doorway",
+      "fileUrl": "/assets/free/furniture-kit/doorway.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/doorway.webp",
+      "bytes": 14532,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/doorwayfront",
+      "name": "Doorwayfront",
+      "fileUrl": "/assets/free/furniture-kit/doorwayfront.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/doorwayfront.webp",
+      "bytes": 13016,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/doorwayopen",
+      "name": "Doorwayopen",
+      "fileUrl": "/assets/free/furniture-kit/doorwayopen.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/doorwayopen.webp",
+      "bytes": 3256,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/dryer",
+      "name": "Dryer",
+      "fileUrl": "/assets/free/furniture-kit/dryer.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/dryer.webp",
+      "bytes": 17760,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/floorcorner",
+      "name": "Floorcorner",
+      "fileUrl": "/assets/free/furniture-kit/floorcorner.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/floorcorner.webp",
+      "bytes": 2524,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/floorcornerround",
+      "name": "Floorcornerround",
+      "fileUrl": "/assets/free/furniture-kit/floorcornerround.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/floorcornerround.webp",
+      "bytes": 5168,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/floorfull",
+      "name": "Floorfull",
+      "fileUrl": "/assets/free/furniture-kit/floorfull.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/floorfull.webp",
+      "bytes": 2260,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/floorhalf",
+      "name": "Floorhalf",
+      "fileUrl": "/assets/free/furniture-kit/floorhalf.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/floorhalf.webp",
+      "bytes": 2264,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/hoodlarge",
+      "name": "Hoodlarge",
+      "fileUrl": "/assets/free/furniture-kit/hoodlarge.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/hoodlarge.webp",
+      "bytes": 4652,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/hoodmodern",
+      "name": "Hoodmodern",
+      "fileUrl": "/assets/free/furniture-kit/hoodmodern.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/hoodmodern.webp",
+      "bytes": 3968,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchenbar",
+      "name": "Kitchenbar",
+      "fileUrl": "/assets/free/furniture-kit/kitchenbar.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchenbar.webp",
+      "bytes": 6004,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchenbarend",
+      "name": "Kitchenbarend",
+      "fileUrl": "/assets/free/furniture-kit/kitchenbarend.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchenbarend.webp",
+      "bytes": 11084,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchenblender",
+      "name": "Kitchenblender",
+      "fileUrl": "/assets/free/furniture-kit/kitchenblender.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchenblender.webp",
+      "bytes": 18728,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchencabinet",
+      "name": "Kitchencabinet",
+      "fileUrl": "/assets/free/furniture-kit/kitchencabinet.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchencabinet.webp",
+      "bytes": 10444,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchencabinetcornerinner",
+      "name": "Kitchencabinetcornerinner",
+      "fileUrl": "/assets/free/furniture-kit/kitchencabinetcornerinner.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchencabinetcornerinner.webp",
+      "bytes": 5184,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchencabinetcornerround",
+      "name": "Kitchencabinetcornerround",
+      "fileUrl": "/assets/free/furniture-kit/kitchencabinetcornerround.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchencabinetcornerround.webp",
+      "bytes": 13656,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchencabinetdrawer",
+      "name": "Kitchencabinetdrawer",
+      "fileUrl": "/assets/free/furniture-kit/kitchencabinetdrawer.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchencabinetdrawer.webp",
+      "bytes": 15384,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchencabinetupper",
+      "name": "Kitchencabinetupper",
+      "fileUrl": "/assets/free/furniture-kit/kitchencabinetupper.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchencabinetupper.webp",
+      "bytes": 8168,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchencabinetuppercorner",
+      "name": "Kitchencabinetuppercorner",
+      "fileUrl": "/assets/free/furniture-kit/kitchencabinetuppercorner.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchencabinetuppercorner.webp",
+      "bytes": 13712,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchencabinetupperdouble",
+      "name": "Kitchencabinetupperdouble",
+      "fileUrl": "/assets/free/furniture-kit/kitchencabinetupperdouble.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchencabinetupperdouble.webp",
+      "bytes": 18184,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchencabinetupperlow",
+      "name": "Kitchencabinetupperlow",
+      "fileUrl": "/assets/free/furniture-kit/kitchencabinetupperlow.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchencabinetupperlow.webp",
+      "bytes": 7216,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchencoffeemachine",
+      "name": "Kitchencoffeemachine",
+      "fileUrl": "/assets/free/furniture-kit/kitchencoffeemachine.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchencoffeemachine.webp",
+      "bytes": 13332,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchenfridge",
+      "name": "Kitchenfridge",
+      "fileUrl": "/assets/free/furniture-kit/kitchenfridge.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchenfridge.webp",
+      "bytes": 20116,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchenfridgebuiltin",
+      "name": "Kitchenfridgebuiltin",
+      "fileUrl": "/assets/free/furniture-kit/kitchenfridgebuiltin.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchenfridgebuiltin.webp",
+      "bytes": 22616,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchenfridgelarge",
+      "name": "Kitchenfridgelarge",
+      "fileUrl": "/assets/free/furniture-kit/kitchenfridgelarge.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchenfridgelarge.webp",
+      "bytes": 30632,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchenfridgesmall",
+      "name": "Kitchenfridgesmall",
+      "fileUrl": "/assets/free/furniture-kit/kitchenfridgesmall.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchenfridgesmall.webp",
+      "bytes": 12988,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchenmicrowave",
+      "name": "Kitchenmicrowave",
+      "fileUrl": "/assets/free/furniture-kit/kitchenmicrowave.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchenmicrowave.webp",
+      "bytes": 11248,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchensink",
+      "name": "Kitchensink",
+      "fileUrl": "/assets/free/furniture-kit/kitchensink.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchensink.webp",
+      "bytes": 23480,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchenstove",
+      "name": "Kitchenstove",
+      "fileUrl": "/assets/free/furniture-kit/kitchenstove.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchenstove.webp",
+      "bytes": 54324,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/kitchenstoveelectric",
+      "name": "Kitchenstoveelectric",
+      "fileUrl": "/assets/free/furniture-kit/kitchenstoveelectric.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/kitchenstoveelectric.webp",
+      "bytes": 18604,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/lamproundfloor",
+      "name": "Lamproundfloor",
+      "fileUrl": "/assets/free/furniture-kit/lamproundfloor.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/lamproundfloor.webp",
+      "bytes": 6600,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/lamproundtable",
+      "name": "Lamproundtable",
+      "fileUrl": "/assets/free/furniture-kit/lamproundtable.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/lamproundtable.webp",
+      "bytes": 6604,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/lampsquareceiling",
+      "name": "Lampsquareceiling",
+      "fileUrl": "/assets/free/furniture-kit/lampsquareceiling.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/lampsquareceiling.webp",
+      "bytes": 5628,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/lampsquarefloor",
+      "name": "Lampsquarefloor",
+      "fileUrl": "/assets/free/furniture-kit/lampsquarefloor.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/lampsquarefloor.webp",
+      "bytes": 5624,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/lampsquaretable",
+      "name": "Lampsquaretable",
+      "fileUrl": "/assets/free/furniture-kit/lampsquaretable.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/lampsquaretable.webp",
+      "bytes": 5624,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/lampwall",
+      "name": "Lampwall",
+      "fileUrl": "/assets/free/furniture-kit/lampwall.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/lampwall.webp",
+      "bytes": 4828,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/laptop",
+      "name": "Laptop",
+      "fileUrl": "/assets/free/furniture-kit/laptop.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/laptop.webp",
+      "bytes": 5540,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/loungechair",
+      "name": "Loungechair",
+      "fileUrl": "/assets/free/furniture-kit/loungechair.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/loungechair.webp",
+      "bytes": 9648,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/loungechairrelax",
+      "name": "Loungechairrelax",
+      "fileUrl": "/assets/free/furniture-kit/loungechairrelax.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/loungechairrelax.webp",
+      "bytes": 13904,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/loungedesignchair",
+      "name": "Loungedesignchair",
+      "fileUrl": "/assets/free/furniture-kit/loungedesignchair.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/loungedesignchair.webp",
+      "bytes": 9136,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/loungedesignsofa",
+      "name": "Loungedesignsofa",
+      "fileUrl": "/assets/free/furniture-kit/loungedesignsofa.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/loungedesignsofa.webp",
+      "bytes": 9128,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/loungedesignsofacorner",
+      "name": "Loungedesignsofacorner",
+      "fileUrl": "/assets/free/furniture-kit/loungedesignsofacorner.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/loungedesignsofacorner.webp",
+      "bytes": 13744,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/loungesofa",
+      "name": "Loungesofa",
+      "fileUrl": "/assets/free/furniture-kit/loungesofa.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/loungesofa.webp",
+      "bytes": 9644,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/loungesofacorner",
+      "name": "Loungesofacorner",
+      "fileUrl": "/assets/free/furniture-kit/loungesofacorner.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/loungesofacorner.webp",
+      "bytes": 13412,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/loungesofalong",
+      "name": "Loungesofalong",
+      "fileUrl": "/assets/free/furniture-kit/loungesofalong.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/loungesofalong.webp",
+      "bytes": 13112,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/loungesofaottoman",
+      "name": "Loungesofaottoman",
+      "fileUrl": "/assets/free/furniture-kit/loungesofaottoman.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/loungesofaottoman.webp",
+      "bytes": 6960,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/paneling",
+      "name": "Paneling",
+      "fileUrl": "/assets/free/furniture-kit/paneling.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/paneling.webp",
+      "bytes": 3960,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/pillow",
+      "name": "Pillow",
+      "fileUrl": "/assets/free/furniture-kit/pillow.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/pillow.webp",
+      "bytes": 5044,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/pillowblue",
+      "name": "Pillowblue",
+      "fileUrl": "/assets/free/furniture-kit/pillowblue.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/pillowblue.webp",
+      "bytes": 5056,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/pillowbluelong",
+      "name": "Pillowbluelong",
+      "fileUrl": "/assets/free/furniture-kit/pillowbluelong.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/pillowbluelong.webp",
+      "bytes": 5088,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/pillowlong",
+      "name": "Pillowlong",
+      "fileUrl": "/assets/free/furniture-kit/pillowlong.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/pillowlong.webp",
+      "bytes": 5072,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/plantsmall1",
+      "name": "Plantsmall1",
+      "fileUrl": "/assets/free/furniture-kit/plantsmall1.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/plantsmall1.webp",
+      "bytes": 8224,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/plantsmall2",
+      "name": "Plantsmall2",
+      "fileUrl": "/assets/free/furniture-kit/plantsmall2.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/plantsmall2.webp",
+      "bytes": 12996,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/plantsmall3",
+      "name": "Plantsmall3",
+      "fileUrl": "/assets/free/furniture-kit/plantsmall3.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/plantsmall3.webp",
+      "bytes": 8424,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/pottedplant",
+      "name": "Pottedplant",
+      "fileUrl": "/assets/free/furniture-kit/pottedplant.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/pottedplant.webp",
+      "bytes": 7576,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/radio",
+      "name": "Radio",
+      "fileUrl": "/assets/free/furniture-kit/radio.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/radio.webp",
+      "bytes": 25020,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/rugdoormat",
+      "name": "Rugdoormat",
+      "fileUrl": "/assets/free/furniture-kit/rugdoormat.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/rugdoormat.webp",
+      "bytes": 13812,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/rugrectangle",
+      "name": "Rugrectangle",
+      "fileUrl": "/assets/free/furniture-kit/rugrectangle.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/rugrectangle.webp",
+      "bytes": 3188,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/ruground",
+      "name": "Ruground",
+      "fileUrl": "/assets/free/furniture-kit/ruground.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/ruground.webp",
+      "bytes": 10164,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/rugrounded",
+      "name": "Rugrounded",
+      "fileUrl": "/assets/free/furniture-kit/rugrounded.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/rugrounded.webp",
+      "bytes": 10876,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/rugsquare",
+      "name": "Rugsquare",
+      "fileUrl": "/assets/free/furniture-kit/rugsquare.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/rugsquare.webp",
+      "bytes": 3180,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/shower",
+      "name": "Shower",
+      "fileUrl": "/assets/free/furniture-kit/shower.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/shower.webp",
+      "bytes": 52020,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/showerround",
+      "name": "Showerround",
+      "fileUrl": "/assets/free/furniture-kit/showerround.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/showerround.webp",
+      "bytes": 72048,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/sidetable",
+      "name": "Sidetable",
+      "fileUrl": "/assets/free/furniture-kit/sidetable.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/sidetable.webp",
+      "bytes": 8800,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/sidetabledrawers",
+      "name": "Sidetabledrawers",
+      "fileUrl": "/assets/free/furniture-kit/sidetabledrawers.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/sidetabledrawers.webp",
+      "bytes": 19072,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/speaker",
+      "name": "Speaker",
+      "fileUrl": "/assets/free/furniture-kit/speaker.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/speaker.webp",
+      "bytes": 15744,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/speakersmall",
+      "name": "Speakersmall",
+      "fileUrl": "/assets/free/furniture-kit/speakersmall.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/speakersmall.webp",
+      "bytes": 15244,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/stairs",
+      "name": "Stairs",
+      "fileUrl": "/assets/free/furniture-kit/stairs.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/stairs.webp",
+      "bytes": 21616,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/stairscorner",
+      "name": "Stairscorner",
+      "fileUrl": "/assets/free/furniture-kit/stairscorner.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/stairscorner.webp",
+      "bytes": 21576,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/stairsopen",
+      "name": "Stairsopen",
+      "fileUrl": "/assets/free/furniture-kit/stairsopen.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/stairsopen.webp",
+      "bytes": 39924,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/stairsopensingle",
+      "name": "Stairsopensingle",
+      "fileUrl": "/assets/free/furniture-kit/stairsopensingle.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/stairsopensingle.webp",
+      "bytes": 24600,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/stoolbar",
+      "name": "Stoolbar",
+      "fileUrl": "/assets/free/furniture-kit/stoolbar.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/stoolbar.webp",
+      "bytes": 11816,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/stoolbarsquare",
+      "name": "Stoolbarsquare",
+      "fileUrl": "/assets/free/furniture-kit/stoolbarsquare.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/stoolbarsquare.webp",
+      "bytes": 9784,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/table",
+      "name": "Table",
+      "fileUrl": "/assets/free/furniture-kit/table.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/table.webp",
+      "bytes": 8196,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/tablecloth",
+      "name": "Tablecloth",
+      "fileUrl": "/assets/free/furniture-kit/tablecloth.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/tablecloth.webp",
+      "bytes": 9920,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/tablecoffee",
+      "name": "Tablecoffee",
+      "fileUrl": "/assets/free/furniture-kit/tablecoffee.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/tablecoffee.webp",
+      "bytes": 8256,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/tablecoffeeglass",
+      "name": "Tablecoffeeglass",
+      "fileUrl": "/assets/free/furniture-kit/tablecoffeeglass.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/tablecoffeeglass.webp",
+      "bytes": 9428,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/tablecoffeeglasssquare",
+      "name": "Tablecoffeeglasssquare",
+      "fileUrl": "/assets/free/furniture-kit/tablecoffeeglasssquare.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/tablecoffeeglasssquare.webp",
+      "bytes": 9448,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/tablecoffeesquare",
+      "name": "Tablecoffeesquare",
+      "fileUrl": "/assets/free/furniture-kit/tablecoffeesquare.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/tablecoffeesquare.webp",
+      "bytes": 8276,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/tablecross",
+      "name": "Tablecross",
+      "fileUrl": "/assets/free/furniture-kit/tablecross.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/tablecross.webp",
+      "bytes": 12140,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/tablecrosscloth",
+      "name": "Tablecrosscloth",
+      "fileUrl": "/assets/free/furniture-kit/tablecrosscloth.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/tablecrosscloth.webp",
+      "bytes": 13852,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/tableglass",
+      "name": "Tableglass",
+      "fileUrl": "/assets/free/furniture-kit/tableglass.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/tableglass.webp",
+      "bytes": 9848,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/tableround",
+      "name": "Tableround",
+      "fileUrl": "/assets/free/furniture-kit/tableround.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/tableround.webp",
+      "bytes": 6444,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/televisionantenna",
+      "name": "Televisionantenna",
+      "fileUrl": "/assets/free/furniture-kit/televisionantenna.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/televisionantenna.webp",
+      "bytes": 4500,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/televisionmodern",
+      "name": "Televisionmodern",
+      "fileUrl": "/assets/free/furniture-kit/televisionmodern.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/televisionmodern.webp",
+      "bytes": 6368,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/televisionvintage",
+      "name": "Televisionvintage",
+      "fileUrl": "/assets/free/furniture-kit/televisionvintage.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/televisionvintage.webp",
+      "bytes": 19392,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/toaster",
+      "name": "Toaster",
+      "fileUrl": "/assets/free/furniture-kit/toaster.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/toaster.webp",
+      "bytes": 14924,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/toilet",
+      "name": "Toilet",
+      "fileUrl": "/assets/free/furniture-kit/toilet.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/toilet.webp",
+      "bytes": 18112,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/toiletsquare",
+      "name": "Toiletsquare",
+      "fileUrl": "/assets/free/furniture-kit/toiletsquare.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/toiletsquare.webp",
+      "bytes": 17548,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/trashcan",
+      "name": "Trashcan",
+      "fileUrl": "/assets/free/furniture-kit/trashcan.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/trashcan.webp",
+      "bytes": 6452,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/wall",
+      "name": "Wall",
+      "fileUrl": "/assets/free/furniture-kit/wall.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/wall.webp",
+      "bytes": 3340,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/wallcorner",
+      "name": "Wallcorner",
+      "fileUrl": "/assets/free/furniture-kit/wallcorner.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/wallcorner.webp",
+      "bytes": 4460,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/wallcornerrond",
+      "name": "Wallcornerrond",
+      "fileUrl": "/assets/free/furniture-kit/wallcornerrond.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/wallcornerrond.webp",
+      "bytes": 10448,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/walldoorway",
+      "name": "Walldoorway",
+      "fileUrl": "/assets/free/furniture-kit/walldoorway.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/walldoorway.webp",
+      "bytes": 6444,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/walldoorwaywide",
+      "name": "Walldoorwaywide",
+      "fileUrl": "/assets/free/furniture-kit/walldoorwaywide.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/walldoorwaywide.webp",
+      "bytes": 6468,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/wallhalf",
+      "name": "Wallhalf",
+      "fileUrl": "/assets/free/furniture-kit/wallhalf.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/wallhalf.webp",
+      "bytes": 3348,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/wallwindow",
+      "name": "Wallwindow",
+      "fileUrl": "/assets/free/furniture-kit/wallwindow.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/wallwindow.webp",
+      "bytes": 10744,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/wallwindowslide",
+      "name": "Wallwindowslide",
+      "fileUrl": "/assets/free/furniture-kit/wallwindowslide.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/wallwindowslide.webp",
+      "bytes": 14564,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/washer",
+      "name": "Washer",
+      "fileUrl": "/assets/free/furniture-kit/washer.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/washer.webp",
+      "bytes": 48104,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "furniture-kit/washerdryerstacked",
+      "name": "Washerdryerstacked",
+      "fileUrl": "/assets/free/furniture-kit/washerdryerstacked.glb",
+      "thumbUrl": "/assets/free/furniture-kit/thumbs/washerdryerstacked.webp",
+      "bytes": 64060,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "innerscene/curtain",
+      "name": "Sheer curtain",
+      "fileUrl": "/assets/free/innerscene/curtain.glb",
+      "thumbUrl": "/assets/free/innerscene/preview.svg",
+      "bytes": 396076,
+      "license": "CC0-1.0",
+      "source": "https://www.innerscene.com/tools/library/3d-parts/sheer-curtain-original-interior-furnishing-48661116"
+    },
+    {
+      "id": "innerscene/door",
+      "name": "Panel entry door",
+      "fileUrl": "/assets/free/innerscene/door.glb",
+      "thumbUrl": "/assets/free/innerscene/preview.svg",
+      "bytes": 985132,
+      "license": "CC0-1.0",
+      "source": "https://www.innerscene.com/tools/library/3d-parts/panel-panel-entry-door-c7a6a51c"
+    },
+    {
+      "id": "nature-kit/flower-reda",
+      "name": "Flower reda",
+      "fileUrl": "/assets/free/nature-kit/flower-reda.glb",
+      "thumbUrl": "/assets/free/nature-kit/thumbs/flower-reda.webp",
+      "bytes": 7104,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "nature-kit/flower-yellowa",
+      "name": "Flower yellowa",
+      "fileUrl": "/assets/free/nature-kit/flower-yellowa.glb",
+      "thumbUrl": "/assets/free/nature-kit/thumbs/flower-yellowa.webp",
+      "bytes": 7120,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "nature-kit/grass",
+      "name": "Grass",
+      "fileUrl": "/assets/free/nature-kit/grass.glb",
+      "thumbUrl": "/assets/free/nature-kit/thumbs/grass.webp",
+      "bytes": 11496,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "nature-kit/plant-bush",
+      "name": "Plant bush",
+      "fileUrl": "/assets/free/nature-kit/plant-bush.glb",
+      "thumbUrl": "/assets/free/nature-kit/thumbs/plant-bush.webp",
+      "bytes": 4396,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "nature-kit/plant-bushlarge",
+      "name": "Plant bushlarge",
+      "fileUrl": "/assets/free/nature-kit/plant-bushlarge.glb",
+      "thumbUrl": "/assets/free/nature-kit/thumbs/plant-bushlarge.webp",
+      "bytes": 6436,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "nature-kit/tree-default",
+      "name": "Tree default",
+      "fileUrl": "/assets/free/nature-kit/tree-default.glb",
+      "thumbUrl": "/assets/free/nature-kit/thumbs/tree-default.webp",
+      "bytes": 9428,
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "nature-kit/tree-palmshort",
+      "name": "Tree palmshort",
+      "fileUrl": "/assets/free/nature-kit/tree-palmshort.glb",
+      "thumbUrl": "/assets/free/nature-kit/thumbs/tree-palmshort.webp",
+      "bytes": 15596,
+      "license": "CC0-1.0"
+    }
+  ]
+}

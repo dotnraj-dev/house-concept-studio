@@ -1,0 +1,9 @@
+{
+  "camera": {
+    "position": [30, 30, 40],
+    "quaternion": [-0.18, 0.36, 0.07, 0.91]
+  },
+  "samples": 256,
+  "width": 1920,
+  "environment_file": "public/assets/materials/daylight.hdr"
+}

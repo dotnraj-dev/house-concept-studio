@@ -1,0 +1,146 @@
+import {ViewerBoundary} from './ViewerBoundary';
+import {GLTFExporter} from 'three/addons/exporters/GLTFExporter.js';
+import type {Scene,Camera,PerspectiveCamera} from 'three';
+import {RenderPanel} from './RenderPanel';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { Environment, OrbitControls, useProgress } from '@react-three/drei';
+import { ACESFilmicToneMapping, PCFSoftShadowMap } from 'three';
+import type { Asset, Plan, Room } from '../types';
+import { CameraRig, type ViewCommand, type ViewerMode } from '../house3d/CameraRig';
+import { HouseScene } from '../house3d/HouseScene';
+import { FLOOR_HEIGHT, furnishingFrame, makeHouseLayout, makeInteractions, worldX, worldZ } from '../house3d/layout';
+import {FEET_TO_METRES,prepareExport} from '../house3d/export';
+
+function roomView(plan:Plan,room:Room|undefined,floor:number):ViewCommand{
+  const landing=room?.kind==='stairs'?furnishingFrame(plan,room):null;
+  const point=landing?landing.transform(0,landing.local.y+2):null;
+  const x=point?point[0]:room?room.x+room.w/2:plan.width/2;
+  const z=point?point[1]:room?room.y+room.h/2:plan.depth/2;
+  return {id:Date.now(),floor,position:[worldX(plan,x),floor*FLOOR_HEIGHT+5.2,worldZ(plan,z)],
+    look:[worldX(plan,x),floor*FLOOR_HEIGHT+4.5,worldZ(plan,z-5)]};
+}
+
+export function House3D({plan,floor,assets,projectId,canRender=false}:{plan:Plan;floor:number;assets:Asset[];projectId?:string;canRender?:boolean}){
+  const {active:loading,progress}=useProgress();
+  const [furnished,setFurnished]=useState(plan.design?.furnished!==false),[showServices,setShowServices]=useState(false),[xray,setXray]=useState(false),[exporting,setExporting]=useState(false),[exportError,setExportError]=useState('');
+  const sceneRef=useRef<Scene|null>(null),cameraRef=useRef<Camera|null>(null);
+  const exportTask=useRef<Promise<Blob>|null>(null);
+  function cameraPose(){const c=cameraRef.current as PerspectiveCamera|null;return c?{position:c.position.toArray().map(value=>value*FEET_TO_METRES),quaternion:c.quaternion.toArray(),fov:c.fov||52,units:'metres'}:null;}
+  function downloadCamera(){const camera=cameraPose();if(!camera)return;const blob=new Blob([JSON.stringify({camera,width:1920,samples:256},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='house-render-options.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  useEffect(()=>setFurnished(plan.design?.furnished!==false),[plan.design?.furnished]);
+  const displayPlan=useMemo(()=>({...plan,design:plan.design?{...plan.design,furnished}:undefined}),[plan,furnished]);
+  async function exportScene(){
+    if(exportTask.current)throw new Error('An export is already running. Wait for it to finish before trying again.');
+    if(loading)throw new Error('Wait for all materials and furniture to finish loading.');
+    const root=sceneRef.current?.getObjectByName('HouseExport');if(!root)throw new Error('The 3D scene is still loading.');
+    const prepared=prepareExport(root);
+    const task=new GLTFExporter().parseAsync(prepared.root,{binary:true,onlyVisible:true,maxTextureSize:2048}).then(result=>{
+      if(!(result instanceof ArrayBuffer))throw new Error('Unable to export this scene.');
+      if(result.byteLength>50*1024*1024)throw new Error('This scene exceeds the 50 MB render limit. Use smaller uploaded textures or fewer custom assets.');
+      return new Blob([result],{type:'model/gltf-binary'});
+    }).finally(()=>{prepared.dispose();exportTask.current=null;});
+    exportTask.current=task;
+    let timer:ReturnType<typeof setTimeout>|undefined;
+    try{return await Promise.race([task,new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error('Export is taking longer than 90 seconds. Wait before retrying, or reload the viewer if it remains stuck.')),90000);})]);}
+    finally{clearTimeout(timer);}
+  }
+  async function downloadModel(){setExporting(true);setExportError('');try{const blob=await exportScene(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='house-concept.glb';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(e){setExportError((e as Error).message);}finally{setExporting(false);}}
+  const layout=useMemo(()=>makeHouseLayout(plan),[plan]);
+  const doorAngles=useMemo(()=>new Map<string,number>(),[layout]);
+  const interactions=useMemo(()=>makeInteractions(displayPlan,layout),[displayPlan,layout]);
+  const [mode,setMode]=useState<ViewerMode>('overview');
+  const [cutaway,setCutaway]=useState(false);
+  const [openDoors,setOpenDoors]=useState<Set<string>>(new Set());
+  const [openShelves,setOpenShelves]=useState<Set<string>>(new Set());
+  const [tvOn,setTvOn]=useState<Set<string>>(new Set());
+  const [chimneyOn,setChimneyOn]=useState<Set<string>>(new Set());
+  const [command,setCommand]=useState<ViewCommand|null>(null);
+  const [tourId,setTourId]=useState(0);
+  const [locked,setLocked]=useState(false);
+  const [hover,setHover]=useState('');
+  const canvasRef=useRef<HTMLCanvasElement|null>(null);
+  const lastFloor=useRef(floor);
+
+  const toggleSet=(setter:Dispatch<SetStateAction<Set<string>>>,id:string)=>setter(previous=>{
+    const next=new Set(previous);if(next.has(id))next.delete(id);else next.add(id);return next;
+  });
+
+  const interact=useCallback((id:string)=>{
+    const item=interactions.find(entry=>entry.id===id);
+    if(!item)return;
+    if(item.action==='door')return toggleSet(setOpenDoors,id);
+    if(item.action==='shelf')return toggleSet(setOpenShelves,id);
+    if(item.action==='tv')return toggleSet(setTvOn,id);
+    if(item.action==='chimney')return toggleSet(setChimneyOn,id);
+    if(item.action==='stairs'){
+      const nextFloor=item.floor===(plan.levels||1)-1?Math.max(0,item.floor-1):item.floor+1;
+      const destination=plan.rooms.find(room=>room.floor===nextFloor&&room.kind==='stairs')||plan.rooms.find(room=>room.floor===nextFloor&&room.kind==='lounge');
+      if(destination){setMode('walk');setCommand(roomView(plan,destination,nextFloor));}
+      return;
+    }
+    if(item.view&&item.look){
+      setMode('walk');
+      setCommand({id:Date.now()+Math.random(),floor:item.floor,
+        position:[worldX(plan,item.view[0]),item.floor*FLOOR_HEIGHT+item.view[1],worldZ(plan,item.view[2])],
+        look:[worldX(plan,item.look[0]),item.floor*FLOOR_HEIGHT+item.look[1],worldZ(plan,item.look[2])]});
+    }
+  },[interactions,plan]);
+
+  useEffect(()=>{
+    if(lastFloor.current===floor)return;
+    lastFloor.current=floor;
+    const destination=plan.rooms.find(room=>room.floor===floor&&room.kind==='lounge')||plan.rooms.find(room=>room.floor===floor&&room.kind==='living')||plan.rooms.find(room=>room.floor===floor);
+    if(destination){setMode('walk');setCommand(roomView(plan,destination,floor));}
+  },[floor,plan]);
+
+  const exitPointer=()=>{if(document.pointerLockElement===canvasRef.current)document.exitPointerLock();};
+  const overview=()=>{exitPointer();setHover('');setMode('overview');setCommand(null);};
+  const walk=()=>{
+    setMode('walk');setCommand(null);setHover('');
+    canvasRef.current?.requestPointerLock?.().catch(()=>{});
+  };
+  const tour=()=>{
+    exitPointer();setCutaway(false);setOpenDoors(new Set(layout.doors.map(door=>door.id)));
+    setMode('tour');setTourId(previous=>previous+1);setHover('');
+  };
+
+  return <div className="house-viewer">
+    <div className="viewer-toolbar" aria-label="3D viewing modes">
+      <button className={mode==='overview'&&!cutaway?'active':''} onClick={()=>{overview();setCutaway(false);}}>Exterior</button>
+      <button className={mode==='overview'&&cutaway?'active':''} onClick={()=>{overview();setCutaway(true);}}>All floors</button>
+      <button className={mode==='tour'?'active':''} onClick={tour}>Guided tour</button>
+      <button className={mode==='walk'?'active':''} onClick={walk}>Walk inside</button>
+      <label><input type="checkbox" checked={furnished} onChange={e=>setFurnished(e.target.checked)}/> Interiors</label><label><input type="checkbox" checked={showServices} onChange={e=>setShowServices(e.target.checked)}/> Plumbing</label><label><input type="checkbox" checked={xray} onChange={e=>setXray(e.target.checked)}/> Transparent walls</label><button disabled={exporting||loading} onClick={downloadModel}>{exporting?'Exporting…':'Download 3D'}</button><button disabled={loading} onClick={downloadCamera}>Download camera settings</button>
+    </div>
+    <div className="house-canvas">
+      <ViewerBoundary><Canvas shadows gl={{preserveDrawingBuffer:true}} dpr={[1,1.7]} camera={{position:[plan.width*.85,plan.depth*.8,plan.depth*.9],fov:52,near:.05,far:Math.max(400,(plan.levels||1)*40)}}
+        onCreated={({gl,scene,camera})=>{sceneRef.current=scene;cameraRef.current=camera;canvasRef.current=gl.domElement;gl.toneMapping=ACESFilmicToneMapping;gl.toneMappingExposure=1.08;gl.shadowMap.type=PCFSoftShadowMap;}}>
+        <color attach="background" args={['#d3ded9']}/>
+        <fog attach="fog" args={['#d3ded9',90,260]}/>
+        <Suspense fallback={null}><Environment files="/assets/materials/daylight.hdr" environmentIntensity={.55}/></Suspense>
+        <ambientLight intensity={.28}/>
+        <hemisphereLight args={['#e9f2f6','#b4aa97',.6]}/>
+        <directionalLight position={[-25,38,-18]} intensity={3.1} castShadow shadow-mapSize={[2048,2048]} shadow-bias={-.00018}
+          shadow-camera-left={-75} shadow-camera-right={75} shadow-camera-top={75} shadow-camera-bottom={-75}/>
+        <mesh rotation={[-Math.PI/2,0,0]} position={[0,-.7,0]} receiveShadow><planeGeometry args={[400,400]}/><meshStandardMaterial color="#9ca994"/></mesh>
+        <HouseScene plan={displayPlan} layout={layout} interactions={interactions} assets={assets} mode={mode} cutaway={cutaway} showServices={showServices} xray={xray}
+          openDoors={openDoors} doorAngles={doorAngles} openShelves={openShelves} tvOn={tvOn} chimneyOn={chimneyOn} onInteract={interact}/>
+        <CameraRig plan={plan} layout={layout} interactions={interactions} mode={mode} floor={floor} command={command} tourId={tourId}
+          openDoors={openDoors} doorAngles={doorAngles} onInteract={interact} onHover={setHover} onTourDone={overview} onLockChange={setLocked}/>
+        <OrbitControls enabled={mode==='overview'} enableDamping dampingFactor={.08} target={[0,(plan.levels||1)*4,0]}
+          minDistance={9} maxDistance={Math.max(150,(plan.levels||1)*25)} maxPolarAngle={Math.PI*.52}/>
+      </Canvas></ViewerBoundary>
+      {loading&&<div className="viewer-loading" role="status">Loading materials & models · {Math.round(progress)}%</div>}
+      {mode==='walk'&&<><div className="viewer-crosshair">+</div><div className="viewer-interaction">{hover?`${hover} · E or click`:'Look at an object to interact'}</div>
+        {!locked&&<button className="viewer-lock" onClick={()=>canvasRef.current?.requestPointerLock?.().catch(()=>{})}>Click to control the camera</button>}</>}
+      {mode==='tour'&&<div className="viewer-tour-label">GUIDED HOUSE TOUR · FRONT → INTERIOR → ALL FLOORS</div>}
+    </div>
+    {exportError&&<p role="alert">{exportError}</p>}
+    {canRender&&projectId&&<RenderPanel projectId={projectId} createScene={exportScene} camera={cameraPose}/>}
+    <div className="viewer-help">
+      {mode==='walk'?<><strong>W A S D</strong> move <span>·</span> <strong>Mouse</strong> look <span>·</span> <strong>Shift</strong> sprint <span>·</span> <strong>Space</strong> jump <span>·</span> <strong>C</strong> crouch <span>·</span> <strong>E</strong> interact <span>·</span> <strong>Esc</strong> release mouse</>:
+        <><strong>Drag</strong> rotate <span>·</span> <strong>Scroll</strong> zoom <span>·</span> <strong>Right drag</strong> pan <span>·</span> Click sofa or window for a person’s view</>}
+    </div>
+  </div>;
+}

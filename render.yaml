@@ -1,0 +1,42 @@
+# Free staging environment; Render's free PostgreSQL expires after 30 days.
+# Upgrade or export the test data before expiry. See HOSTING.md.
+# Native Node deployment; Docker and a GPU are not required for the web service.
+services:
+  - type: web
+    name: house-concept-studio-test
+    runtime: node
+    region: singapore
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: node dist-server/index.cjs
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_VERSION
+        value: '22'
+      - key: NODE_ENV
+        value: production
+      - key: FILE_STORAGE
+        value: database
+      - key: FILE_STORAGE_LIMIT_MB
+        value: '200'
+      - key: SEED_SHOWCASE
+        value: 'true'
+      - key: DATABASE_URL
+        fromDatabase:
+          name: house-concept-studio-test-db
+          property: connectionString
+      - key: CREDENTIAL_ENCRYPTION_KEY
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: admin@house-studio.local
+      - key: ADMIN_PASSWORD
+        generateValue: true
+databases:
+  - name: house-concept-studio-test-db
+    region: singapore
+    plan: free
+    databaseName: house_studio
+    user: house_studio
+    postgresMajorVersion: '17'
+    ipAllowList: []

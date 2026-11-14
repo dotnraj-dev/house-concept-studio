@@ -1,0 +1,23 @@
+[Unit]
+Description=House Concept Studio
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=house-studio
+Group=house-studio
+WorkingDirectory=/opt/house-studio
+EnvironmentFile=/opt/house-studio/.env
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node /opt/house-studio/dist-server/index.cjs
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/house-studio/uploads /opt/house-studio/render-output /opt/house-studio/.secrets
+
+[Install]
+WantedBy=multi-user.target
