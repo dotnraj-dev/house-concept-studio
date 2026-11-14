@@ -1,0 +1,226 @@
+[
+  {
+    "id": "state-andhra-pradesh",
+    "state": "Andhra Pradesh",
+    "name": "Coastal Andhra",
+    "family": "clay",
+    "note": "A shaded cooking verandah and a simple eave inspired by the coastal chuttillu.",
+    "source": "https://www.dakshinachitra.net/coastal_andhra_house"
+  },
+  {
+    "id": "state-arunachal-pradesh",
+    "state": "Arunachal Pradesh",
+    "name": "Galo hills",
+    "family": "woven",
+    "note": "Warm timber against woven surfaces; a sheltered transition from outside.",
+    "source": "https://www.sahapedia.org/galo-people-and-their-houses"
+  },
+  {
+    "id": "state-assam",
+    "state": "Assam",
+    "name": "Brahmaputra valley",
+    "family": "woven",
+    "note": "Light wall panels, a sheltered entry and a steep rain roof.",
+    "source": "https://cbri.res.in/wp-content/uploads/2020/11/pahal.pdf"
+  },
+  {
+    "id": "state-bihar",
+    "state": "Bihar",
+    "name": "Mithila village",
+    "family": "earth",
+    "note": "A pale earth-toned wall with a dark plinth and a sheltered household threshold.",
+    "source": "https://commons.wikimedia.org/wiki/File:Old_house_in_a_Bihar_village.jpg"
+  },
+  {
+    "id": "state-chhattisgarh",
+    "state": "Chhattisgarh",
+    "name": "Central plains",
+    "family": "clay",
+    "note": "Deep clay-coloured eaves beside a shaded work area.",
+    "source": "https://cbri.res.in/wp-content/uploads/2020/11/pahal.pdf"
+  },
+  {
+    "id": "state-goa",
+    "state": "Goa",
+    "name": "Goan balcão",
+    "family": "coast",
+    "note": "A coloured street facade, a shaded sitting porch and contrasting window trim.",
+    "source": "https://www.goa.gov.in/what_to_see/heritage-mansions/"
+  },
+  {
+    "id": "state-gujarat",
+    "state": "Gujarat",
+    "name": "Ahmedabad pol",
+    "family": "wood",
+    "note": "A wood-framed street opening and warm interior joinery.",
+    "source": "https://vernacular-architecture.in/regions/west-and-central/"
+  },
+  {
+    "id": "state-haryana",
+    "state": "Haryana",
+    "name": "Plains haveli",
+    "family": "lime",
+    "note": "A framed entrance, pale plaster and a quiet interior sitting space.",
+    "source": "https://www.dronahfoundation.org/an-old-haveli-in-karnal/"
+  },
+  {
+    "id": "state-himachal-pradesh",
+    "state": "Himachal Pradesh",
+    "name": "Kangra hill house",
+    "family": "slate",
+    "note": "Stone-grey slopes and a timber band distinguish the upper storey.",
+    "source": "https://vernacular-architecture.in/regions/himalayas/"
+  },
+  {
+    "id": "state-jharkhand",
+    "state": "Jharkhand",
+    "name": "Plateau homestead",
+    "family": "earth",
+    "note": "An earth-red base and a light wall leave space for locally chosen artwork.",
+    "source": "https://cbri.res.in/wp-content/uploads/2020/11/pahal.pdf"
+  },
+  {
+    "id": "state-karnataka",
+    "state": "Karnataka",
+    "name": "Malnad house",
+    "family": "wood",
+    "note": "Dark timber under tiled eaves shelters the threshold.",
+    "source": "https://www.dakshinachitra.net/the_chikmagalur_house"
+  },
+  {
+    "id": "state-kerala",
+    "state": "Kerala",
+    "name": "Kerala tiled eaves",
+    "family": "malabar",
+    "note": "Broad, shaded clay eaves over lime-coloured walls and dark interior timber.",
+    "source": "https://keralamuseum.org/article/vernacular-architecture-a-connection-between-kerala-and-south-east-asia/"
+  },
+  {
+    "id": "state-madhya-pradesh",
+    "state": "Madhya Pradesh",
+    "name": "Malwa homestead",
+    "family": "earth",
+    "note": "Warm walls and clay tones carry from the entry to the living space.",
+    "source": "https://vernacular-architecture.in/regions/west-and-central/"
+  },
+  {
+    "id": "state-maharashtra",
+    "state": "Maharashtra",
+    "name": "Deccan wada",
+    "family": "wood",
+    "note": "A timber-lined entry with a sheltered threshold and tiled roof.",
+    "source": "https://vernacular-architecture.in/regions/west-and-central/"
+  },
+  {
+    "id": "state-manipur",
+    "state": "Manipur",
+    "name": "Valley homestead",
+    "family": "woven",
+    "note": "Light-toned wall panels sheltered by an overhanging roof.",
+    "source": "https://cbri.res.in/wp-content/uploads/2020/11/pahal.pdf"
+  },
+  {
+    "id": "state-meghalaya",
+    "state": "Meghalaya",
+    "name": "Khasi hills",
+    "family": "slate",
+    "note": "Stone and timber tones set under a steep rain roof.",
+    "source": "https://vernacular-architecture.in/regions/east-and-northeast/"
+  },
+  {
+    "id": "state-mizoram",
+    "state": "Mizoram",
+    "name": "Mizo hill house",
+    "family": "woven",
+    "note": "A shaded timber threshold and a warm woven-wall palette.",
+    "source": "https://mizoramstatemuseum.com/page/living-museum"
+  },
+  {
+    "id": "state-nagaland",
+    "state": "Nagaland",
+    "name": "Naga hill house",
+    "family": "woven",
+    "note": "A pronounced roof silhouette with timber-toned fascia.",
+    "source": "https://vernacular-architecture.in/regions/east-and-northeast/"
+  },
+  {
+    "id": "state-odisha",
+    "state": "Odisha",
+    "name": "Odisha village",
+    "family": "clay",
+    "note": "A clay-coloured roof and shaded threshold beside pale interior walls.",
+    "source": "https://cbri.res.in/wp-content/uploads/2020/11/pahal.pdf"
+  },
+  {
+    "id": "state-punjab",
+    "state": "Punjab",
+    "name": "Punjab haveli",
+    "family": "lime",
+    "note": "Pale stucco, recessed openings and a defined entrance to the sitting room.",
+    "source": "https://vernacular-architecture.in/regions/north/"
+  },
+  {
+    "id": "state-rajasthan",
+    "state": "Rajasthan",
+    "name": "Shekhawati haveli",
+    "family": "sand",
+    "note": "Sand-coloured masonry, a projecting window shade and warm stone floors.",
+    "source": "https://whc.unesco.org/en/tentativelists/7028/"
+  },
+  {
+    "id": "state-sikkim",
+    "state": "Sikkim",
+    "name": "Sikkim hill verandah",
+    "family": "slate",
+    "note": "A sheltered verandah with contrasting timber window frames.",
+    "source": "https://vernacular-architecture.in/regions/himalayas/"
+  },
+  {
+    "id": "state-tamil-nadu",
+    "state": "Tamil Nadu",
+    "name": "Tamil thinnai",
+    "family": "clay",
+    "note": "Warm lime, tiled eaves and a shaded threshold inspired by the thinnai.",
+    "source": "https://www.dakshinachitra.net/tamilnadu"
+  },
+  {
+    "id": "state-telangana",
+    "state": "Telangana",
+    "name": "Deccan town house",
+    "family": "lime",
+    "note": "A restrained contemporary interpretation in lime and stone; ask about privacy at the entrance.",
+    "source": "https://vernacular-architecture.in/regions/south/"
+  },
+  {
+    "id": "state-tripura",
+    "state": "Tripura",
+    "name": "Tripura bamboo house",
+    "family": "woven",
+    "note": "Light wall panels, broad eaves and a sheltered working edge.",
+    "source": "https://cbri.res.in/wp-content/uploads/2020/11/pahal.pdf"
+  },
+  {
+    "id": "state-uttar-pradesh",
+    "state": "Uttar Pradesh",
+    "name": "Awadh town house",
+    "family": "lime",
+    "note": "A framed doorway and an inward-looking palette of lime and warm timber.",
+    "source": "https://vernacular-architecture.in/regions/north/"
+  },
+  {
+    "id": "state-uttarakhand",
+    "state": "Uttarakhand",
+    "name": "Kumaon hill home",
+    "family": "slate",
+    "note": "Contrasting timber windows, stone tones and a pitched roof.",
+    "source": "https://vernacular-architecture.in/regions/himalayas/"
+  },
+  {
+    "id": "state-west-bengal",
+    "state": "West Bengal",
+    "name": "Bengal village home",
+    "family": "clay",
+    "note": "A deep shaded roof edge and warm clay colours around living areas.",
+    "source": "https://vernacular-architecture.in/regions/east-and-northeast/"
+  }
+]

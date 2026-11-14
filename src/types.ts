@@ -1,3 +1,4 @@
+import type {SiteContext} from './site-context';
 export const FEATURES = [
   'projects.view', 'projects.create', 'projects.edit', 'intake.ai', 'intake.voice',
   'plans.generate', 'plans.edit', 'plans.view3d', 'proposals.export',
@@ -71,6 +72,7 @@ export type LevelProgram = { floor:number; name:string; bedrooms:number; bathroo
 export type ServiceNode = { id:string; type:'tank'|'sump'|'septic'|'borewell'|'pump'|'sewer'|'rainwater'; label:string; x:number; y:number; level:number; capacity:number; side:Direction; locked:boolean };
 export type QuoteExtra = { id:string; label:string; quantity:number; rate:number; included:boolean; category:'interior'|'construction'|'service' };
 export type DesignBrief = {
+  siteContext?:SiteContext; guideAnswers?:Record<string,string>;
   version:2; customerEmail:string; language:string; household:string; authority:string;
   plotMode:'rectangle'|'polygon'; vertices:PlotVertex[]; surveyImage?:string; measurement:'surveyed'|'approximate';
   setbacks:{ north:number; east:number; south:number; west:number }; customSetbacks:boolean;

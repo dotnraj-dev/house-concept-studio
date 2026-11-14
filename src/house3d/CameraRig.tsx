@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Raycaster, Vector2, Vector3, type Mesh, type Object3D } from 'three';
 import type { Plan } from '../types';
-import { entrancePose, collidesAt, FLOOR_HEIGHT, type HouseLayout, type Interaction, worldX, worldZ } from './layout';
+import { furnishingFrame, entrancePose, collidesAt, FLOOR_HEIGHT, type HouseLayout, type Interaction, worldX, worldZ } from './layout';
+import {bathroomFixtures} from './bathroom';
 import { walkingSurface } from './navigation';
 import {collectObstacles,obstacleBlocks} from './obstacles';
 
@@ -17,8 +18,17 @@ export function tourPoints(plan:Plan,layout:HouseLayout):Waypoint[]{
  const at=(distance:number,height:number)=>new Vector3(worldX(plan,x+n[0]*distance),height,worldZ(plan,z+n[1]*distance));
  const points:Waypoint[]=[{position:at(18,9),look:new Vector3(0,levels*4,0),seconds:3},{position:at(4,5.2),look:at(-3,4.6),seconds:3},{position:at(-2,5.2),look:at(-7,4.5),seconds:3}];
  for(let f=0;f<levels;f++)for(const r of plan.rooms.filter(r=>r.floor===f&&!['stairs','portico','passage','foyer'].includes(r.kind))){
-  points.push({position:new Vector3(worldX(plan,r.x+r.w*.3),f*9+5.2,worldZ(plan,r.y+r.h*.35)),look:new Vector3(worldX(plan,r.x+r.w*.7),f*9+3.5,worldZ(plan,r.y+r.h*.7)),seconds:1.7,cut:true});
-  points.push({position:new Vector3(worldX(plan,r.x+r.w*.32),f*9+5.2,worldZ(plan,r.y+r.h*.4)),look:new Vector3(worldX(plan,r.x+r.w*.65),f*9+3.5,worldZ(plan,r.y+r.h*.6)),seconds:2.6});
+  const opening=layout.doors.find(d=>d.rooms?.includes(r.id)),cx=r.x+r.w/2,cz=r.y+r.h/2;
+  const ox=opening?opening.x+(opening.axis==='x'?opening.width*.5:0):r.x+.5,oz=opening?opening.z+(opening.axis==='z'?opening.width*.5:0):r.y+.5;
+  const px=Math.max(r.x+.65,Math.min(r.x+r.w-.65,ox+(cx-ox)*.17)),pz=Math.max(r.y+.65,Math.min(r.y+r.h-.65,oz+(cz-oz)*.17));
+  const frame=furnishingFrame(plan,r),k=frame.local;
+  let aim:[number,number]=[cx,cz],eye=5.15,focus=3.1;
+  if(r.kind==='bathroom'){const fixtures=bathroomFixtures(r,layout);if(fixtures.length)aim=[fixtures.reduce((v,t)=>v+t.x,0)/fixtures.length,fixtures.reduce((v,t)=>v+t.z,0)/fixtures.length];focus=2.9;}
+  if(r.kind==='living'||r.kind==='lounge')aim=frame.transform(k.x+k.w*.55,k.y+k.h*.67);
+  if(r.kind==='kitchen')aim=frame.transform(0,k.y+k.h-1.2);
+  const cameraAt=(t:number)=>new Vector3(worldX(plan,px+(cx-px)*t),f*9+eye,worldZ(plan,pz+(cz-pz)*t)),look=new Vector3(worldX(plan,aim[0]),f*9+focus,worldZ(plan,aim[1]));
+  points.push({position:cameraAt(0),look,seconds:.65,cut:true},{position:cameraAt(.09),look,seconds:2.8});
+
  }
  points.push({position:new Vector3(plan.width,Math.max(plan.depth*.8,levels*10),plan.depth),look:new Vector3(0,levels*4,0),seconds:3,cut:true});return points;
 }
@@ -42,7 +52,7 @@ export function CameraRig({plan,layout,interactions,mode,floor,command,tourId,op
   };
 
   useEffect(()=>{
-    if(mode==='overview')aim(new Vector3(plan.width*.9,Math.max(plan.depth*.76,(plan.levels||1)*10),plan.depth*.98),new Vector3(0,(plan.levels||1)*4,0));
+    if(mode==='overview'){const {n}=entrancePose(plan,layout),dist=Math.max(plan.width,plan.depth,(plan.levels||1)*12)*1.3;aim(new Vector3((n[0]+n[1]*.6)*dist,Math.max(16,dist*.46),(n[1]-n[0]*.6)*dist),new Vector3(0,(plan.levels||1)*4,0));}
     if(mode==='walk'&&!command){
       const {x,z,n}=entrancePose(plan,layout);
       aim(new Vector3(worldX(plan,x+n[0]*1.2),5.2,worldZ(plan,z+n[1]*1.2)),new Vector3(worldX(plan,x-n[0]*5),4.7,worldZ(plan,z-n[1]*5)));

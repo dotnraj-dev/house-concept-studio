@@ -1,3 +1,5 @@
+> Historical verification record. The free deployment subsequently went live on 14 November 2026 at https://house-concept-studio-test.onrender.com. See DEPLOYMENT.md and REGIONAL-DESIGN-UPDATE.md for the latest status.
+
 # Core 3D and staging verification — 14 November 2026
 
 ## Implemented

@@ -1,3 +1,7 @@
+import {plotEdges} from '../site-context';
+import {bathroomFixtures} from './bathroom';
+import {HipRoof,SiteWorld,SiteFinish} from './SiteWorld';
+import {palette} from '../regions';
 import { ServiceScene } from './ServiceScene';
 import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
@@ -13,7 +17,7 @@ import {facadePieces} from './facade';
 import {livingFurniture,bedroomFurniture,diningFurniture} from './furniture';
 
 type Mode='overview'|'walk'|'tour';
-type Props={plan:Plan;layout:HouseLayout;interactions:Interaction[];assets:Asset[];mode:Mode;cutaway:boolean;showServices?:boolean;xray?:boolean;
+type Props={plan:Plan;layout:HouseLayout;interactions:Interaction[];assets:Asset[];mode:Mode;cutaway:boolean;contextVisible?:boolean;showServices?:boolean;xray?:boolean;
   openDoors:Set<string>;doorAngles:Map<string,number>;openShelves:Set<string>;tvOn:Set<string>;chimneyOn:Set<string>;onInteract:(id:string)=>void};
 
 function PbrMaterial({surface,size,color,metalness,opacity,emissive}:{surface:PbrSurface;size:[number,number,number];color:string;metalness:number;opacity:number;emissive?:string}){
@@ -22,7 +26,7 @@ function PbrMaterial({surface,size,color,metalness,opacity,emissive}:{surface:Pb
   const maps=useMemo(()=>loaded.map((source,index)=>{
     const texture=source.clone();
     texture.wrapS=texture.wrapT=RepeatWrapping;
-    texture.repeat.set(Math.max(1,size[0]/5),Math.max(1,(size[1]>size[2]?size[1]:size[2])/5));
+    texture.repeat.set(Math.max(.15,(size[1]>1?Math.max(size[0],size[2]):size[0])/5),Math.max(.15,(size[1]>1?size[1]:size[2])/5));
     texture.anisotropy=8;
     if(index===0)texture.colorSpace=SRGBColorSpace;
     texture.needsUpdate=true;
@@ -90,7 +94,7 @@ function Window({window,assets,furnished}:{window:WindowSpec;assets:Asset[];furn
   const alongX=window.axis==='x';
   const x=window.x+(alongX?window.width/2:0),z=window.z+(alongX?0:window.width/2);
   return <group position={[x,base+4.7,z]}>
-    <Block position={[0,0,0]} size={alongX?[window.width,3.35,.18]:[.18,3.35,window.width]} color="#a0c9cb" opacity={.5}/>
+    <Block position={[0,0,0]} size={alongX?[window.width,3.35,.18]:[.18,3.35,window.width]} color="#c2d7da" opacity={.16}/>
     <Block position={[0,0,0]} size={alongX?[.07,3.4,.25]:[.25,3.4,.07]} color="#e5e6df"/>
     <Block position={[0,0,0]} size={alongX?[window.width,.07,.25]:[.25,.07,window.width]} color="#e5e6df"/>
     {[-1,1].map(side=><Block key={`edge-${side}`} position={[0,side*1.7,0]} size={alongX?[window.width+.25,.12,.28]:[.28,.12,window.width+.25]} color="#ebe7dd"/>)}
@@ -143,7 +147,7 @@ function Chimney({position,on,assets}:{position:[number,number,number];on:boolea
   </group>;
 }
 
-function Furniture({room,assets,openShelves,tvOn,chimneyOn,toiletStyle,furnished=true,shoeRack=true}:{furnished?:boolean;shoeRack?:boolean;room:Room;assets:Asset[];openShelves:Set<string>;tvOn:Set<string>;chimneyOn:Set<string>;toiletStyle:Plan['toiletStyle']}){
+function Furniture({room,layout,assets,openShelves,tvOn,chimneyOn,toiletStyle,furnished=true,shoeRack=true}:{layout:HouseLayout;furnished?:boolean;shoeRack?:boolean;room:Room;assets:Asset[];openShelves:Set<string>;tvOn:Set<string>;chimneyOn:Set<string>;toiletStyle:Plan['toiletStyle']}){
   const base=room.floor*FLOOR_HEIGHT,cx=room.x+room.w/2,cz=room.y+room.h/2;
   if(room.kind==='living'||room.kind==='lounge'){
     const {sofa,rug,coffee,tv}=livingFurniture(room),featureX=sofa.x,sofaZ=sofa.z;
@@ -169,6 +173,7 @@ function Furniture({room,assets,openShelves,tvOn,chimneyOn,toiletStyle,furnished
   </group>;}
   if(room.kind==='kitchen')return <group>
     <Block solid position={[cx,base+1,room.y+room.h-.85]} size={[Math.max(2,room.w-1.2),2,1.7]} color="#c4b5a1" surface="timber"/>
+    {Array.from({length:Math.max(1,Math.floor((room.w-1.2)/2.1))},(_,i)=>{const n=Math.max(1,Math.floor((room.w-1.2)/2.1)),w=(room.w-1.2)/n,x=room.x+.6+(i+.5)*w;return <group key={i}><Block position={[x,base+1.08,room.y+room.h-1.72]} size={[w-.065,1.75,.065]} color="#cbb898" surface="timber"/><Block position={[x,base+1.64,room.y+room.h-1.79]} size={[Math.min(.6,w*.4),.045,.12]} color="#665b51" metalness={.62}/></group>;})}
     <Block position={[cx,base+2.05,room.y+room.h-.85]} size={[Math.max(2,room.w-1.2),.14,1.85]} color="#5b6560"/>
     <AssetModel category="sink" assets={assets} position={[cx-1.3,base+2.13,room.y+room.h-1.1]} size={[2.2,.7,1.5]}/>
     <AssetModel category="fridge" assets={assets} position={[room.x+room.w-1.2,base+.1,room.y+1.3]} size={[2.1,5.4,2.0]}/>
@@ -176,14 +181,11 @@ function Furniture({room,assets,openShelves,tvOn,chimneyOn,toiletStyle,furnished
     <Chimney position={[cx+1,base+4.8,room.y+room.h-1]} on={chimneyOn.has(`chimney-${room.id}`)} assets={assets}/>
     <Block position={[cx+1,base+2.14,room.y+room.h-.82]} size={[2.0,.04,1.3]} color="#292d2e"/>
   </group>;
-  if(room.kind==='bathroom')return <group>
-    {toiletStyle==='indian'?<><Block position={[cx-1,base+.18,cz]} size={[2.1,.25,2.6]} color="#f6f3ed"/><Block position={[cx-1,base+.32,cz]} size={[.8,.07,1.4]} color="#879c9a"/></>:<AssetModel category="toilet" assets={assets} position={[cx-1,base+.1,cz]} size={[1.9,2.5,2.2]}/>}
-    <AssetModel category="basin" assets={assets} position={[cx+1.3,base+.1,cz]} size={[1.6,2.7,1.3]}/>
-    <Block position={[cx+1.3,base+4.1,cz-.65]} size={[1.6,1.8,.08]} color="#b8c7c7" metalness={.35}/>
-    <Block position={[room.x+room.w-.5,base+.9,room.y+1.2]} size={[.8,1.8,.8]} color="#e6e5e0"/>
-  </group>;
+  if(room.kind==='bathroom')return <group>{bathroomFixtures(room,layout).map(f=><group key={f.kind} position={[f.x,base+.08,f.z]} rotation={[0,f.angle,0]}>
+    {f.kind==='basin'?<><AssetModel category="basin" assets={assets} position={[0,0,0]} size={[f.width,2.85,f.depth]}/><Block position={[0,4.65,-f.depth/2+.04]} size={[1.72,2.1,.10]} color="#786756"/><Block position={[0,4.65,-f.depth/2+.105]} size={[1.58,1.96,.035]} color="#c8d7d5" metalness={.82}/></>:toiletStyle==='indian'?<><Block position={[0,.07,0]} size={[1.75,.14,2.2]} color="#f2efea"/><mesh position={[0,.147,0]} rotation={[-Math.PI/2,0,0]} scale={[.44,.75,1]}><circleGeometry args={[1,32]}/><meshStandardMaterial color="#b1c0ba"/></mesh></>:<AssetModel category="toilet" assets={assets} position={[0,0,0]} size={[f.width,2.55,f.depth]}/>}
+  </group>)}</group>;
   if(room.kind==='foyer')return furnished&&shoeRack?<group><Block solid position={[room.x+.25,base+1.05,room.y+room.h-.7]} size={[.4,2.1,1.2]} color="#ba9a74" surface="timber"/></group>:null;
-  if(room.kind==='pooja')return <group><Block position={[cx,base+1.3,room.y+room.h-.6]} size={[Math.min(3,room.w-.8),2.6,.8]} color="#be9a65" surface="timber"/><Block position={[cx,base+3,room.y+room.h-.6]} size={[.5,.7,.5]} color="#c4a34e" metalness={.6}/></group>;
+  if(room.kind==='pooja')return <group><Block position={[cx,base+1.3,room.y+room.h-.6]} size={[Math.min(3,room.w-.8),2.6,.8]} color="#be9a65" surface="timber"/><mesh position={[cx,base+2.85,room.y+room.h-.6]}><cylinderGeometry args={[.29,.12,.32,24]}/><meshStandardMaterial color="#ba964f" roughness={.27} metalness={.65}/></mesh></group>;
   if(room.kind==='utility')return <AssetModel category="basin" assets={assets} position={[cx,base+.1,room.y+room.h-1]} size={[2.2,2.8,1.8]}/>;
   if(room.kind==='stairs'){
     const {front,back,run,steps,rise,flightWidth}=stairDimensions(room);
@@ -219,27 +221,29 @@ function Furniture({room,assets,openShelves,tvOn,chimneyOn,toiletStyle,furnished
 }
 
 function Site({plan}:{plan:Plan}){
- const polygon=plan.site?.polygon||[{x:0,y:0},{x:plan.plotWidth,y:0},{x:plan.plotWidth,y:plan.plotDepth},{x:0,y:plan.plotDepth}];
+ const polygon=plotEdges(plan);
  const shape=useMemo(()=>{const sh=new Shape();polygon.forEach((p,i)=>i?sh.lineTo(p.x-plan.offsetX,-p.y+plan.offsetY):sh.moveTo(p.x-plan.offsetX,-p.y+plan.offsetY));sh.closePath();return sh;},[plan]);
- return <group><mesh rotation={[-Math.PI/2,0,0]} position={[0,-.06,0]} receiveShadow><shapeGeometry args={[shape]}/><meshStandardMaterial color="#c5d1b7" roughness={1}/></mesh>{polygon.map((p,i)=>{const q=polygon[(i+1)%polygon.length],dx=q.x-p.x,dz=q.y-p.y,length=Math.hypot(dx,dz);if(('road' in p&&p.road)||(plan.roadSide==='north'&&p.y===0&&q.y===0)||(plan.roadSide==='south'&&p.y===plan.plotDepth&&q.y===plan.plotDepth)||(plan.roadSide==='west'&&p.x===0&&q.x===0)||(plan.roadSide==='east'&&p.x===plan.plotWidth&&q.x===plan.plotWidth))return null;return <group key={i} position={[(p.x+q.x)/2-plan.offsetX,1.1,(p.y+q.y)/2-plan.offsetY]} rotation={[0,-Math.atan2(dz,dx),0]}><Block position={[0,0,0]} size={[length,2.2,.25]} color="#d8d0bd" surface="stone"/></group>;})}</group>;
+ return <group><mesh rotation={[-Math.PI/2,0,0]} position={[0,-.06,0]} receiveShadow><shapeGeometry args={[shape]}/><Suspense fallback={<meshStandardMaterial color="#a2af8c"/>}><SiteFinish type="lawn" repeat={[.15,.15]}/></Suspense></mesh>{polygon.map((p,i)=>{const q=polygon[(i+1)%polygon.length],dx=q.x-p.x,dz=q.y-p.y,length=Math.hypot(dx,dz);if((plan.design?.siteContext?.edges.find(e=>e.edge===p.id)?.use|| (p.road?'road':'open'))==='road')return null;return <group key={i} position={[(p.x+q.x)/2-plan.offsetX,1.1,(p.y+q.y)/2-plan.offsetY]} rotation={[0,-Math.atan2(dz,dx),0]}><Block position={[0,0,0]} size={[length,2.2,.25]} color="#d8d0bd" surface="stone"/></group>;})}</group>;
 }
 
-export function HouseScene({plan,layout,interactions,assets,mode,cutaway,showServices=false,xray=false,openDoors,doorAngles,openShelves,tvOn,chimneyOn,onInteract}:Props){
+export function HouseScene({plan,layout,interactions,assets,mode,cutaway,contextVisible=true,showServices=false,xray=false,openDoors,doorAngles,openShelves,tvOn,chimneyOn,onInteract}:Props){
   const floorCount=plan.levels||Math.max(1,...plan.rooms.map(r=>r.floor+1));
+  const finish=palette(plan.design?.style);
   const furnished=plan.design?.furnished!==false;
   const shellCutaway=mode==='overview'&&cutaway;
   return <group name="HouseExport" userData={{exportRoot:true}} position={[-plan.width/2,0,-plan.depth/2]}>
-    <Site plan={plan}/>
+    <Site plan={plan}/>{contextVisible&&<SiteWorld plan={plan}/>}
     <Block position={[plan.width/2,-.2,plan.depth/2]} size={[plan.width,.4,plan.depth]} color="#ddd8ce" surface="concrete"/>
     {plan.rooms.filter(room=>room.floor>0&&room.kind!=='stairs').map(room=><Block key={`slab-${room.id}`}
       position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT-.17,room.y+room.h/2]} size={[room.w,.34,room.h]} color="#ddd8ce" surface="concrete" opacity={shellCutaway ? .56 : 1}/>)}
     {plan.rooms.map(room=><group key={room.id}>
       {!(room.kind==='stairs'&&room.floor>0)&&<Block position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT+.035,room.y+room.h/2]} size={[room.w,.07,room.h]}
         color={room.kind==='bathroom'?'#ffffff':room.kind==='portico'?'#dedbd3':room.kind==='terrace'?'#e5ddd0':'#fff9ef'}
-        surface={(plan.design?.floorFinish||'tile') as Surface}/>}
-      {(furnished||['kitchen','bathroom','stairs','pooja','utility','foyer','portico'].includes(room.kind))&&(()=>{const frame=furnishingFrame(plan,room);const rotate=!['portico','foyer'].includes(room.kind);return <group position={rotate?[room.x+room.w/2,0,room.y+room.h/2]:[0,0,0]} rotation={[0,rotate?frame.angle:0,0]}><Furniture room={rotate?frame.local:room} assets={assets} openShelves={openShelves} tvOn={tvOn} chimneyOn={chimneyOn} furnished={furnished} shoeRack={plan.design?.shoeRack} toiletStyle={plan.design?.roomRequests.find(q=>q.id===room.id)?.toiletStyle||(plan.toiletStyle==='both'?(plan.rooms.filter(r=>r.kind==='bathroom').findIndex(r=>r.id===room.id)%2?'indian':'western'):plan.toiletStyle)}/></group>;})()}
+        surface={room.kind==='bathroom'?'tile':room.kind==='portico'?'concrete':plan.design?.floorFinish==='tile'?'limestone':(plan.design?.floorFinish||'limestone') as Surface}/>}
+      {(furnished||['kitchen','bathroom','stairs','pooja','utility','foyer','portico'].includes(room.kind))&&(()=>{const frame=furnishingFrame(plan,room);const rotate=!['portico','foyer','bathroom'].includes(room.kind);return <group position={rotate?[room.x+room.w/2,0,room.y+room.h/2]:[0,0,0]} rotation={[0,rotate?frame.angle:0,0]}><Furniture layout={layout} room={rotate?frame.local:room} assets={assets} openShelves={openShelves} tvOn={tvOn} chimneyOn={chimneyOn} furnished={furnished} shoeRack={plan.design?.shoeRack} toiletStyle={plan.design?.roomRequests.find(q=>q.id===room.id)?.toiletStyle||(plan.toiletStyle==='both'?(plan.rooms.filter(r=>r.kind==='bathroom').findIndex(r=>r.id===room.id)%2?'indian':'western'):plan.toiletStyle)}/></group>;})()}
+      {!shellCutaway&&!['portico','terrace','stairs'].includes(room.kind)&&<Block position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT+8.88,room.y+room.h/2]} size={[room.w,.10,room.h]} color="#faf8f0" surface="paint" opacity={xray?.18:1}/>}
       {!['portico','terrace','stairs'].includes(room.kind)&&room.floor<8&&<RoomLight room={room}/>}
-      {room.floor===1&&room.kind==='terrace'&&<>
+      {room.floor>0&&room.kind==='terrace'&&<>
         {room.y===0&&<Block position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT+1.8,room.y+.15]} size={[room.w,3.5,.14]} color="#bed3d0" opacity={.48}/>}
         {room.x===0&&<Block position={[room.x,room.floor*FLOOR_HEIGHT+1.8,room.y+room.h/2]} size={[.14,3.5,room.h]} color="#bed3d0" opacity={.48}/>}
         {room.x+room.w>=plan.width-.05&&<Block position={[plan.width,room.floor*FLOOR_HEIGHT+1.8,room.y+room.h/2]} size={[.14,3.5,room.h]} color="#bed3d0" opacity={.48}/>}
@@ -248,19 +252,17 @@ export function HouseScene({plan,layout,interactions,assets,mode,cutaway,showSer
     </group>)}
     {layout.walls.filter(wall=>!(shellCutaway&&wall.exterior&&wall.z<.25&&wall.d<.4)).map(wall=><Block key={wall.id}
       position={[wall.x+wall.w/2,wall.floor*FLOOR_HEIGHT+wall.bottom+wall.height/2,wall.z+wall.d/2]}
-      size={[wall.w,wall.height,wall.d]} color={wall.exterior?'#f4f0e7':'#fffaf1'} opacity={xray?.18:1} surface={(plan.design?.wallFinish||'plaster') as Surface}/>)}
+      size={[wall.w,wall.height,wall.d]} color={wall.exterior?finish.wall:'#f6f1e6'} opacity={xray?.18:1} surface={plan.design?.wallFinish==='stone'?'stone':plan.design?.wallFinish==='timber'?'timber':'paint'}/>)}
     {layout.doors.filter(door=>!door.arch).map(door=><Door key={door.id} door={door} open={openDoors.has(door.id)} angles={doorAngles}/>)}
     {layout.windows.map(window=><Window key={window.id} window={window} assets={assets} furnished={furnished}/>)}
-    {!shellCutaway&&facadePieces(plan,layout).map(piece=><Block key={piece.id} position={piece.position} size={piece.size} color={piece.color} surface={piece.surface}/>)}
-    {(!shellCutaway)&&<>
+    {!shellCutaway&&facadePieces(plan,layout).map(piece=><Block key={piece.id} position={piece.position} size={piece.size} color={piece.surface==='timber'?finish.trim:piece.color} surface={piece.surface}/>)}
+    {!shellCutaway&&(!plan.design?.roof||plan.design.roof==='flat')&&<>
       <Block position={[plan.width/2,floorCount*FLOOR_HEIGHT+.15,plan.depth/2]} size={[plan.width+1,.35,plan.depth+1]} color="#f1eee7" surface="concrete"/>
       {[0,plan.width].map(x=><Block key={x} position={[x,floorCount*FLOOR_HEIGHT+.75,plan.depth/2]} size={[.4,1.25,plan.depth+1]} color="#ded8ce"/>)}
       {[0,plan.depth].map(z=><Block key={z} position={[plan.width/2,floorCount*FLOOR_HEIGHT+.75,z]} size={[plan.width+1,1.25,.4]} color="#ded8ce"/>)}
     </>}
-    {plan.design?.roof!=='flat'&&!shellCutaway&&[0,1].map(side=><group key={side} position={[plan.width*(side?.75:.25),floorCount*FLOOR_HEIGHT+plan.width*.12,plan.depth/2]} rotation={[0,0,side?Math.atan(.48):-Math.atan(.48)]}><Block position={[0,0,0]} size={[plan.width*.56,.25,plan.depth+1.5]} color="#a36545" surface="tile"/></group>)}
+    {plan.design?.roof&&plan.design.roof!=='flat'&&!shellCutaway&&<HipRoof w={plan.width} d={plan.depth} base={floorCount*FLOOR_HEIGHT} pitch={finish.pitch||.46} eave={finish.eave} color={finish.roof}/>}
     {showServices&&<ServiceScene plan={plan}/>}
-    <Block position={[plan.width/2,1.8,0]} size={[plan.width,.12,.55]} color="#9d775a"/>
-    <Block position={[plan.width/2,floorCount*FLOOR_HEIGHT-.8,0]} size={[plan.width,.2,.65]} color="#b6a28a"/>
     {interactions.map(item=><mesh key={item.id} position={[item.x,item.floor*FLOOR_HEIGHT+item.y,item.z]}
       userData={{interactionId:item.id,label:item.label}} onClick={event=>{if(mode!=='overview')return;event.stopPropagation();onInteract(item.id);}}>
       <boxGeometry args={item.size}/><meshBasicMaterial transparent opacity={.002} depthWrite={false} side={DoubleSide}/>

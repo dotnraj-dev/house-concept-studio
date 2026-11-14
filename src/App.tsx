@@ -1,3 +1,4 @@
+import {DesignGuide} from './components/DesignGuide';
 import { BriefEditor } from './components/BriefEditor';
 import { ProviderSettings } from './components/ProviderSettings';
 import { VoiceInput } from './components/VoiceInput';
@@ -17,7 +18,7 @@ import qualityManifest from '../public/assets/quality/manifest.json';
 
 type Section = 'overview'|'workspace'|'assets'|'team'|'settings'|'account';
 type WorkspaceTab = 'brief'|'plan'|'model'|'proposal';
-type CaptureTab = 'form'|'describe'|'voice';
+type CaptureTab = 'guide'|'form'|'describe'|'voice';
 const niceDate = (value:string) => new Date(value).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
 const money = (n:number) => n > 0 ? `₹${Math.round(n).toLocaleString('en-IN')}` : 'Rate pending';
 const labelFor = (key:string) => key.replace(/([A-Z])/g,' $1').replace(/^./,c=>c.toUpperCase());
@@ -43,7 +44,7 @@ export function App() {
   const [team,setTeam] = useState<User[]>([]);
   const [section,setSection] = useState<Section>('overview');
   const [tab,setTab] = useState<WorkspaceTab>('brief');
-  const [captureTab,setCaptureTab] = useState<CaptureTab>('form');
+  const [captureTab,setCaptureTab] = useState<CaptureTab>('guide');
   const [floor,setFloor] = useState(0);
   const [variant,setVariant] = useState(0);
   const [selectedRoom,setSelectedRoom] = useState<Room|null>(null);
@@ -135,7 +136,8 @@ export function App() {
 
       {section==='workspace'&&project&&<><header className="workspace-head"><div className="crumb"><button onClick={()=>{setSection('overview');localStorage.removeItem('hcs_last_project');}}><ArrowLeft size={16}/> All concepts</button><span>/</span><span>{project.title}</span></div><div className="workspace-title"><div><span className="eyebrow">CUSTOMER CONCEPT · {floorSummary(project.requirements.floors)}</span><input className="title-input" value={project.title} onChange={e=>mutate(p=>({...p,title:e.target.value}))} aria-label="Project title"/><p>{project.requirements.location||'Location not added'} <span className="dot"/> Updated {niceDate(project.updatedAt)}</p></div><div className="head-actions"><span className={`save-indicator ${dirty?'pending':''}`}>{dirty?'Unsaved changes':'All changes saved'}</span><button className="button secondary" onClick={saveNow} disabled={!!busy}><Save size={17}/> Save</button>{allowed('proposals.export')&&<button className="button primary" onClick={()=>{setTab('proposal');setTimeout(()=>window.print(),120);}}><FileDown size={17}/> Export</button>}</div></div></header>
         <div className="step-nav">{([['brief','01','Customer brief'],['plan','02','2D plan'],['model','03','3D home'],['proposal','04','Proposal']] as const).map(([key,no,title])=><button key={key} className={tab===key?'active':''} onClick={()=>setTab(key)} disabled={(key==='plan'&&!allowed('plans.generate'))||(key==='model'&&!allowed('plans.view3d'))}><span>{no}</span>{title}</button>)}</div>
-        {tab==='brief'&&<div className="workspace-grid"><section className="card brief-card"><div className="card-head"><div><span className="eyebrow">STEP 01 / DISCOVERY</span><h2>Tell us about the home</h2><p>Use whichever way feels natural. Every detail lands in the same brief.</p></div><ClipboardList size={23}/></div><div className="segmented capture-tabs"><button className={captureTab==='form'?'selected':''} onClick={()=>setCaptureTab('form')}><ClipboardList size={16}/> Form</button><button className={captureTab==='describe'?'selected':''} onClick={()=>setCaptureTab('describe')}><Sparkles size={16}/> Describe</button><button className={captureTab==='voice'?'selected':''} onClick={()=>setCaptureTab('voice')}><AudioLines size={16}/> Voice</button></div>
+        {tab==='brief'&&<div className="workspace-grid"><section className="card brief-card"><div className="card-head"><div><span className="eyebrow">STEP 01 / DISCOVERY</span><h2>Tell us about the home</h2><p>Use whichever way feels natural. Every detail lands in the same brief.</p></div><ClipboardList size={23}/></div><div className="segmented capture-tabs"><button className={captureTab==='guide'?'selected':''} onClick={()=>setCaptureTab('guide')}><Sparkles size={16}/> Guided interview</button><button className={captureTab==='form'?'selected':''} onClick={()=>setCaptureTab('form')}><ClipboardList size={16}/> Form</button><button className={captureTab==='describe'?'selected':''} onClick={()=>setCaptureTab('describe')}><Sparkles size={16}/> Describe</button><button className={captureTab==='voice'?'selected':''} onClick={()=>setCaptureTab('voice')}><AudioLines size={16}/> Voice</button></div>
+          {captureTab==='guide'&&<DesignGuide key={project.id} req={project.requirements} onChange={requirements=>mutate(p=>({...p,requirements}))} editable={allowed('projects.edit')} canPlan={allowed('plans.generate')} canVoice={allowed('intake.voice')} onPlan={()=>setTab('plan')} onForm={()=>setCaptureTab('form')}/>}
           {captureTab==='form'&&<BriefEditor req={project.requirements} settings={settings} plan={currentPlan} editable={allowed('projects.edit')} canServices={allowed('services.edit')} onChange={requirements=>mutate(p=>({...p,requirements}))}/>}
           {captureTab==='describe'&&<div className="describe-content"><div className="mode-intro"><div className="mode-icon"><Sparkles size={24}/></div><h3>Describe it in your own words</h3><p>Write in simple language. The local reader recognises common dimensions and requests without a key. Optional AI handles more complex wording.</p></div><textarea className="big-textarea" rows={9} value={project.paragraph} onChange={e=>mutate(p=>({...p,paragraph:e.target.value}))} placeholder="Our plot is 30 × 40 feet, road on the east. We want a G+1 house with parking, three bedrooms, one room for parents on the ground floor, a pooja room and a spacious kitchen…"/><div className="mode-action"><span>Suggestions never replace confirmed details automatically.</span><button className="button primary" disabled={!!busy||!allowed('intake.ai')} onClick={()=>extract(project.paragraph)}><WandSparkles size={17}/>{busy==='extract'?'Reading brief…':'Read details (free)'}</button><button className="button secondary" disabled={!!busy||!allowed('intake.ai')} onClick={()=>extract(project.paragraph,true)}>Read with AI (paid)</button></div></div>}
           {captureTab==='voice'&&<VoiceInput text={project.transcript} onText={transcript=>mutate(p=>({...p,transcript}))} onExtract={()=>extract(project.transcript)} enabled={!!allowed('intake.voice')&&!!allowed('projects.edit')}/>}

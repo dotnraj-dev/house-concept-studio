@@ -9,7 +9,7 @@ export type WindowSpec={id:string;floor:number;x:number;z:number;axis:Axis;width
 export type HouseLayout={walls:WallPiece[];doors:DoorSpec[];windows:WindowSpec[]};
 export type Interaction={id:string;label:string;action:'seat'|'window'|'door'|'shelf'|'tv'|'chimney'|'stairs'|'table';floor:number;x:number;y:number;z:number;size:[number,number,number];view?:[number,number,number];look?:[number,number,number]};
 type Segment={axis:Axis;at:number;start:number;end:number;floor:number;owners:Room[];facing?:Direction};
-const T=.28,H=8.5,near=(a:number,b:number)=>Math.abs(a-b)<.035;
+const T=.28,H=8.83,near=(a:number,b:number)=>Math.abs(a-b)<.035;
 export function makeHouseLayout(plan:Plan):HouseLayout{
  const walls:WallPiece[]=[],doors:DoorSpec[]=[],windows:WindowSpec[]=[],segments:Segment[]=[];
  for(let f=0;f<(plan.levels||Math.max(1,...plan.rooms.map(r=>r.floor+1)));f++)for(const axis of ['x','z'] as Axis[]){
@@ -53,7 +53,7 @@ export function collidesAt(plan:Plan,layout:HouseLayout,x:number,z:number,floor:
 }
 export const worldX=(plan:Plan,x:number)=>x-plan.width/2;
 export const worldZ=(plan:Plan,z:number)=>z-plan.depth/2;
-export const shelfSpot=(r:Room):[number,number]=>[r.x+1.05,r.y+r.h-1.4];
+export const shelfSpot=(r:Room):[number,number]=>[r.x+1.05,r.kind==='kitchen'?r.y+r.h-3.15:r.y+r.h-1.4];
 export function furnishingFrame(plan:Plan,room:Room){
  const request=plan.design?.roomRequests.find(q=>q.id===room.id)||plan.design?.roomRequests.find(q=>q.kind===room.kind&&q.floor===room.floor),target=room.kind==='living'?'sofa':room.kind;
  const rule=plan.design?.vastuMode!=='none'?plan.design?.vastuRules.find(v=>v.target===room.id||v.target===target||(room.kind==='pooja'&&['pooja-deity','pooja-worshipper'].includes(v.target))||(room.kind==='kitchen'&&v.target==='cooking')):undefined;
