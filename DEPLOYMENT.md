@@ -66,3 +66,12 @@ Validation: 79 TypeScript tests and 7 Python worker tests in CI; local productio
 Pixabay works locally using encrypted provider storage, including a 24-hour cache hit; the supplied key was verified absent from the browser bundle and release source. Browser automation could not confidently determine the external browser URL and was stopped; the key was not configured in the hosted Settings. Admin should enter it under Connections → Photo references.
 
 The rules layer is a bounded preliminary residential review, not comprehensive statutory certification. Missing site facts, special zones and taller or otherwise unsupported buildings require professional verification. Read TAMIL-NADU-RULES.md and INTERIOR-REALISM-UPDATE.md for exact scope and realism limits.
+
+## Furnishing release verification — 15 November 2026
+
+- Source commit: f0d17a74b66b5f5b61504aa6f2aefa5889dfd532.
+- GitHub Actions run 43697657545 passed on Node 22: 88 application tests, production build and 7 Python renderer tests.
+- Hosted health returned build f0d17a74b66b. The new settings, viewer code, PBR textures and unauthenticated API boundaries were checked directly against the deployed site.
+- Full local production browser run saved and reloaded house-wide and room overrides, captured furnished 2D, exterior, living, kitchen, bedroom, wardrobe, prayer cabinet open/closed, bathroom and stacked-floor views, without browser errors. The subsequent bathroom-door override correction was checked by its regression test and CI build.
+- Four fictional local QA projects were deleted using an exact title/customer/date guard; the local preview server and PostgreSQL cluster started for QA were stopped.
+- No paid AI, GPU rental or paid Render service was started. Local release evidence is in .deploy/fitout-release.json and .deploy/fitout-host-check.json.
