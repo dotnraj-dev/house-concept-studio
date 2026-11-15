@@ -6,9 +6,9 @@ import {beam,ring,solid,roundedPath,profile,instances,mount} from './geometry';
 import {SlatScreen} from './Screens';
 import type {MaterialSet} from './materials';
 export function Pergola(c:FacadeContext,r:Rect,m:MaterialSet,depth=3.4){
- const g=mount(c,r,.9);g.name='Timber pergola with framed soffit';g.add(beam([r.w,.24,.3],m.timber,[0,0,0],.04));
+ const g=mount(c,r,.9);g.name='Timber pergola with framed soffit';g.add(beam([r.w,.24,.3],m.soffit,[0,0,0],.04));
  const poses=[];for(let x=-r.w/2+.18;x<r.w/2;x+=.55)poses.push({at:[x,.04,depth/2] as [number,number,number]});
- g.add(instances(profile(.105,.18,depth,.025),m.timber,poses,'Instanced pergola rafters'));return g;
+ g.add(instances(profile(.105,.18,depth,.025),m.soffit,poses,'Instanced pergola rafters'));return g;
 }
 export function FloorRibbon(plan:Plan,m:MaterialSet,floor:number){
  const g=new Group();g.name='Sweeping white floor ribbon';
@@ -71,7 +71,7 @@ export function TiledRoof(plan:Plan,m:MaterialSet,pitch=.38,eave=1.1){
  const tile=new BufferGeometry();tile.setAttribute('position',new Float32BufferAttribute(tilePos,3));tile.computeVertexNormals();
  for(let x=-a+.38;x<a-.2;x+=.72)for(let z=-b+.4;z<b-.2;z+=.93){
   const side=a-Math.abs(x)<b-Math.abs(z),slope=side?-Math.sign(x)*pitch:-Math.sign(z)*pitch;
-  poses.push({at:[x,height(x,z)+.035,z] as [number,number,number],rotation:side?[Math.atan(slope),Math.PI/2,0] as [number,number,number]:[-Math.atan(slope),0,0] as [number,number,number]});
+  poses.push({at:[x,height(x,z)+.035,z] as [number,number,number],rotation:side?[-Math.atan(slope),Math.PI/2,0] as [number,number,number]:[-Math.atan(slope),0,0] as [number,number,number]});
  }
  const tiles=instances(tile,m.tile,poses,'Instanced curved clay roof tiles');(m.tile as import('three').MeshStandardMaterial).side=DoubleSide;g.add(tiles);
  g.add(beam([plan.width+2*eave,.28,plan.depth+2*eave],m.paint,[0,-.10,0],.07));

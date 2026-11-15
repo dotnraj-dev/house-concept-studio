@@ -1,0 +1,36 @@
+{
+  "manualLightingPersistsAcrossStyleChanges": true,
+  "frontEyeFeetAboveGround": 5.4999999999999964,
+  "matchedCameraReplay": {
+    "position": [
+      -3.35266755056388,
+      2.271121476018956,
+      -18.913125639591907
+    ],
+    "quaternion": [
+      -0.004099926777209503,
+      0.9909556431840169,
+      -0.03114203567986107,
+      -0.13046178542349998
+    ]
+  },
+  "baselineCamera": {
+    "position": [
+      -3.3526675505638805,
+      2.2711214760189558,
+      -18.913125639591907
+    ],
+    "quaternion": [
+      -0.004099926777209504,
+      0.9909556431840169,
+      -0.031142035679861076,
+      -0.13046178542349998
+    ],
+    "fov": 45,
+    "units": "metres"
+  },
+  "walkTravelFeet": 12.466850000098283,
+  "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001506) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "glbBytes": 38053164,
+  "browserErrors": []
+}

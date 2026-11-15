@@ -3,7 +3,7 @@ import {useTexture} from '@react-three/drei';
 import {RepeatWrapping,SRGBColorSpace,Vector2} from 'three';
 import {architecturalBox} from './box-uv';
 import {PBR_SURFACES,surfaceTexture,type PbrSurface,type Surface} from './materials';
-function PbrMaterial({surface,size,color,metalness,opacity,emissive}:{surface:PbrSurface;size:[number,number,number];color:string;metalness:number;opacity:number;emissive?:string}){
+function PbrMaterial({surface,size,color,metalness,opacity,emissive,neutralBase=false}:{surface:PbrSurface;size:[number,number,number];color:string;metalness:number;opacity:number;emissive?:string;neutralBase?:boolean}){
   const paths=['color','normal','roughness'].map(name=>`/assets/materials/${surface}-${name}.jpg`);
   const loaded=useTexture(paths);
   const maps=useMemo(()=>loaded.map((source,index)=>{
@@ -16,12 +16,12 @@ function PbrMaterial({surface,size,color,metalness,opacity,emissive}:{surface:Pb
     return texture;
   }),[loaded[0],loaded[1],loaded[2],size[0],size[1],size[2]]);
   useEffect(()=>()=>maps.forEach(map=>map.dispose()),[maps]);
-  return <meshPhysicalMaterial color={color} map={maps[0]} normalMap={maps[1]} normalScale={new Vector2(surface==='fabric'||surface==='rug'?.45:.18)} roughnessMap={maps[2]} clearcoat={['marble','quartz','porcelain'].includes(surface)?.32:0} clearcoatRoughness={.15}
+  return <meshPhysicalMaterial color={color} map={neutralBase?null:maps[0]} normalMap={maps[1]} normalScale={new Vector2(surface==='fabric'||surface==='rug'?.45:.18)} roughnessMap={maps[2]} clearcoat={['marble','quartz','porcelain'].includes(surface)?.32:0} clearcoatRoughness={.15}
     roughness={surface==='marble'||surface==='quartz'||surface==='porcelain'?1:surface==='woodfloor'?.72:1} metalness={metalness} transparent={opacity<1} opacity={opacity}
     emissive={emissive||'#000000'} emissiveIntensity={emissive ? .35 : 0}/>;
 }
 
-export function Block({position,size,color,metalness=0,roughness,opacity=1,emissive,surface,solid=false}:{position:[number,number,number];size:[number,number,number];color:string;metalness?:number;roughness?:number;opacity?:number;emissive?:string;surface?:Surface;solid?:boolean}){
+export function Block({position,size,color,metalness=0,roughness,opacity=1,emissive,surface,solid=false,neutralBase=false}:{position:[number,number,number];size:[number,number,number];color:string;metalness?:number;roughness?:number;opacity?:number;emissive?:string;surface?:Surface;solid?:boolean;neutralBase?:boolean}){
   const pbr=surface&&PBR_SURFACES.includes(surface as PbrSurface);
   const map=useMemo(()=>surface&&!pbr?surfaceTexture(surface,size):null,[surface,pbr,size[0],size[1],size[2]]);
   useEffect(()=>()=>{map?.dispose();},[map]);
@@ -29,7 +29,7 @@ export function Block({position,size,color,metalness=0,roughness,opacity=1,emiss
   useEffect(()=>()=>geometry.dispose(),[geometry]);
   return <mesh geometry={geometry} userData={{solid}} position={position} castShadow={opacity===1} receiveShadow>
     {pbr?<Suspense fallback={<meshStandardMaterial color={color}/>}><PbrMaterial surface={surface as PbrSurface} size={size} color={color}
-      metalness={metalness} opacity={opacity} emissive={emissive}/></Suspense>:
+      metalness={metalness} opacity={opacity} emissive={emissive} neutralBase={neutralBase}/></Suspense>:
       <meshStandardMaterial color={color} map={map} metalness={metalness} roughness={roughness??(metalness>.5?.19:opacity<1 ? .12 : surface==='concrete' ? .88 : .78)}
         transparent={opacity<1} opacity={opacity} emissive={emissive||'#000000'} emissiveIntensity={emissive ? .35 : 0}/>}
   </mesh>;

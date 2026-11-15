@@ -4,7 +4,7 @@ import {beam,mount} from './geometry';
 import type {MaterialSet} from './materials';
 export function CoveStrip(c:FacadeContext,r:Rect,m:MaterialSet,out=.5,realLight=false){
  const g=mount(c,r,out);g.name='Warm cove under projection';g.add(beam([r.w,.045,.055],m.warm,[0,0,0],.012));
- if(realLight){const target=new Object3D();target.position.set(0,-4,.45);g.add(target);const light=new SpotLight('#ffd49a',22,14,1,.75,2);light.position.set(0,-.08,.2);light.target=target;g.add(light);}return g;
+ if(realLight)for(const u of r.w>10?[-r.w*.28,r.w*.28]:[0]){const target=new Object3D();target.position.set(u,-4,.45);g.add(target);const light=new SpotLight('#ffd49a',12*m.lightPower,14,1.12,.85,2);light.position.set(u,-.08,.2);light.target=target;g.add(light);}return g;
 }
 export function FacadeLights(c:FacadeContext,positions:{u:number;v:number}[],m:MaterialSet){
  const root=new Group();root.name='Warm up/down wall washers';
@@ -13,7 +13,7 @@ export function FacadeLights(c:FacadeContext,positions:{u:number;v:number}[],m:M
   if(!safe.some(s=>s.w>=r.w-.01&&s.h>=r.h-.01))continue;
   const g=mount(c,r,.22);g.add(beam([.28,.58,.19],m.metal,[0,0,-.06],.055));
   for(const sign of [-1,1]){g.add(beam([.19,.026,.15],m.warm,[0,sign*.29,-.07],.009));
-   if(i<2){const target=new Object3D();target.position.set(0,sign*3.4,.1);g.add(target);const light=new SpotLight('#ffd4a0',12,9,.50,.65,2);light.position.set(0,sign*.3,-.15);light.target=target;g.add(light);}
+   if(i<2){const target=new Object3D();target.position.set(0,sign*3.4,.1);g.add(target);const light=new SpotLight('#ffd4a0',12*m.lightPower,9,.50,.65,2);light.position.set(0,sign*.3,-.15);light.target=target;g.add(light);}
   }g.userData.facadeRects=[{...r,facing:c.facing}];root.add(g);
  }return root;
 }

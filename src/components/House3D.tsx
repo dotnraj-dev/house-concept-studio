@@ -1,4 +1,8 @@
+import {ExteriorLightRig} from '../house3d/ExteriorLightRig';
+import {SceneActivity} from '../house3d/SceneActivity';
+import {exteriorLighting} from '../house3d/exterior-lighting';
 import {FACADE_STYLES} from '../house3d/facade-styles';
+import {frontElevationPose} from '../house3d/camera-presets';
 import {roomFitments} from '../house3d/fitout-layout';
 import {GROUND_LEVEL} from '../building-dimensions';
 import {showerZone} from '../house3d/interior-layout';
@@ -39,7 +43,7 @@ export function House3D({plan,floor,assets,projectId,canRender=false,onStyleChan
   const {active:loading,progress}=useProgress();
   const [furnished,setFurnished]=useState(plan.design?.furnished!==false),[showServices,setShowServices]=useState(false),[xray,setXray]=useState(false),[exporting,setExporting]=useState(false),[exportError,setExportError]=useState('');
   const [reflections,setReflections]=useState(true);
-  const [enhanced,setEnhanced]=useState(true),[mood,setMood]=useState<'day'|'warm'>('warm');
+  const [enhanced,setEnhanced]=useState(true),[mood,setMood]=useState<string>('recipe');
   const viewerRef=useRef<HTMLDivElement>(null);
   const sceneRef=useRef<Scene|null>(null),cameraRef=useRef<Camera|null>(null);
   const exportTask=useRef<Promise<Blob>|null>(null);
@@ -67,6 +71,7 @@ export function House3D({plan,floor,assets,projectId,canRender=false,onStyleChan
   const doorAngles=useMemo(()=>new Map<string,number>(),[layout]);
   const interactions=useMemo(()=>makeInteractions(displayPlan,layout),[displayPlan,layout]);
   const [mode,setMode]=useState<ViewerMode>('overview');
+  const [cameraPreset,setCameraPreset]=useState<'front'|'corner'|'aerial'>('front');
   const [cutaway,setCutaway]=useState(false);
   const [openDoors,setOpenDoors]=useState<Set<string>>(new Set());
   const [openShelves,setOpenShelves]=useState<Set<string>>(new Set());
@@ -117,7 +122,9 @@ export function House3D({plan,floor,assets,projectId,canRender=false,onStyleChan
   },[floor,plan]);
 
   const exitPointer=()=>{if(document.pointerLockElement===canvasRef.current)document.exitPointerLock();};
-  const overview=(aerial=false)=>{exitPointer();setHover('');setMode('overview');const {n}=entrancePose(plan,layout),dist=Math.max(plan.width,plan.depth,(plan.levels||1)*12)*1.3;setCommand({id:Date.now(),floor:0,position:[(n[0]+n[1]*.6)*dist,aerial?Math.max(16,dist*.65):Math.max(6.2,(plan.levels||1)*2.2),(n[1]-n[0]*.6)*dist],look:[0,(plan.levels||1)*4,0]});};
+  const overview=(aerial=false)=>{exitPointer();setHover('');setMode('overview');setCameraPreset(aerial?'aerial':'corner');const {n}=entrancePose(plan,layout),dist=Math.max(plan.width,plan.depth,(plan.levels||1)*12)*1.3;setCommand({id:Date.now(),floor:0,fov:52,position:[(n[0]+n[1]*.6)*dist,aerial?Math.max(16,dist*.65):Math.max(6.2,(plan.levels||1)*2.2),(n[1]-n[0]*.6)*dist],look:[0,(plan.levels||1)*4,0]});};
+  const frontView=()=>{exitPointer();setHover('');setMode('overview');setCameraPreset('front');setCutaway(false);const canvas=canvasRef.current;setCommand({id:Date.now(),floor:0,...frontElevationPose(plan,canvas?canvas.clientWidth/canvas.clientHeight:1.25)});};
+  useEffect(()=>{if(mode!=='overview'||cameraPreset!=='front')return;frontView();const resize=()=>frontView();window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize);},[plan,mode,cameraPreset]);
   const walk=()=>{
     setMode('walk');setCommand(null);setHover('');
     canvasRef.current?.requestPointerLock?.().catch(()=>{});
@@ -129,35 +136,31 @@ export function House3D({plan,floor,assets,projectId,canRender=false,onStyleChan
 
   return <div className="house-viewer" ref={viewerRef}>
     <div className="viewer-toolbar" aria-label="3D viewing modes">
-      <button className={mode==='overview'&&!cutaway?'active':''} onClick={()=>{overview();setCutaway(false);}}>Exterior</button>
+      <button className={mode==='overview'&&cameraPreset==='front'?'active':''} onClick={frontView}>Front view</button>
+      <button className={mode==='overview'&&cameraPreset==='corner'?'active':''} onClick={()=>{overview();setCutaway(false);}}>Corner view</button>
       <button className={mode==='overview'&&cutaway?'active':''} onClick={()=>{overview(true);setCutaway(true);}}>All floors</button>
       <button className={mode==='tour'?'active':''} onClick={tour}>Guided tour</button>
       <button className={mode==='walk'?'active':''} onClick={walk}>Walk inside</button>
       <label><input type="checkbox" checked={furnished} onChange={e=>setFurnished(e.target.checked)}/> Interiors</label><label><input type="checkbox" checked={showServices} onChange={e=>setShowServices(e.target.checked)}/> Plumbing</label><label><input type="checkbox" checked={xray} onChange={e=>setXray(e.target.checked)}/> Transparent walls</label><button disabled={exporting||loading} onClick={downloadModel}>{exporting?'Exporting…':'Download 3D'}</button><button disabled={loading} onClick={downloadCamera}>Download camera settings</button>
     </div>
     {incompleteBathrooms.length>0&&<p className="scene-review" role="status">Review bathroom sizes: {incompleteBathrooms.map(r=>r.label+' (floor '+r.floor+')').join(', ')}. There is insufficient clear wall space for both basin and toilet; fittings that do not fit are omitted.</p>}
-    <div className="site-toolbar">{onStyleChange&&<label>Facade<select aria-label="Facade style" value={plan.design?.style||""} onChange={e=>onStyleChange(e.target.value)}>{!FACADE_STYLES.some(s=>s.id===plan.design?.style)&&<option value={plan.design?.style||""}>Current regional style</option>}{FACADE_STYLES.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select></label>}<button className="study-trigger" onClick={()=>document.fullscreenElement?document.exitFullscreen():viewerRef.current?.requestFullscreen()}>Full screen</button><label>Light<select aria-label="Presentation lighting" value={mood} onChange={e=>setMood(e.target.value as 'day'|'warm')}><option value="day">Daylight</option><option value="warm">Warm afternoon</option></select></label><label><input type="checkbox" checked={enhanced} onChange={e=>setEnhanced(e.target.checked)}/> Contact shadows</label><label><input type="checkbox" checked={reflections} onChange={e=>setReflections(e.target.checked)}/> Live reflections</label><label><input type="checkbox" checked={contextVisible} onChange={e=>setContextVisible(e.target.checked)}/> Surroundings</label><label>Room view <select aria-label="Look inside a room" value="" onChange={e=>{const r=plan.rooms.find(o=>o.id===e.target.value.replace(/^(shower|storage):/,''));if(!r)return;exitPointer();setMode('walk');setCommand(presentationPose(plan,r,layout,e.target.value.startsWith('shower:')?'shower':e.target.value.startsWith('storage:')?'storage':undefined));}}><option value="">Choose a room…</option>{plan.rooms.filter(r=>r.floor===floor&&!['portico','stairs','foyer','passage'].includes(r.kind)).map(r=><option key={r.id} value={r.id}>{r.label}</option>)}{plan.rooms.filter(r=>r.floor===floor&&roomFitments(plan,r,layout).some(f=>['wardrobe','prayer','upper','sideboard'].includes(f.kind))).map(r=><option key={'storage:'+r.id} value={'storage:'+r.id}>Storage & joinery · {r.label}</option>)}{plan.rooms.filter(r=>r.floor===floor&&r.kind==='bathroom'&&showerZone(r,layout)).map(r=><option key={'shower:'+r.id} value={'shower:'+r.id}>Shower & fittings · {r.label}</option>)}</select></label><button aria-expanded={study} className="study-trigger" onClick={()=>setStudy(!study)}>{study?'Close':'Open'} sun & breeze study</button></div>
-    {contextVisible&&<p className="context-provenance">{plan.design?.siteContext?.edges.length||0} of {plotEdges(plan).length} boundaries recorded · other surroundings are examples. Edit under Form → Plot & setbacks.</p>}
+    <div className="site-toolbar">{onStyleChange&&<label>Facade<select aria-label="Facade style" value={plan.design?.style||""} onChange={e=>onStyleChange(e.target.value)}>{!FACADE_STYLES.some(s=>s.id===plan.design?.style)&&<option value={plan.design?.style||""}>Current regional style</option>}{FACADE_STYLES.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select></label>}<button className="study-trigger" onClick={()=>document.fullscreenElement?document.exitFullscreen():viewerRef.current?.requestFullscreen()}>Full screen</button><label>Light<select aria-label="Presentation lighting" value={mood} onChange={e=>setMood(e.target.value)}><option value="recipe">Recipe lighting</option><option value="day">Clear daylight</option><option value="golden">Golden hour</option><option value="sunset">Sunset</option><option value="dusk">Dusk · warm house lights</option></select></label><label><input type="checkbox" checked={enhanced} onChange={e=>setEnhanced(e.target.checked)}/> Contact shadows</label><label><input type="checkbox" checked={reflections} onChange={e=>setReflections(e.target.checked)}/> Live reflections</label><label><input type="checkbox" checked={contextVisible} onChange={e=>setContextVisible(e.target.checked)}/> Surroundings</label><label>Room view <select aria-label="Look inside a room" value="" onChange={e=>{const r=plan.rooms.find(o=>o.id===e.target.value.replace(/^(shower|storage):/,''));if(!r)return;exitPointer();setMode('walk');setCommand(presentationPose(plan,r,layout,e.target.value.startsWith('shower:')?'shower':e.target.value.startsWith('storage:')?'storage':undefined));}}><option value="">Choose a room…</option>{plan.rooms.filter(r=>r.floor===floor&&!['portico','stairs','foyer','passage'].includes(r.kind)).map(r=><option key={r.id} value={r.id}>{r.label}</option>)}{plan.rooms.filter(r=>r.floor===floor&&roomFitments(plan,r,layout).some(f=>['wardrobe','prayer','upper','sideboard'].includes(f.kind))).map(r=><option key={'storage:'+r.id} value={'storage:'+r.id}>Storage & joinery · {r.label}</option>)}{plan.rooms.filter(r=>r.floor===floor&&r.kind==='bathroom'&&showerZone(r,layout)).map(r=><option key={'shower:'+r.id} value={'shower:'+r.id}>Shower & fittings · {r.label}</option>)}</select></label><button aria-expanded={study} className="study-trigger" onClick={()=>setStudy(!study)}>{study?'Close':'Open'} sun & breeze study</button></div>
+    {contextVisible&&<p className="context-provenance">{plan.design?.siteContext?.edges.length||0} of {plotEdges(plan).length} boundaries recorded · distant streetscape and planting are illustrative. Edit nearby boundaries under Form → Plot & setbacks.</p>}
     {study&&<ClimatePanel study={inputs} onChange={setInputs} lat={site.latitude} lon={site.longitude} isDefault={!plan.design?.siteContext} elevation={sun.elevation} paths={paths.length} doors={!!openDoors.size} openDoors={()=>setOpenDoors(openDoors.size?new Set():new Set(layout.doors.filter(d=>!d.arch).map(d=>d.id)))}/>}
     <div className="house-canvas">
-      <ViewerBoundary><Canvas shadows gl={{preserveDrawingBuffer:true}} dpr={[1,1.7]} camera={{position:[plan.width*.85,plan.depth*.8,plan.depth*.9],fov:52,near:.05,far:Math.max(400,(plan.levels||1)*40)}}
-        onCreated={({gl,scene,camera})=>{sceneRef.current=scene;cameraRef.current=camera;canvasRef.current=gl.domElement;gl.toneMapping=ACESFilmicToneMapping;gl.toneMappingExposure=1.08;gl.shadowMap.type=PCFSoftShadowMap;}}>
-        <color attach="background" args={[study&&!sun.daylight?'#404956':'#d6e3e9']}/>
-        <fog attach="fog" args={[study&&!sun.daylight?'#404956':'#d6e3e9',extent*2.7,extent*7]}/>
-        <Suspense fallback={null}><Environment files="/assets/materials/daylight.hdr" background={!(study&&!sun.daylight)} backgroundBlurriness={.13} environmentIntensity={study&&!sun.daylight?.1:.5}/></Suspense>
-        <ambientLight intensity={study&&!sun.daylight?.06:.1}/>
-        <hemisphereLight args={['#e9f2f6','#b4aa97',study&&!sun.daylight?.1:.28]}/>
-        <directionalLight position={study?[sun.direction[0]*extent*2,sun.direction[1]*extent*2,sun.direction[2]*extent*2]:[-extent,extent*(mood==='warm'?.6:1.5),-extent*.8]} intensity={study?(sun.daylight?2.9*Math.min(1,sun.direction[1]*3):0):(mood==='warm'?3.2:2.7)} color={(study?sun.elevation<18:mood==='warm')?'#ffc793':'#fff5df'} shadow-camera-far={extent*4} castShadow shadow-mapSize={[2048,2048]} shadow-bias={-.00018}
-          shadow-camera-left={-extent} shadow-camera-right={extent} shadow-camera-top={extent} shadow-camera-bottom={-extent}/>
-        <mesh rotation={[-Math.PI/2,0,0]} position={[0,GROUND_LEVEL-.12,0]} receiveShadow><planeGeometry args={[400,400]}/><Suspense fallback={<meshStandardMaterial color="#9ca994"/>}><SiteFinish type="lawn" repeat={[60,60]} color="#dddcca"/></Suspense></mesh>
+      <ViewerBoundary><Canvas shadows frameloop={mode==='overview'&&!openShelves.size&&!chimneyOn.size&&!study?'demand':'always'} gl={{preserveDrawingBuffer:true}} dpr={[1,1.7]} camera={{position:[plan.width*.85,plan.depth*.8,plan.depth*.9],fov:52,near:.05,far:Math.max(400,(plan.levels||1)*40)}}
+        onCreated={({gl,scene,camera,invalidate})=>{sceneRef.current=scene;cameraRef.current=camera;canvasRef.current=gl.domElement;gl.toneMapping=ACESFilmicToneMapping;gl.toneMappingExposure=1.08;gl.shadowMap.type=PCFSoftShadowMap;if(import.meta.env.VITE_DEMO_MODE==='true')(window as any).__hcsDemoViewer={camera,scene,gl,invalidate};}}>
+        <SceneActivity stamp={[mode,mood,cameraPreset,plan.design?.style,...openDoors,...openShelves].join('|')}/>
+        <ExteriorLightRig plan={plan} choice={mood} extent={extent} study={study?sun:undefined}/>
+        <mesh rotation={[-Math.PI/2,0,0]} position={[0,GROUND_LEVEL-.18,0]} receiveShadow><planeGeometry args={[2000,2000]}/><meshStandardMaterial color="#969c91" roughness={1}/></mesh>
         {study&&<ClimateOverlay paths={paths} shift={[-plan.width/2,0,-plan.depth/2]}/>}
-        <HouseScene contextVisible={contextVisible} plan={displayPlan} layout={layout} interactions={interactions} assets={assets} mode={mode} cutaway={cutaway} showServices={showServices} xray={xray}
+        <HouseScene lightPower={exteriorLighting(mood,plan.design?.style).fixtures} contextVisible={contextVisible} plan={displayPlan} layout={layout} interactions={interactions} assets={assets} mode={mode} cutaway={cutaway} showServices={showServices} xray={xray}
           openDoors={openDoors} doorAngles={doorAngles} openShelves={openShelves} tvOn={tvOn} chimneyOn={chimneyOn} onInteract={interact}/>
         <InteriorLighting plan={displayPlan}/><InteriorReflections plan={displayPlan} layout={layout} enabled={reflections&&!cutaway&&!xray}/><CameraRig plan={plan} layout={layout} interactions={interactions} mode={mode} floor={floor} command={command} tourId={tourId}
           openDoors={openDoors} doorAngles={doorAngles} onInteract={interact} onHover={setHover} onTourDone={()=>overview()} onLockChange={setLocked}/>
         {enhanced&&<PresentationEffects/>}
-        <OrbitControls enabled={mode==='overview'} enableDamping dampingFactor={.08} target={[0,(plan.levels||1)*4,0]}
-          minDistance={9} maxDistance={Math.max(150,(plan.levels||1)*25)} maxPolarAngle={Math.PI*.52}/>
+        <OrbitControls enabled={mode==='overview'} enableDamping dampingFactor={.08} target={command?.look||[0,(plan.levels||1)*4,0]}
+          minDistance={9} maxDistance={Math.max(150,(plan.levels||1)*25)} maxPolarAngle={Math.PI*(cameraPreset==='front'?.6:.52)}/>
       </Canvas></ViewerBoundary>
       {loading&&<div className="viewer-loading" role="status">Loading materials & models · {Math.round(progress)}%</div>}
       {mode==='walk'&&<><div className="viewer-crosshair">+</div><div className="viewer-interaction">{hover?`${hover} · E or click`:'Look at an object to interact'}</div>

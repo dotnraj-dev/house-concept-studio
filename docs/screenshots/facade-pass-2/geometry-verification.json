@@ -1,0 +1,146 @@
+{
+  "drawCalls": 17,
+  "triangles": 115620,
+  "instances": 478,
+  "sharedGeometryBytes": 4648718,
+  "additionalImageTextures": 0,
+  "staticOverview": "on-demand rendering with bounded animation warm-up",
+  "physicalIPadTested": false,
+  "rooms": [
+    {
+      "id": "0-passage",
+      "kind": "passage",
+      "floor": 0,
+      "x": 11.4,
+      "y": 0,
+      "w": 4,
+      "h": 42
+    },
+    {
+      "id": "0-stairs",
+      "kind": "stairs",
+      "floor": 0,
+      "x": 15.4,
+      "y": 26,
+      "w": 8.6,
+      "h": 16
+    },
+    {
+      "id": "0-living-0",
+      "kind": "living",
+      "floor": 0,
+      "x": 0,
+      "y": 0,
+      "w": 11.4,
+      "h": 14.89
+    },
+    {
+      "id": "0-kitchen-0",
+      "kind": "kitchen",
+      "floor": 0,
+      "x": 0,
+      "y": 14.89,
+      "w": 11.4,
+      "h": 10.25
+    },
+    {
+      "id": "0-bathroom-0",
+      "kind": "bathroom",
+      "floor": 0,
+      "x": 0,
+      "y": 25.14,
+      "w": 11.4,
+      "h": 6.82
+    },
+    {
+      "id": "0-dining-0",
+      "kind": "dining",
+      "floor": 0,
+      "x": 0,
+      "y": 31.95,
+      "w": 11.4,
+      "h": 10.05
+    },
+    {
+      "id": "0-portico-0",
+      "kind": "portico",
+      "floor": 0,
+      "x": 15.4,
+      "y": 0,
+      "w": 8.6,
+      "h": 14.96
+    },
+    {
+      "id": "0-bedroom-0",
+      "kind": "bedroom",
+      "floor": 0,
+      "x": 15.4,
+      "y": 14.96,
+      "w": 8.6,
+      "h": 11.04
+    },
+    {
+      "id": "1-passage",
+      "kind": "passage",
+      "floor": 1,
+      "x": 11.4,
+      "y": 0,
+      "w": 4,
+      "h": 42
+    },
+    {
+      "id": "1-stairs",
+      "kind": "stairs",
+      "floor": 1,
+      "x": 15.4,
+      "y": 26,
+      "w": 8.6,
+      "h": 16
+    },
+    {
+      "id": "1-bathroom-0",
+      "kind": "bathroom",
+      "floor": 1,
+      "x": 0,
+      "y": 0,
+      "w": 11.4,
+      "h": 11.62
+    },
+    {
+      "id": "1-bedroom-0",
+      "kind": "bedroom",
+      "floor": 1,
+      "x": 0,
+      "y": 11.62,
+      "w": 11.4,
+      "h": 30.38
+    },
+    {
+      "id": "1-lounge-0",
+      "kind": "lounge",
+      "floor": 1,
+      "x": 15.4,
+      "y": 9,
+      "w": 8.6,
+      "h": 17
+    },
+    {
+      "id": "1-balcony",
+      "kind": "terrace",
+      "floor": 1,
+      "x": 15.4,
+      "y": 0,
+      "w": 8.6,
+      "h": 9
+    }
+  ],
+  "planFeet": [
+    24,
+    42
+  ],
+  "plotFeet": [
+    30,
+    50
+  ],
+  "floors": 2
+}

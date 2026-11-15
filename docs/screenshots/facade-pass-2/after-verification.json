@@ -1,0 +1,226 @@
+{
+  "phase": "after",
+  "viewport": [
+    1280,
+    1200
+  ],
+  "plotFeet": [
+    30,
+    50
+  ],
+  "floors": 2,
+  "shots": [
+    {
+      "style": "tn-contemporary-slats",
+      "view": "front",
+      "file": "after-tn-contemporary-slats-front.png",
+      "camera": {
+        "position": [
+          -3.3243646192922918,
+          1.2191999999999985,
+          -18.80749766208321
+        ],
+        "quaternion": [
+          -0.009411711185956528,
+          0.988864110856422,
+          -0.07148904394851066,
+          -0.13018642996878735
+        ],
+        "fov": 45,
+        "units": "metres"
+      },
+      "lighting": "recipe"
+    },
+    {
+      "style": "tn-contemporary-slats",
+      "view": "corner",
+      "file": "after-tn-contemporary-slats-corner.png",
+      "camera": {
+        "position": [
+          -9.985248000000002,
+          1.8897600000000019,
+          -16.64208
+        ],
+        "quaternion": [
+          -0.003771842300050622,
+          0.9636187136291489,
+          -0.013617547502263643,
+          -0.2669069319995109
+        ],
+        "fov": 52,
+        "units": "metres"
+      },
+      "lighting": "recipe"
+    },
+    {
+      "style": "tn-jaali-stone",
+      "view": "front",
+      "file": "after-tn-jaali-stone-front.png",
+      "camera": {
+        "position": [
+          -3.3243646192922918,
+          1.2191999999999985,
+          -18.80749766208321
+        ],
+        "quaternion": [
+          -0.009411711185956528,
+          0.988864110856422,
+          -0.07148904394851066,
+          -0.13018642996878735
+        ],
+        "fov": 45,
+        "units": "metres"
+      },
+      "lighting": "recipe"
+    },
+    {
+      "style": "tn-jaali-stone",
+      "view": "corner",
+      "file": "after-tn-jaali-stone-corner.png",
+      "camera": {
+        "position": [
+          -9.985248000000002,
+          1.8897600000000019,
+          -16.64208
+        ],
+        "quaternion": [
+          -0.003771842300050622,
+          0.9636187136291489,
+          -0.013617547502263643,
+          -0.2669069319995109
+        ],
+        "fov": 52,
+        "units": "metres"
+      },
+      "lighting": "recipe"
+    },
+    {
+      "style": "tn-curved-villa",
+      "view": "front",
+      "file": "after-tn-curved-villa-front.png",
+      "camera": {
+        "position": [
+          -3.3243646192922918,
+          1.2191999999999985,
+          -18.80749766208321
+        ],
+        "quaternion": [
+          -0.009411711185956528,
+          0.988864110856422,
+          -0.07148904394851066,
+          -0.13018642996878735
+        ],
+        "fov": 45,
+        "units": "metres"
+      },
+      "lighting": "recipe"
+    },
+    {
+      "style": "tn-curved-villa",
+      "view": "corner",
+      "file": "after-tn-curved-villa-corner.png",
+      "camera": {
+        "position": [
+          -9.985248000000002,
+          1.8897600000000019,
+          -16.64208
+        ],
+        "quaternion": [
+          -0.003771842300050622,
+          0.9636187136291489,
+          -0.013617547502263643,
+          -0.2669069319995109
+        ],
+        "fov": 52,
+        "units": "metres"
+      },
+      "lighting": "recipe"
+    },
+    {
+      "style": "tn-tiled-bungalow",
+      "view": "front",
+      "file": "after-tn-tiled-bungalow-front.png",
+      "camera": {
+        "position": [
+          -3.3243646192922918,
+          1.2191999999999985,
+          -18.80749766208321
+        ],
+        "quaternion": [
+          -0.009411711185956528,
+          0.988864110856422,
+          -0.07148904394851066,
+          -0.13018642996878735
+        ],
+        "fov": 45,
+        "units": "metres"
+      },
+      "lighting": "recipe"
+    },
+    {
+      "style": "tn-tiled-bungalow",
+      "view": "corner",
+      "file": "after-tn-tiled-bungalow-corner.png",
+      "camera": {
+        "position": [
+          -9.985248000000002,
+          1.8897600000000019,
+          -16.64208
+        ],
+        "quaternion": [
+          -0.003771842300050622,
+          0.9636187136291489,
+          -0.013617547502263643,
+          -0.2669069319995109
+        ],
+        "fov": 52,
+        "units": "metres"
+      },
+      "lighting": "recipe"
+    },
+    {
+      "style": "tn-narrow-g2",
+      "view": "front",
+      "file": "after-tn-narrow-g2-front.png",
+      "camera": {
+        "position": [
+          -3.3243646192922918,
+          1.2191999999999985,
+          -18.80749766208321
+        ],
+        "quaternion": [
+          -0.009411711185956528,
+          0.988864110856422,
+          -0.07148904394851066,
+          -0.13018642996878735
+        ],
+        "fov": 45,
+        "units": "metres"
+      },
+      "lighting": "recipe"
+    },
+    {
+      "style": "tn-narrow-g2",
+      "view": "corner",
+      "file": "after-tn-narrow-g2-corner.png",
+      "camera": {
+        "position": [
+          -9.985248000000002,
+          1.8897600000000019,
+          -16.64208
+        ],
+        "quaternion": [
+          -0.003771842300050622,
+          0.9636187136291489,
+          -0.013617547502263643,
+          -0.2669069319995109
+        ],
+        "fov": 52,
+        "units": "metres"
+      },
+      "lighting": "recipe"
+    }
+  ],
+  "browserErrors": [],
+  "capturedAt": "2026-11-15T14:44:18.895Z"
+}

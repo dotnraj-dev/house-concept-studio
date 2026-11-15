@@ -1,3 +1,4 @@
+import {facadeStyle} from './house3d/facade-styles';
 import type {DesignBrief,Plan,Room} from './types';
 
 export const WINDOW_DESIGNS={auto:'Match architectural style',casement:'White uPVC casement',sliding:'Charcoal sliding glass',timber:'Timber casement + safety grille',heritage:'Timber divided-light casement',louvred:'Privacy louvres'} as const;
@@ -18,6 +19,7 @@ export function windowDesignFor(plan:Pick<Plan,'design'>,room:Pick<Room,'id'|'ki
  const value=roomFitout(plan,room).window;
  if(value!=='auto')return value;
  if(room.kind==='bathroom')return 'louvred';
+ const recipe=facadeStyle(plan.design?.style);if(recipe)return recipe.window;
  return /kerala|traditional|chettinad|heritage/.test(plan.design?.style||'')?'timber':'casement';
 }
 export const windowOpenableFraction=(style:WindowDesign)=>style==='sliding'?.45:style==='louvred'?.65:.85;

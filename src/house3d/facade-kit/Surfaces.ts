@@ -1,20 +1,26 @@
-import {Group,Shape,Path,ExtrudeGeometry,BufferGeometry,Float32BufferAttribute,DoubleSide} from 'three';
+import {Group,Shape,Path,ExtrudeGeometry,BufferGeometry,Float32BufferAttribute,DoubleSide,PlaneGeometry} from 'three';
 import {FLOOR_HEIGHT,WALL_HEIGHT} from '../../building-dimensions';
 import {safeRects,type FacadeContext,type Rect} from './layout';
 import {beam,mount,profile,solid,instances,roundedPath} from './geometry';
 import type {MaterialSet} from './materials';
 
 /** Painted recesses or jointed large-format facade panels on actual solid walls. */
-export function WallPanels(c:FacadeContext,r:Rect,m:MaterialSet,jointed=false){
+export function WallPanels(c:FacadeContext,r:Rect,m:MaterialSet,jointed=false,material=m.accent){
  const root=new Group();root.name=jointed?'Jointed charcoal facade panels':'Taupe plaster recess';
+ if(jointed)root.add(WallPanels(c,r,m,false,material));
  const cells:Rect[]=[];
  if(jointed){
   for(let u=r.u;u<r.u+r.w-.02;u+=3.4)for(let v=r.v;v<r.v+r.h-.02;v+=2.1)
-   cells.push({u:u+.035,v:v+.035,w:Math.min(3.33,r.u+r.w-u-.04),h:Math.min(2.03,r.v+r.h-v-.04)});
+   cells.push({u:u+.01,v:v+.01,w:Math.min(3.38,r.u+r.w-u-.02),h:Math.min(2.08,r.v+r.h-v-.02)});
  }else cells.push(r);
  const patches=cells.flatMap(cell=>safeRects(c,cell,true,.15)).filter(p=>p.w>.06&&p.h>.06);
  root.userData.facadeRects=patches.map(p=>({...p,facing:c.facing}));
- for(const p of patches){const g=mount(c,p,.065);g.add(beam([p.w,p.h,.16],m.accent,[0,0,0],.025));root.add(g);}
+ for(const p of patches){
+  const g=mount(c,p,jointed?.19:.145);
+  if(jointed){const mesh=beam([p.w,p.h,.06],material,[0,0,0],.008);mesh.castShadow=false;g.add(mesh);}
+  else{const geo=new PlaneGeometry(p.w,p.h);geo.rotateY(Math.PI);const mesh=solid(geo,material,'Continuous painted wall finish');mesh.castShadow=false;g.add(mesh);}
+  root.add(g);
+ }
  return root;
 }
 

@@ -1,3 +1,4 @@
+import {Streetscape} from './StreetscapeScene';
 import {useMemo,useEffect,Suspense} from 'react';
 import {BufferGeometry,Float32BufferAttribute,DoubleSide,RepeatWrapping,SRGBColorSpace} from 'three';
 import {useTexture} from '@react-three/drei';
@@ -28,10 +29,4 @@ function Neighbour({w,d,h,building}:{w:number;d:number;h:number;building:boolean
  {[-1,1].map(sign=><group key={sign}>{Array.from({length:cols},(_,i)=><group key={i} position={[w*((i+.5)/cols-.5),(f+.55)*h/floors,sign*(d*.5+.075)]}><Box at={[0,0,0]} size={[Math.min(3,w*.6),Math.min(3.8,h*.42),.17]} color="#665e53"/><Box at={[0,0,sign*.1]} size={[Math.min(2.7,w*.5),Math.min(3.4,h*.34),.08]} color="#93a8a5"/><Box at={[0,Math.min(2.1,h*.23),0]} size={[Math.min(4,w*.78),.16,.9]} color="#b4a793"/></group>)}</group>)}</group>)}
  {!building&&<group position={[-w/2,0,-d/2]}><HipRoof w={w} d={d} base={h+.15} pitch={.36} eave={.65} color="#cda287"/></group>}</group>;
 }
-export function SiteWorld({plan}:{plan:Plan}){
- const edges=useMemo(()=>surroundings(plan),[plan]);
- return <group name="Site surroundings">{edges.filter(e=>!e.blocked&&e.use!=='open').map(e=><group key={e.edge} position={[e.x,-.12,e.z]} rotation={[0,e.angle,0]}>
- {e.use==='road'?<><Box at={[0,.01,0]} size={[e.width,.08,e.depth]} color="#eae8df" surface="asphalt"/>{[-1,1].map(s=><Box key={s} at={[0,.08,s*(e.depth/2-.28)]} size={[e.width,.2,.5]} color="#c6bda8"/>)}{e.depth>=18&&Array.from({length:Math.floor(e.width/12)},(_,i)=><Box key={i} at={[-e.width/2+5+i*12,.064,0]} size={[4,.015,.18]} color="#dfd5b7"/>)}</>:
- e.use==='trees'?Array.from({length:Math.min(5,Math.max(1,Math.floor(e.width/9)))},(_,i)=>{const count=Math.min(5,Math.max(1,Math.floor(e.width/9))),canopy=Math.min(8,e.depth*.9,e.width/count*.9);return <StreetTree key={i} x={(i+.5)*e.width/count-e.width/2} width={canopy} height={Math.min(e.height,canopy*2.5)}/>;}):
- <Neighbour w={e.width} d={e.depth} h={e.height} building={e.use==='building'}/>}</group>)}</group>;
-}
+export function SiteWorld({plan}:{plan:Plan}){return <Streetscape plan={plan}/>;}

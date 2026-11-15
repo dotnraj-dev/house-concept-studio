@@ -28,6 +28,6 @@ result={
  'externalImageURLs':False,'requiresInstancingExtension':False,
  'blenderRenderExecuted':False
 }
-out=Path('docs/screenshots/facade/glb-verification.json')
+out=Path(sys.argv[2] if len(sys.argv)>2 else 'docs/screenshots/facade/glb-verification.json')
 out.write_text(json.dumps(result,indent=2),encoding='utf-8')
 print(json.dumps(result,indent=2))

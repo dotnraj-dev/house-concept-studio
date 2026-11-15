@@ -1,14 +1,14 @@
 import {GROUND_LEVEL} from '../building-dimensions';
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Raycaster, Vector2, Vector3, type Mesh, type Object3D } from 'three';
+import { Raycaster, Vector2, Vector3, type Mesh, type Object3D,type PerspectiveCamera } from 'three';
 import type { Plan } from '../types';
 import { furnishingFrame, entrancePose, collidesAt, FLOOR_HEIGHT, type HouseLayout, type Interaction, worldX, worldZ } from './layout';
 import {bathroomFixtures} from './bathroom';
 import { walkingSurface } from './navigation';
 import {collectObstacles,obstacleBlocks} from './obstacles';
 
-export type ViewCommand={id:number;position:[number,number,number];look:[number,number,number];floor:number};
+export type ViewCommand={id:number;position:[number,number,number];look:[number,number,number];floor:number;fov?:number};
 export type ViewerMode='overview'|'walk'|'tour';
 type Waypoint={position:Vector3;look:Vector3;seconds:number;cut?:boolean};
 type Props={plan:Plan;layout:HouseLayout;interactions:Interaction[];mode:ViewerMode;floor:number;command:ViewCommand|null;
@@ -35,7 +35,7 @@ export function tourPoints(plan:Plan,layout:HouseLayout):Waypoint[]{
 }
 
 export function CameraRig({plan,layout,interactions,mode,floor,command,tourId,openDoors,doorAngles,onInteract,onHover,onTourDone,onLockChange}:Props){
-  const {camera,gl,scene}=useThree();
+  const {camera,gl,scene,invalidate}=useThree();
   const yaw=useRef(0),pitch=useRef(0),keys=useRef(new Set<string>()),jump=useRef(0),velocity=useRef(0),eye=useRef(5.2);
   const walkingHeight=useRef(floor*FLOOR_HEIGHT),restEye=useRef(5.2);
   const focusId=useRef(''),lastHover=useRef(''),currentFloor=useRef(floor),tourTime=useRef(0);
@@ -49,7 +49,7 @@ export function CameraRig({plan,layout,interactions,mode,floor,command,tourId,op
     yaw.current=Math.atan2(-direction.x,-direction.z);
     pitch.current=Math.atan2(direction.y,Math.hypot(direction.x,direction.z));
     camera.rotation.order='YXZ';
-    camera.rotation.set(pitch.current,yaw.current,0);
+    camera.rotation.set(pitch.current,yaw.current,0);invalidate();
   };
 
   useEffect(()=>{
@@ -64,6 +64,7 @@ export function CameraRig({plan,layout,interactions,mode,floor,command,tourId,op
 
   useEffect(()=>{
     if(!command)return;
+    if(command.fov&&(camera as PerspectiveCamera).isPerspectiveCamera){(camera as PerspectiveCamera).fov=command.fov;(camera as PerspectiveCamera).updateProjectionMatrix();}
     currentFloor.current=command.floor;
     walkingHeight.current=command.floor*FLOOR_HEIGHT;
     restEye.current=Math.max(2.8,Math.min(5.2,command.position[1]-walkingHeight.current));

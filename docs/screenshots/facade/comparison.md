@@ -1,5 +1,7 @@
 # Facade study: five Tamil Nadu recipes
 
+The later [facade pass 2](../facade-pass-2/comparison.md) adds Front view comparisons, recipe window/colour/lighting treatment and a planted streetscape. This page and its original screenshots remain the pass 1 record.
+
 The kit is implemented, and the five recipes now have visibly different material balances and architectural details. **These browser views still fall short of the primary reference renders in realism and composition.** Passing geometry checks does not establish visual equivalence.
 
 [Side-by-side gallery](index.html) · [Original baseline](before-exterior.png) · [Permanent brief](../../../AGENTS.md) · [Implementation report](../../../FACADE-KIT-UPDATE.md)

@@ -1,7 +1,7 @@
 import {facadeStyle} from './facade-styles';
 import {FacadeKit} from './facade-kit/FacadeKit';
 import {RoomFitoutScene} from './RoomFitoutScene';
-import {doorDesignFor,type DoorDesign} from '../fitout';
+import {doorDesignFor,roomFitout,type DoorDesign} from '../fitout';
 import {CEILING_LEVEL,GROUND_LEVEL} from '../building-dimensions';
 import {TVJoinery,WovenRug,KitchenDetails,DiningDetails,BathroomDetails,VanityDetails,KitchenSink,KitchenStorage} from './InteriorDetails';
 import {Block} from './Surface';
@@ -25,7 +25,7 @@ import {facadePieces} from './facade';
 import {livingFurniture,bedroomFurniture,diningFurniture,kitchenCounter} from './furniture';
 
 type Mode='overview'|'walk'|'tour';
-type Props={plan:Plan;layout:HouseLayout;interactions:Interaction[];assets:Asset[];mode:Mode;cutaway:boolean;contextVisible?:boolean;showServices?:boolean;xray?:boolean;
+type Props={plan:Plan;layout:HouseLayout;interactions:Interaction[];assets:Asset[];mode:Mode;cutaway:boolean;contextVisible?:boolean;lightPower?:number;showServices?:boolean;xray?:boolean;
   openDoors:Set<string>;doorAngles:Map<string,number>;openShelves:Set<string>;tvOn:Set<string>;chimneyOn:Set<string>;onInteract:(id:string)=>void};
 
 export {Block} from './Surface';
@@ -71,29 +71,29 @@ function CurtainPanel({width,height,x}:{width:number;height:number;x:number}){
   </mesh>;
 }
 
-function WindowJoinery({window:w,height:h}:{window:WindowSpec;height:number}){
- const style=w.style||'casement',timber=style==='timber'||style==='heritage',sliding=style==='sliding',color=timber?'#9f7750':sliding?'#414d48':'#e5e7df',width=w.width;
+function WindowJoinery({window:w,height:h,frameColor}:{window:WindowSpec;height:number;frameColor?:string}){
+ const style=w.style||'casement',timber=style==='timber'||style==='heritage',sliding=style==='sliding',color=frameColor||(timber?'#9f7750':sliding?'#414d48':'#e5e7df'),width=w.width;
  const panelCount=Math.max(2,Math.ceil(width/(sliding?4:2.8))),panel=width/panelCount;
  return <group name={style+' window'}>
   {[-1,1].map(s=><group key={s}><Block position={[s*(width/2-.06),0,0]} size={[.12,h,.28]} color={color} surface={timber?'timber':undefined}/><Block position={[0,s*h/2,0]} size={[width+.12,.12,.28]} color={color} surface={timber?'timber':undefined}/></group>)}
   {style==='louvred'?Array.from({length:Math.max(3,Math.floor(h/.27))},(_,i)=><group key={i} position={[0,-h/2+.14+i*.27,0]} rotation={[.4,0,0]}><Block position={[0,0,0]} size={[width-.18,.29,.035]} color="#b6c8c2" opacity={.7}/></group>):
   Array.from({length:panelCount},(_,i)=><group key={i} position={[-width/2+(i+.5)*panel,0,sliding?i%2*.095:0]}>
-   <Block position={[0,0,0]} size={[panel-.13,h-.17,.035]} color="#bbd5d4" opacity={.13}/>
+   <Block position={[0,0,0]} size={[panel-.13,h-.17,.035]} color="#c1d3d3" opacity={.24} metalness={.12} roughness={.09}/>
    {[-1,1].map(s=><group key={s}><Block position={[s*(panel/2-.045),0,0]} size={[.075,h-.08,.16]} color={color} surface={timber?'timber':undefined}/><Block position={[0,s*(h/2-.06),0]} size={[panel-.03,.075,.16]} color={color} surface={timber?'timber':undefined}/></group>)}
    <Block position={[panel/2-.2,-.25,-.12]} size={[.045,.28,.08]} color={timber?'#b99b58':'#69746c'} metalness={.65}/>
    {style==='heritage'&&[-.22,.22].map(y=><Block key={y} position={[0,y*h,0]} size={[panel-.1,.045,.07]} color={color} surface="timber"/>)}
   </group>)}
   {timber&&<group position={[0,0,.19]}>{Array.from({length:Math.floor(width/.5)},(_,i)=><Block key={i} position={[-width/2+.28+i*.5,0,0]} size={[.025,h-.15,.025]} color="#434c45" metalness={.6}/>)}{[-.25,.25].map(y=><Block key={y} position={[0,y*h,0]} size={[width-.13,.025,.025]} color="#434c45" metalness={.6}/>)}</group>}
-  <Block position={[0,-h/2-.1,0]} size={[width+.35,.12,.55]} color="#d8d3c6" surface="quartz"/>
+  <Block position={[0,-h/2-.08,0]} size={[width+.25,.10,frameColor?.28:.55]} color={frameColor||"#d8d3c6"} surface={frameColor?undefined:"quartz"}/>
  </group>;
 }
-function Window({window,assets,furnished}:{window:WindowSpec;assets:Asset[];furnished:boolean}){
+function Window({window,assets,furnished,recipe}:{window:WindowSpec;assets:Asset[];furnished:boolean;recipe?:ReturnType<typeof facadeStyle>}){
   const base=window.floor*FLOOR_HEIGHT,height=window.height||3.4,half=height/2;
   const alongX=window.axis==='x';
   const x=window.x+(alongX?window.width/2:0),z=window.z+(alongX?0:window.width/2);
   return <group position={[x,base+(window.sill??3)+half,z]}>
-    <group rotation={[0,alongX?0:Math.PI/2,0]}>
-      <WindowJoinery window={window} height={height}/>
+    <group position={recipe?[-window.outward[0]*.14,0,-window.outward[1]*.14]:[0,0,0]} rotation={[0,alongX?0:Math.PI/2,0]}>
+      <WindowJoinery window={window} height={height} frameColor={recipe?.trim}/>
     </group>
     {furnished&&<group position={[-window.outward[0]*.25,0,-window.outward[1]*.25]} rotation={[0,Math.atan2(-window.outward[0],-window.outward[1]),0]}>
       <Block position={[0,half+.22,.1]} size={[window.width+.65,.055,.055]} color="#6f6251" metalness={.55}/>
@@ -212,13 +212,13 @@ function Site({plan,boundary=true}:{plan:Plan;boundary?:boolean}){
  return <group><mesh rotation={[-Math.PI/2,0,0]} position={[0,GROUND_LEVEL-.06,0]} receiveShadow><shapeGeometry args={[shape]}/><Suspense fallback={<meshStandardMaterial color="#a2af8c"/>}><SiteFinish type="lawn" repeat={[.15,.15]}/></Suspense></mesh>{boundary&&polygon.map((p,i)=>{const q=polygon[(i+1)%polygon.length],dx=q.x-p.x,dz=q.y-p.y,length=Math.hypot(dx,dz);if((plan.design?.siteContext?.edges.find(e=>e.edge===p.id)?.use|| (p.road?'road':'open'))==='road')return null;return <group key={i} position={[(p.x+q.x)/2-plan.offsetX,GROUND_LEVEL+1.1,(p.y+q.y)/2-plan.offsetY]} rotation={[0,-Math.atan2(dz,dx),0]}><Block position={[0,0,0]} size={[length,2.2,.25]} color="#d8d0bd" surface="stone"/></group>;})}</group>;
 }
 
-export function HouseScene({plan,layout,interactions,assets,mode,cutaway,contextVisible=true,showServices=false,xray=false,openDoors,doorAngles,openShelves,tvOn,chimneyOn,onInteract}:Props){
+export function HouseScene({plan,layout,interactions,assets,mode,cutaway,contextVisible=true,lightPower=1,showServices=false,xray=false,openDoors,doorAngles,openShelves,tvOn,chimneyOn,onInteract}:Props){
   const floorCount=plan.levels||Math.max(1,...plan.rooms.map(r=>r.floor+1));
   const finish=palette(plan.design?.style),kit=!!facadeStyle(plan.design?.style);
   const furnished=plan.design?.furnished!==false;
   const shellCutaway=mode==='overview'&&cutaway;
   return <group name="HouseExport" userData={{exportRoot:true}} position={[-plan.width/2,0,-plan.depth/2]}>
-    <Site plan={plan} boundary={!kit}/>{!shellCutaway&&!kit&&<><Architecture plan={plan} layout={layout} assets={assets}/><EntryGarden plan={plan} layout={layout} assets={assets}/></>}{!shellCutaway&&kit&&<><Suspense fallback={null}><FacadeKit plan={plan} layout={layout} servicesVisible={showServices}/></Suspense><EntryGarden plan={plan} layout={layout} assets={assets} pathOnly/></>}{contextVisible&&<group position={[0,GROUND_LEVEL,0]}><SiteWorld plan={plan}/></group>}
+    <Site plan={plan} boundary={!kit}/>{!shellCutaway&&!kit&&<><Architecture plan={plan} layout={layout} assets={assets}/><EntryGarden plan={plan} layout={layout} assets={assets}/></>}{!shellCutaway&&kit&&<><Suspense fallback={null}><FacadeKit plan={plan} layout={layout} servicesVisible={showServices} lightPower={lightPower}/></Suspense><EntryGarden plan={plan} layout={layout} assets={assets} pathOnly/></>}{contextVisible&&<group position={[0,GROUND_LEVEL,0]}><SiteWorld plan={plan}/></group>}
     <Block position={[plan.width/2,GROUND_LEVEL/2,plan.depth/2]} size={[plan.width,-GROUND_LEVEL,plan.depth]} color="#ddd8ce" surface="concrete"/>
     {plan.rooms.filter(room=>room.floor>0&&room.kind!=='stairs').map(room=><Block key={`slab-${room.id}`}
       position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT-.17,room.y+room.h/2]} size={[room.w,.34,room.h]} color="#ddd8ce" surface="concrete" opacity={shellCutaway ? .56 : 1}/>)}
@@ -239,14 +239,14 @@ export function HouseScene({plan,layout,interactions,assets,mode,cutaway,context
     </group>)}
     {layout.walls.filter(wall=>!(shellCutaway&&wall.exterior&&wall.z<.25&&wall.d<.4)).map(wall=><Block key={wall.id}
       position={[wall.x+wall.w/2,wall.floor*FLOOR_HEIGHT+wall.bottom+wall.height/2,wall.z+wall.d/2]}
-      size={[wall.w,wall.height,wall.d]} color={wall.exterior?finish.wall:'#f6f1e6'} opacity={xray?.18:1} surface={plan.design?.wallFinish==='stone'?'stone':plan.design?.wallFinish==='timber'?'timber':'paint'}/>)}
+      size={[wall.w,wall.height,wall.d]} color={wall.exterior?(facadeStyle(plan.design?.style)?.wall||finish.wall):'#f6f1e6'} neutralBase={wall.exterior&&kit} opacity={xray?.18:1} surface={plan.design?.wallFinish==='stone'?'stone':plan.design?.wallFinish==='timber'?'timber':'paint'}/>)}
     {plan.rooms.filter(r=>r.kind==='bathroom').flatMap(room=>layout.walls.filter(w=>w.rooms?.includes(room.id)).map(w=>{
       const along=w.w>w.d,cx=w.x+w.w/2,cz=w.z+w.d/2,side=along?(room.y+room.h/2>cz?1:-1):(room.x+room.w/2>cx?1:-1);
       return <Block key={'wet-'+room.id+'-'+w.id} position={[cx+(along?0:side*(w.w/2+.008)),room.floor*FLOOR_HEIGHT+w.bottom+w.height/2,cz+(along?side*(w.d/2+.008):0)]} size={along?[w.w,w.height,.014]:[.014,w.height,w.d]} color="#ffffff" surface="bathwall" opacity={xray?.18:1}/>;
     }))}
     {layout.walls.filter(w=>w.bottom===0&&w.height>1).map(w=><Block key={'skirt-'+w.id} position={[w.x+w.w/2,w.floor*FLOOR_HEIGHT+.18,w.z+w.d/2]} size={[w.w+.015,.25,w.d+.035]} color="#bfb6a8" surface="limestone"/>)}
     {layout.doors.filter(door=>!door.arch).map(door=><Door key={door.id} door={door} open={openDoors.has(door.id)} angles={doorAngles} style={doorDesignFor(plan,door)}/>)}
-    {layout.windows.map(window=><Window key={window.id} window={window} assets={assets} furnished={furnished&&!plan.rooms.some(r=>r.id===window.roomId&&r.kind==='bathroom')}/>)}
+    {layout.windows.map(window=><Window key={window.id} window={window} assets={assets} recipe={roomFitout(plan,plan.rooms.find(r=>r.id===window.roomId)!).window==='auto'?facadeStyle(plan.design?.style):undefined} furnished={furnished&&!plan.rooms.some(r=>r.id===window.roomId&&r.kind==='bathroom')}/>)}
     {!kit&&!shellCutaway&&facadePieces(plan,layout).map(piece=><Block key={piece.id} position={piece.position} size={piece.size} color={piece.surface==='timber'?finish.trim:piece.color} surface={piece.surface}/>)}
     {!kit&&!shellCutaway&&(!plan.design?.roof||plan.design.roof==='flat')&&<>
       <Block position={[plan.width/2,floorCount*FLOOR_HEIGHT+.15,plan.depth/2]} size={[plan.width+1,.35,plan.depth+1]} color="#f1eee7" surface="concrete"/>
