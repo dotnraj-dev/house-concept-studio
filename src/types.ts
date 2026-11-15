@@ -1,3 +1,4 @@
+import type {HomeFitout} from './fitout';
 import type {TNSiteRules} from './tn-rules';
 import type {SiteContext} from './site-context';
 export const FEATURES = [
@@ -41,7 +42,7 @@ export const DEFAULT_REQUIREMENTS: Requirements = {
   customerName: '', customerPhone: '', location: '', plotWidth: 40, plotDepth: 60,
   roadSide: 'north', floors: 2, bedrooms: 3, bathrooms: 3, parking: true,
   livingPriority: 'balanced', kitchenPriority: 'balanced', toiletStyle: 'western',
-  vastu: 'preferred', pooja: true, utility: true, elderlyBedroom: true,
+  vastu: 'preferred', pooja: true, utility: false, elderlyBedroom: true,
   budgetLakhs: 60, notes: '',
   requestedSizes: {
     living:{w:0,h:0}, dining:{w:0,h:0}, kitchen:{w:0,h:0},
@@ -73,7 +74,7 @@ export type LevelProgram = { floor:number; name:string; bedrooms:number; bathroo
 export type ServiceNode = { id:string; type:'tank'|'sump'|'septic'|'borewell'|'pump'|'sewer'|'rainwater'; label:string; x:number; y:number; level:number; capacity:number; side:Direction; locked:boolean };
 export type QuoteExtra = { id:string; label:string; quantity:number; rate:number; included:boolean; category:'interior'|'construction'|'service' };
 export type DesignBrief = {
-  tnRules?:TNSiteRules; siteContext?:SiteContext; guideAnswers?:Record<string,string>;
+  fitout?:HomeFitout; tnRules?:TNSiteRules; siteContext?:SiteContext; guideAnswers?:Record<string,string>;
   version:2; customerEmail:string; language:string; household:string; authority:string;
   plotMode:'rectangle'|'polygon'; vertices:PlotVertex[]; surveyImage?:string; measurement:'surveyed'|'approximate';
   setbacks:{ north:number; east:number; south:number; west:number }; customSetbacks:boolean;

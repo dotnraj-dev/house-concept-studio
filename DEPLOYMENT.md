@@ -55,3 +55,14 @@ Local checks: 60 automated TypeScript/geometry tests, production build, guided a
 Release 042caf78383265d76eb6402102fe774ee707cc94 is live at the same application URL. GitHub verification passed. The live health response reports build 042caf783832. New stacked-stone, paving and marble textures return HTTP 200 and the hosted JavaScript includes the bathroom-access controls. Project data remains protected by sign-in.
 
 65 automated tests passed, plus the final window-height/geometry checks. The actual rendered exterior, living room, bedroom and attached bathroom were inspected. See HOUSE-REFERENCE-STUDY.md for the references, implementation and remaining quality limits.
+
+
+## Interior detail and Tamil Nadu rule review release — 15 November 2026
+
+Final release 2124ca59cc2ce39b5461003612a73f2bbbdf8cc9 is live at https://house-concept-studio-test.onrender.com. Health reports build 2124ca59cc2c. GitHub verification run 43691465823 succeeded. Source checkout is clean. The hosted client includes the Tamil Nadu site form/review and detailed viewer, new PBR maps return HTTP 200, and projects/references/integration status require authentication.
+
+Validation: 79 TypeScript tests and 7 Python worker tests in CI; local production build; actual non-blank exterior, TV wall, kitchen, bedroom, vanity and shower/bucket views; Tamil Nadu site inputs edited/saved/read back; 12 cached photo-reference cards; no browser errors in the final complete browser run. A final bedding clearance adjustment was checked geometrically and passed CI. Temporary fictional QA projects and local QA servers/database were cleaned up. No paid AI or GPU calls were made.
+
+Pixabay works locally using encrypted provider storage, including a 24-hour cache hit; the supplied key was verified absent from the browser bundle and release source. Browser automation could not confidently determine the external browser URL and was stopped; the key was not configured in the hosted Settings. Admin should enter it under Connections → Photo references.
+
+The rules layer is a bounded preliminary residential review, not comprehensive statutory certification. Missing site facts, special zones and taller or otherwise unsupported buildings require professional verification. Read TAMIL-NADU-RULES.md and INTERIOR-REALISM-UPDATE.md for exact scope and realism limits.

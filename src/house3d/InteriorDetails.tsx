@@ -1,3 +1,4 @@
+import {kitchenCounter} from './furniture';
 import {FLOOR_HEIGHT} from '../building-dimensions';
 import {useEffect,useMemo,useRef} from 'react';
 import {useTexture} from '@react-three/drei';
@@ -44,20 +45,20 @@ export function WovenRug({x,z,w,d,base}:{x:number;z:number;w:number;d:number;bas
  return <group name="Woven rug" position={[x,base+.085,z]}><mesh rotation={[-Math.PI/2,0,0]} receiveShadow><planeGeometry args={[w,d]}/><meshStandardMaterial map={maps[0]} normalMap={maps[1]} normalScale={new Vector2(.5,.5)} roughnessMap={maps[2]}/></mesh>{[-1,1].map(side=><group key={side}>{Array.from({length:32},(_,i)=><Block key={i} position={[-w/2+(i+.5)*w/32,0,side*(d/2+.045)]} size={[.025,.014,.12]} color="#c7bca7"/>)}</group>)}</group>;
 }
 export function KitchenDetails({room,hasWindows=false}:{room:Room;hasWindows?:boolean}){
- const cx=room.x+room.w/2,z=room.y+room.h-.85,base=room.floor*FLOOR_HEIGHT;
+ const q=kitchenCounter(room),cx=q.x,z=q.z,base=room.floor*FLOOR_HEIGHT;
  // Small objects stay in the dry preparation zone to the left of the sink; no objects on the hob.
- const x=room.x+1.25;
+ const x=q.start+.65;
  return <group name="Kitchen worktop details">
-  <Block position={[cx,base+(hasWindows?3.2:4.13),room.y+room.h-.17]} size={[room.w-1.25,hasWindows?.2:2,.045]} color="#f2ede1" surface="bathwall"/>
-  <Block position={[cx,base+2.9,room.y+room.h-1.69]} size={[room.w-1.3,.04,.08]} color="#fff2d2" emissive="#ffd2a1"/>
-  {room.w>8&&<group position={[x,base+3.09,z]}>
+  <Block position={[cx,base+(hasWindows?3.2:4.13),room.y+room.h-.17]} size={[q.w,hasWindows?.2:2,.045]} color="#f2ede1" surface="bathwall"/>
+  <Block position={[cx,base+2.9,room.y+room.h-1.69]} size={[q.w-.1,.04,.08]} color="#fff2d2" emissive="#ffd2a1"/>
+  {q.w>6.7&&<group position={[x,base+3.09,z]}>
    <Soft position={[0,.025,.1]} size={[.8,.055,.75]} color="#bb986b" rough={.7}/>
    <Tube position={[-.22,.3,-.32]} radius={.19} height={.55} color="#dcd9cc" metal={0}/><Tube position={[-.22,.59,-.32]} radius={.195} height={.055} color="#9c754e" metal={0}/>
    <Tube position={[.3,.24,-.32]} radius={.16} height={.44} color="#ebe6d8" metal={0}/><Tube position={[.3,.48,-.32]} radius={.165} height={.04} color="#9c754e" metal={0}/>
    <Vessel profile="cup" position={[0,.06,.24]} color="#687c75"/>
    <Tube position={[-.35,.52,-.31]} radius={.012} height={.66} rotation={[0,0,-.15]} color="#8e694b" metal={0}/>
   </group>}
-  <group position={[cx+1,base+3.12,z]}><Tube position={[0,.17,0]} radius={.32} height={.34} color="#b7babb"/><Tube position={[0,.36,0]} radius={.33} height={.035}/><Soft position={[.4,.2,0]} size={[.3,.075,.08]} color="#2e3431"/><Soft position={[0,.41,0]} size={[.14,.075,.09]} color="#333936"/></group>
+  <group position={[q.hobX,base+3.12,z]}><Tube position={[0,.17,0]} radius={.32} height={.34} color="#b7babb"/><Tube position={[0,.36,0]} radius={.33} height={.035}/><Soft position={[.4,.2,0]} size={[.3,.075,.08]} color="#2e3431"/><Soft position={[0,.41,0]} size={[.14,.075,.09]} color="#333936"/></group>
  </group>;
 }
 export function DiningDetails({x,z,w,d,base}:{x:number;z:number;w:number;d:number;base:number}){
@@ -101,13 +102,13 @@ export function VanityDetails({depth}:{depth:number}){
 
 
 export function KitchenStorage({room,open}:{room:Room;open:boolean}){
- const w=room.w-1.2,n=Math.max(1,Math.floor(w/2.1)),base=room.floor*FLOOR_HEIGHT,z=room.y+room.h-.85;
+ const q=kitchenCounter(room),w=q.w,n=Math.max(1,Math.floor(w/2.1)),base=room.floor*FLOOR_HEIGHT,z=room.y+room.h-.85;
  return <group name="Kitchen base cabinets" userData={{solid:true}}>
-  <Block position={[room.x+room.w/2,base+.16,z]} size={[w,.16,1.7]} color="#665244" surface="timber"/>
-  <Block position={[room.x+room.w/2,base+1.5,z+.78]} size={[w,2.8,.1]} color="#b69b76" surface="timber"/>
-  <Block position={[room.x+room.w/2,base+1.45,z]} size={[w,.07,1.6]} color="#c0ae8e" surface="timber"/>
-  {Array.from({length:n+1},(_,i)=><Block key={i} position={[room.x+.6+i*w/n,base+1.5,z]} size={[.065,2.8,1.7]} color="#b99f7b" surface="timber"/>)}
-  {Array.from({length:n},(_,i)=><KitchenLeaf key={i} position={[room.x+.6+i*w/n,base,z-.87]} width={w/n-.065} open={open}/>)}
+  <Block position={[q.x,base+.16,z]} size={[w,.16,1.7]} color="#665244" surface="timber"/>
+  <Block position={[q.x,base+1.5,z+.78]} size={[w,2.8,.1]} color="#b69b76" surface="timber"/>
+  <Block position={[q.x,base+1.45,z]} size={[w,.07,1.6]} color="#c0ae8e" surface="timber"/>
+  {Array.from({length:n+1},(_,i)=><Block key={i} position={[q.start+i*w/n,base+1.5,z]} size={[.065,2.8,1.7]} color="#b99f7b" surface="timber"/>)}
+  {Array.from({length:n},(_,i)=><KitchenLeaf key={i} position={[q.start+i*w/n,base,z-.87]} width={w/n-.065} open={open}/>)}
  </group>;
 }
 function KitchenLeaf({position,width,open}:{position:V;width:number;open:boolean}){

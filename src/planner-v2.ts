@@ -1,3 +1,5 @@
+import {roomFitments} from './house3d/fitout-layout';
+import {fitoutOf} from './fitout';
 import {tnReview} from './tn-rules';
 import {makeHouseLayout,furnishingFrame} from './house3d/layout';
 import {serviceLayout} from './services';
@@ -11,7 +13,7 @@ export function zoneMatches(zone:Zone,x:number,y:number,w:number,h:number){
  return (!zone.includes('north')||ny<=.45)&&(!zone.includes('south')||ny>=.55)&&(!zone.includes('east')||nx>=.55)&&(!zone.includes('west')||nx<=.45);
 }
 export function generatePlan(req:Requirements,settings:Settings,variant:number,ratios:Ratios):Plan{
- const original=designOf(req),site=analyseSite(req,settings),actual=site.footprint;
+ const original=designOf(req),fitout=fitoutOf(original),site=analyseSite(req,settings),actual=site.footprint;
  const turn={north:0,east:1,south:2,west:3}[original.twoDoors?original.outerFacing:original.houseFacing];
  const order=['north','north-east','east','south-east','south','south-west','west','north-west'];
  const localZone=(z:Zone):Zone=>order.includes(z)?order[(order.indexOf(z)-turn*2+8)%8] as Zone:z;
@@ -43,7 +45,7 @@ export function generatePlan(req:Requirements,settings:Settings,variant:number,r
   if(f===0||custom?.kitchen){put('kitchen',custom?.rental?'Rental kitchen':'Kitchen');put('dining','Dining');}
   for(let n=0;n<beds;n++)put('bedroom',f===0&&n===0&&req.elderlyBedroom?'Parents bedroom':`Bedroom ${++bedIndex}`,n);
   for(let n=0;n<baths;n++)put('bathroom',`Bathroom ${n+1}`,n);
-  if(f===0&&req.pooja)put('pooja','Pooja room');if(f===0&&req.utility)put('utility','Utility');if(f===0&&req.parking)put('portico','Car portico');
+  if(f===0&&req.pooja&&fitout.prayerMode==='room')put('pooja',fitout.faith==='hindu'?'Pooja room':'Prayer room');if(f===0&&req.utility&&fitout.utilityMode==='laundry')put('utility','Laundry & utility');if(f===0&&req.parking)put('portico','Car portico');
   for(const q of d.roomRequests.filter(q=>q.floor===f))if(!items.some(r=>r.id===q.id||r.kind===q.kind))put(q.kind,q.label||q.kind);
   if(!items.length)put('terrace','Open terrace');
   const suiteFor=new Map<string,Room>();
@@ -62,16 +64,17 @@ export function generatePlan(req:Requirements,settings:Settings,variant:number,r
    if(suiteFor.has(item.id)&&(side?rightW:leftW)<14.5)side=leftW>=14.5?0:1;
    (side?east:west).push(item);
   }
+  if(fitout.openKitchen){const kitchen=items.find(r=>r.kind==='kitchen'),dining=items.find(r=>r.kind==='dining');if(kitchen&&dining){const target=west.includes(kitchen)?west:east,other=target===west?east:west;if(other.includes(dining)){other.splice(other.indexOf(dining),1);target.push(dining);}}}
   const minDepth=(r:Room)=>requestFor(r)?.mode==='exact'?requestFor(r)!.h:suiteFor.has(r.id)?17:MIN[r.kind]?.[1]||4;
   for(let attempt=0;attempt<items.length;attempt++){
    const groups=[west,east],caps=[fp.h-(levels>1&&stairWest?stairD:0),fp.h-(levels>1&&!stairWest?stairD:0)],totals=groups.map(g=>g.reduce((s,r)=>s+minDepth(r),0));
    const side=totals[0]>caps[0]+.01?0:totals[1]>caps[1]+.01?1:-1;if(side<0)break;
-   const other=1-side,candidate=groups[side].filter(r=>!['living','portico'].includes(r.kind)&&!(requestFor(r)?.zone||ruleFor(r)?.zone||'any').includes(side?'east':'west')).sort((a,b)=>minDepth(a)-minDepth(b)).find(r=>totals[other]+minDepth(r)<=caps[other]&&(!suiteFor.has(r.id)||(other?rightW:leftW)>=14.5));
+   const other=1-side,candidate=groups[side].filter(r=>!['living','portico',...(fitout.openKitchen?['kitchen','dining']:[])].includes(r.kind)&&!(requestFor(r)?.zone||ruleFor(r)?.zone||'any').includes(side?'east':'west')).sort((a,b)=>minDepth(a)-minDepth(b)).find(r=>totals[other]+minDepth(r)<=caps[other]&&(!suiteFor.has(r.id)||(other?rightW:leftW)>=14.5));
    if(!candidate)break;groups[side].splice(groups[side].indexOf(candidate),1);groups[other].push(candidate);
   }
   [west,east].forEach((group,side)=>{
    const x=side?rightX:0,w=side?rightW:leftW,h=fp.h-(levels>1&&(side===0?stairWest:!stairWest)?stairD:0);
-   const order=(r:Room)=>{const q=requestFor(r),z=q?.zone&&q.zone!=='any'?q.zone:ruleFor(r)?.zone||'any';return z.includes('north')?-4:z.includes('south')?4:r.kind==='living'||r.kind==='lounge'||r.kind==='portico'?-3:r.kind==='bedroom'?2:0;};
+   const order=(r:Room)=>{const q=requestFor(r),z=q?.zone&&q.zone!=='any'?q.zone:ruleFor(r)?.zone||'any';return z.includes('north')?-4:z.includes('south')?4:r.kind==='living'||r.kind==='lounge'||r.kind==='portico'?-3:r.kind==='bedroom'?2:r.kind==='kitchen'?-.5:0;};
    group.sort((a,b)=>order(a)-order(b)||(variant===2?b.kind.localeCompare(a.kind):a.kind.localeCompare(b.kind)));
    const minimum=group.filter(r=>requestFor(r)?.mode!=='exact').reduce((s,r)=>s+minDepth(r),0);
    const fixed=group.reduce((s,r)=>{const q=requestFor(r);return s+(q?.mode==='exact'?q.h:0);},0),flex=group.filter(r=>requestFor(r)?.mode!=='exact'),weight=flex.reduce((s,r)=>s+weights(r),0),tooLarge=fixed+minimum>h+.01;
@@ -96,7 +99,11 @@ export function generatePlan(req:Requirements,settings:Settings,variant:number,r
  }
  for(let f=1;f<levels;f++){
   const lounge=rooms.find(r=>r.floor===f&&r.kind==='lounge'&&r.y<.05&&r.h>=14);
-  if(lounge){const depth=4.5;add({id:f+'-balcony',kind:'terrace',label:'Sit-out balcony',floor:f,x:lounge.x,y:0,w:lounge.w,h:depth});lounge.y=depth;lounge.h=rounded(lounge.h-depth);}
+  if(lounge&&!d.roomRequests.some(q=>q.id===lounge.id&&q.mode==='exact')){
+   // Bound the indoor lounge depth; the remainder is an accessible front terrace.
+   const depth=Math.max(4.5,lounge.h-17);
+   add({id:f+'-balcony',kind:'terrace',label:depth>6?'Family terrace':'Sit-out balcony',floor:f,x:lounge.x,y:0,w:lounge.w,h:rounded(depth)});lounge.y=rounded(depth);lounge.h=rounded(lounge.h-depth);
+  }
  }
  // Keep north-up survey coordinates; the entrance/front can be on any side.
  if(turn)for(const r of rooms){const {x,y,w,h}=r;if(turn===1)Object.assign(r,{x:fp.h-y-h,y:x,w:h,h:w});else if(turn===2)Object.assign(r,{x:fp.w-x-w,y:fp.h-y-h});else Object.assign(r,{x:y,y:fp.w-x-w,w:h,h:w});r.x=rounded(r.x);r.y=rounded(r.y);}
@@ -130,6 +137,10 @@ export function generatePlan(req:Requirements,settings:Settings,variant:number,r
    while(changed){changed=false;for(const door of layout.doors.filter(v=>v.floor===f))if(door.rooms?.some(id=>reached.has(id)))for(const id of door.rooms||[])if(!reached.has(id)){reached.add(id);changed=true;}}
    for(const r of rooms.filter(r=>r.floor===f&&!['passage','foyer'].includes(r.kind)))if(!reached.has(r.id))checks.push({id:'access-'+r.id,title:r.label+' has no connected doorway',detail:'Revise the room size or floor programme to provide a clear entrance.',status:'conflict',target:r.id});
  }
+ const fits=rooms.flatMap(r=>roomFitments(physical,r,layout));
+ for(const r of rooms.filter(r=>r.kind==='bedroom'))if(d.furnished&&!fits.some(v=>v.kind==='wardrobe'&&(v.roomId===r.id||rooms.find(q=>q.id===v.roomId)?.attachedTo===r.id)))checks.push({id:'fitout-'+r.id,title:'Wardrobe needs a clear wall',detail:r.label+': a wardrobe and opening clearance could not fit without obstructing a doorway, window or bed. Increase the room or revise its furniture facing.',status:'warning',target:r.id});
+ if(req.pooja&&fitout.prayerMode!=='room'&&!fits.some(v=>v.kind==='prayer'))checks.push({id:'prayer-fit',title:'Prayer furniture needs a clear wall',detail:'The requested prayer cabinet or shelves could not fit safely in the living room. Revise the room size or choose a dedicated prayer room.',status:'warning'});
+ if(fitout.openKitchen){const k=rooms.find(r=>r.floor===0&&r.kind==='kitchen'),dining=rooms.find(r=>r.floor===0&&r.kind==='dining');if(k&&dining&&!layout.doors.some(v=>v.arch&&v.rooms?.includes(k.id)&&v.rooms?.includes(dining.id)))checks.push({id:'open-kitchen-access',title:'Open kitchen needs adjacent dining',detail:'The locked floor programme does not allow a direct kitchen-to-dining opening. Revise placement or choose a separate kitchen.',status:'conflict'});}
  checks.push(...serviceLayout(physical).checks,...tnReview(req,physical,layout));
  for(const c of checks.filter(c=>c.status!=='pass'))if(!warnings.includes(c.title+': '+c.detail))warnings.push(c.title+': '+c.detail);
  const valid=rooms.every(r=>r.w>0&&r.h>0&&r.x>=-.01&&r.y>=-.01&&r.x+r.w<=fp.w+.05&&r.y+r.h<=fp.h+.05);

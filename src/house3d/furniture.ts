@@ -18,3 +18,9 @@ export function diningFurniture(room:Room){
   return {x,z,w:Math.min(3.9,room.w*.33),d:Math.min(2.3,room.h*.29),
     chairs:[-1,1].flatMap(side=>[-.96,.96].map(offset=>({x:x+side*2.4,z:z+offset,w:1.8,d:1.6,rotation:side>0?Math.PI/2:-Math.PI/2})))};
 }
+
+/** Reserve a full-height appliance column at the left end of the kitchen run. */
+export function kitchenCounter(room:Room){
+ const start=room.x+3,w=Math.max(2,room.w-3.6),x=start+w/2;
+ return {start,w,x,z:room.y+room.h-.85,sinkX:x-Math.min(1.3,w*.22),hobX:x+Math.min(1,w*.24)};
+}
