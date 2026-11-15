@@ -49,3 +49,9 @@ milestones.
 Release a07af922b427614e0b4af74507fa088eda53b943 was pushed to main and verified at the existing public URL. GitHub Actions passed. The public health response reports build a07af922b427. The hosted HTML loads the new interview code and all checked paint, roof, lawn and road material files. The project API still requires sign-in.
 
 Local checks: 60 automated TypeScript/geometry tests, production build, guided answer edits, regional selection, 3D, environment controls, room-door changes, stable sanitary fittings after re-renders, and a 390 px mobile interview. See REGIONAL-DESIGN-UPDATE.md for limits. No AI or GPU purchase was made.
+
+## House model correction release
+
+Release 042caf78383265d76eb6402102fe774ee707cc94 is live at the same application URL. GitHub verification passed. The live health response reports build 042caf783832. New stacked-stone, paving and marble textures return HTTP 200 and the hosted JavaScript includes the bathroom-access controls. Project data remains protected by sign-in.
+
+65 automated tests passed, plus the final window-height/geometry checks. The actual rendered exterior, living room, bedroom and attached bathroom were inspected. See HOUSE-REFERENCE-STUDY.md for the references, implementation and remaining quality limits.

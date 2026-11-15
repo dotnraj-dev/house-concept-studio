@@ -46,6 +46,7 @@ export async function initializeDatabase() {
     );
     CREATE TABLE IF NOT EXISTS settings (id integer PRIMARY KEY CHECK (id=1), data jsonb NOT NULL);
     CREATE TABLE IF NOT EXISTS stored_files (key text PRIMARY KEY, content bytea NOT NULL, created_at timestamptz NOT NULL DEFAULT now());
+    CREATE TABLE IF NOT EXISTS reference_cache (query text PRIMARY KEY, data jsonb NOT NULL, expires_at timestamptz NOT NULL);
     CREATE TABLE IF NOT EXISTS provider_credentials (provider text PRIMARY KEY, encrypted text NOT NULL, updated_at timestamptz NOT NULL DEFAULT now());
     CREATE TABLE IF NOT EXISTS render_jobs (
       id uuid PRIMARY KEY, project_id uuid NOT NULL REFERENCES projects(id) ON DELETE CASCADE, owner_id uuid NOT NULL REFERENCES users(id), request_id uuid NOT NULL,

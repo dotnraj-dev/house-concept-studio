@@ -1,4 +1,4 @@
-import {BoxGeometry,CylinderGeometry,Group,LatheGeometry,Mesh,MeshStandardMaterial,SphereGeometry,TorusGeometry,Vector2} from 'three';
+import {BoxGeometry,CylinderGeometry,Group,LatheGeometry,Mesh,MeshPhysicalMaterial,PlaneGeometry,DoubleSide,SphereGeometry,TorusGeometry,Vector2} from 'three';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 /** Original reusable geometry. No external model licence or paid generation is required. */
 const colors:Record<string,string>={fabric:'#c8c6b9',linen:'#eee7d7',accent:'#728678',wood:'#b59a73',metal:'#7d715f',ceramic:'#faf8f1',glass:'#50645e'};
@@ -7,8 +7,8 @@ export const BUILTIN_CATEGORIES=['sofa','bed','dining','basin','toilet','coffee'
 export function builtinModel(category:string):Group|null{
  if(cache.has(category))return cache.get(category)!.clone(true);
  const root=new Group();root.name='Studio '+category;
- const mats=new Map<string,MeshStandardMaterial>();
- const mat=(name:string)=>{if(!mats.has(name))mats.set(name,new MeshStandardMaterial({name,color:colors[name]||colors.fabric,roughness:name==='ceramic'?.2:name==='metal'?.32:.85,metalness:name==='metal'?.65:0}));return mats.get(name)!;};
+ const mats=new Map<string,MeshPhysicalMaterial>();
+ const mat=(name:string)=>{if(!mats.has(name))mats.set(name,new MeshPhysicalMaterial({name,color:colors[name]||colors.fabric,roughness:name==='ceramic'?.18:name==='metal'?.14:name==='wood'?.38:.85,clearcoat:name==='wood'||name==='ceramic'?.3:0,clearcoatRoughness:.16,metalness:name==='metal'?1:0}));return mats.get(name)!;};
  const mesh=(geometry:any,name:string,x:number,y:number,z:number,parent=root)=>{const m=new Mesh(geometry,mat(name));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;};
  const soft=(w:number,h:number,d:number,x:number,y:number,z:number,name='fabric',radius=.1)=>mesh(new RoundedBoxGeometry(w,h,d,3,Math.min(radius,w/4,h/4,d/4)),name,x,y,z);
  const leg=(x:number,z:number,height=.45)=>mesh(new CylinderGeometry(.045,.035,height,12),'metal',x,height/2,z);
@@ -19,7 +19,9 @@ export function builtinModel(category:string):Group|null{
   for(const x of [-2.4,2.4]){const pillow=soft(.84,.86,.25,x,1.68,.38,x<0?'accent':'linen',.16);pillow.rotation.z=x<0?.17:-.17;pillow.rotation.x=-.18;}
  }else if(category==='bed'){
   soft(5.3,.5,6.65,0,.5,0,'wood',.06);soft(5.15,2.8,.32,0,1.7,-3.15,'fabric',.1);soft(5,.63,6.3,0,1.04,.07,'linen',.16);
-  soft(5.07,.14,4.15,0,1.42,1.1,'accent',.08);for(const x of [-1.28,1.28]){const pillow=soft(2.05,.32,1.27,x,1.53,-2,'linen',.14);pillow.rotation.y=x<0?-.04:.04;}
+  const cloth=new PlaneGeometry(5.07,4.15,48,40),vertices=cloth.attributes.position;
+  for(let i=0;i<vertices.count;i++){const x=vertices.getX(i),z=vertices.getY(i);vertices.setZ(i,.025*Math.sin(x*7+z*2.1)+.018*Math.sin(z*9+x*.6)-Math.pow(Math.abs(x)/2.54,18)*.22);}
+  cloth.computeVertexNormals();const quilt=mesh(cloth,'accent',0,1.43,1.1);quilt.rotation.x=-Math.PI/2;mat('accent').side=DoubleSide;for(const x of [-1.28,1.28]){const pillow=soft(2.05,.32,1.27,x,1.53,-2,'linen',.14);pillow.rotation.y=x<0?-.04:.04;}
   for(const x of [-2.4,2.4])for(const z of [-2.8,2.8])leg(x,z,.35);
  }else if(category==='dining'){
   soft(4,.16,2.65,0,2.45,0,'wood',.14);for(const x of [-1.5,1.5])for(const z of [-.9,.9])mesh(new CylinderGeometry(.07,.055,2.4,16),'wood',x,1.2,z);

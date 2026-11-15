@@ -5,6 +5,7 @@ const zone=z.enum(['any','north','north-east','east','south-east','south','south
 const kind=z.enum(['living','dining','kitchen','bedroom','bathroom','portico','utility','pooja','lounge','terrace','stairs','passage','foyer']);
 const size=z.object({w:number(1000),h:number(1000)});
 export const designSchema=z.object({
+ tnRules:z.object({area:z.enum(['unknown','other','cba','ews']),access:z.enum(['unknown','direct','passage']),roadWidthM:number(100),dwellings:z.number().int().min(1).max(1000),restrictions:z.enum(['unknown','none','special']),sideChoice:z.enum(['balanced','left','right']),alignmentM:number(100),alignmentConfirmed:z.boolean().default(false),frontageM:number(1000),edgeRoles:z.record(z.string().max(40),z.enum(['front','rear','left','right'])).refine(r=>Object.keys(r).length<=200)}).optional(),
  guideAnswers:z.record(z.string().max(40),z.string().max(1800)).refine(r=>Object.keys(r).length<=30).optional(),
  siteContext:z.object({latitude:z.number().finite().min(-90).max(90),longitude:z.number().finite().min(-180).max(180),edges:z.array(z.object({edge:z.string().max(40),use:z.enum(['house','building','trees','open','road']),gap:number(500),width:number(500).positive(),depth:number(500).positive(),height:number(500).positive(),along:number(1)})).max(200)}).optional(),
  bathroomAccess:z.enum(['attached','mixed','common']).optional(),

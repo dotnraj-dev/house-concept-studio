@@ -1,3 +1,4 @@
+import {searchReferences} from './pixabay';
 import {registerRenders} from './renders';
 import Fastify from 'fastify';
 import multipart from '@fastify/multipart';
@@ -230,22 +231,24 @@ app.post('/api/extract', async (request, reply) => {
   return { ...parsed, usage:output.usage };
 });
 
+app.get('/api/references/search',async(request,reply)=>{const user=await requireUser(request,reply);if(!user||!requireFeature(user,'assets.manage',reply))return;const {q}=z.object({q:z.string().min(2).max(100)}).parse(request.query);return searchReferences(q);});
 app.get('/api/integrations/status',async(request,reply)=>{const user=await requireUser(request,reply);if(!user)return;return providerStatus();});
 app.patch('/api/integrations/:provider',async(request,reply)=>{
  const user=await requireUser(request,reply);if(!user)return;if(user.role!=='admin')return reply.code(403).send({error:'Only the administrator can configure provider credentials.'});
- const provider=z.enum(['openai','runpod','gpu-worker']).parse((request.params as any).provider);
+ const provider=z.enum(['openai','runpod','gpu-worker','pixabay']).parse((request.params as any).provider);
  const data=z.object({apiKey:z.string().trim().max(2000).default(''),textModel:z.string().trim().min(1).max(100).optional(),speechModel:z.string().trim().min(1).max(100).optional(),endpointId:z.string().regex(/^[a-zA-Z0-9_-]*$/).max(120).optional(),publicBaseUrl:z.union([z.literal(''),z.url().refine(v=>v.startsWith('https://'),'Use an HTTPS application URL.')]).optional(),workerUrl:z.string().max(500).refine(v=>{try{workerBaseUrl(v);return true;}catch{return false;}},'Use a public HTTPS worker origin or http://127.0.0.1:8787.').transform(workerBaseUrl).optional(),hourlyRateInr:z.number().finite().min(0).max(10000).optional()}).parse(request.body);
  if(provider==='gpu-worker'&&(!data.workerUrl||data.apiKey&&data.apiKey.length<32))return reply.code(400).send({error:'Enter the worker URL and a worker token of at least 32 characters (or leave the token blank to retain it).'});
  await saveProvider(provider,data);return {ok:true,status:await providerStatus()};
 });
 app.delete('/api/integrations/:provider',async(request,reply)=>{
  const user=await requireUser(request,reply);if(!user)return;if(user.role!=='admin')return reply.code(403).send({error:'Only the administrator can remove credentials.'});
- const provider=z.enum(['openai','runpod','gpu-worker']).parse((request.params as any).provider);await sql('DELETE FROM provider_credentials WHERE provider=$1',[provider]);return {ok:true,status:await providerStatus()};
+ const provider=z.enum(['openai','runpod','gpu-worker','pixabay']).parse((request.params as any).provider);await sql('DELETE FROM provider_credentials WHERE provider=$1',[provider]);return {ok:true,status:await providerStatus()};
 });
 app.post('/api/integrations/:provider/test',async(request,reply)=>{
  const user=await requireUser(request,reply);if(!user)return;if(user.role!=='admin')return reply.code(403).send({error:'Only the administrator can test provider connections.'});
- const name=z.enum(['openai','runpod','gpu-worker']).parse((request.params as any).provider),config=await getProvider(name);
+ const name=z.enum(['openai','runpod','gpu-worker','pixabay']).parse((request.params as any).provider),config=await getProvider(name);
  if(!config)return reply.code(400).send({error:'Save the provider configuration first.'});
+ if(name==='pixabay'){const result=await searchReferences('living room');return {ok:true,message:'Pixabay connected. Reference searches are cached for 24 hours.',count:result.photos.length};}
  if(name==='gpu-worker'){try{return await workerHealth(config);}catch(e){return reply.code(502).send({error:(e as Error).message});}}
  if(name==='runpod'&&!config.endpointId)return reply.code(400).send({error:'Enter the ID of your deployed Blender worker endpoint.'});
  const urls=name==='openai'?[config.textModel||'gpt-6.1-sol',config.speechModel||'gpt-transcribe'].map(model=>`https://api.openai.com/v1/models/${encodeURIComponent(model)}`):[`https://api.runpod.ai/v2/${config.endpointId}/health`];

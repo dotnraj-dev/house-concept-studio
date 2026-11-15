@@ -74,6 +74,6 @@ test('the actual movement resolver supports continuous ascent and descent on fou
 
 test('ordinary floors remain walkable and cannot be entered from mid-flight at another elevation',()=>{
   const plan:Plan={rooms:[],width:20,depth:20,plotWidth:30,plotDepth:30,offsetX:3,offsetY:3,valid:true,roadSide:'north',toiletStyle:'western',pooja:false,warnings:[],variantName:'Test',levels:3};
-  assert.equal(walkingSurface(plan,5,5,9,1),9);
-  assert.equal(walkingSurface(plan,5,5,4.5,0),null);
+  assert.equal(walkingSurface(plan,5,5,FLOOR_HEIGHT,1),FLOOR_HEIGHT);
+  assert.equal(walkingSurface(plan,5,5,FLOOR_HEIGHT/2,0),null);
 });

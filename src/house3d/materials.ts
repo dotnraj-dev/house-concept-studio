@@ -1,8 +1,8 @@
 import { CanvasTexture, RepeatWrapping, SRGBColorSpace, type Texture } from 'three';
 
-export type Surface='plaster'|'tile'|'timber'|'woodfloor'|'stone'|'fabric'|'concrete'|'grass'|'paint'|'limestone'|'stackstone'|'pavers'|'marble';
+export type Surface='plaster'|'tile'|'timber'|'woodfloor'|'stone'|'fabric'|'concrete'|'grass'|'paint'|'limestone'|'stackstone'|'pavers'|'marble'|'porcelain'|'bathwall'|'bathfloor'|'quartz'|'rug';
 export type PbrSurface=Exclude<Surface,'concrete'|'grass'>;
-export const PBR_SURFACES:PbrSurface[]=['stackstone','pavers','marble','paint','limestone','plaster','tile','timber','woodfloor','stone','fabric'];
+export const PBR_SURFACES:PbrSurface[]=['porcelain','bathwall','bathfloor','quartz','rug','stackstone','pavers','marble','paint','limestone','plaster','tile','timber','woodfloor','stone','fabric'];
 const cache=new Map<Surface,CanvasTexture>();
 
 function makeTexture(surface:Surface):CanvasTexture{
@@ -11,7 +11,7 @@ function makeTexture(surface:Surface):CanvasTexture{
   const context=canvas.getContext('2d')!;
   const image=context.createImageData(512,512);
   const base:Record<Surface,[number,number,number]>={
-    stackstone:[184,165,141],pavers:[170,167,153],marble:[235,232,223],paint:[248,245,240],limestone:[219,214,202],plaster:[237,233,222],tile:[218,216,207],timber:[166,123,82],woodfloor:[180,138,96],stone:[197,190,177],
+    porcelain:[229,226,217],bathwall:[233,232,225],bathfloor:[195,198,190],quartz:[223,222,215],rug:[173,157,133],stackstone:[184,165,141],pavers:[170,167,153],marble:[235,232,223],paint:[248,245,240],limestone:[219,214,202],plaster:[237,233,222],tile:[218,216,207],timber:[166,123,82],woodfloor:[180,138,96],stone:[197,190,177],
     concrete:[183,183,174],grass:[96,130,89],fabric:[180,180,170],
   };
   let seed=surface.split('').reduce((value,char)=>value*31+char.charCodeAt(0),7)>>>0;

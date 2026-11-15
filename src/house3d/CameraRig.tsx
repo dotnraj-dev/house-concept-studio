@@ -1,3 +1,4 @@
+import {GROUND_LEVEL} from '../building-dimensions';
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Raycaster, Vector2, Vector3, type Mesh, type Object3D } from 'three';
@@ -26,7 +27,7 @@ export function tourPoints(plan:Plan,layout:HouseLayout):Waypoint[]{
   if(r.kind==='bathroom'){const fixtures=bathroomFixtures(r,layout);if(fixtures.length)aim=[fixtures.reduce((v,t)=>v+t.x,0)/fixtures.length,fixtures.reduce((v,t)=>v+t.z,0)/fixtures.length];focus=2.9;}
   if(r.kind==='living'||r.kind==='lounge')aim=frame.transform(k.x+k.w*.55,k.y+k.h*.67);
   if(r.kind==='kitchen')aim=frame.transform(0,k.y+k.h-1.2);
-  const cameraAt=(t:number)=>new Vector3(worldX(plan,px+(cx-px)*t),f*9+eye,worldZ(plan,pz+(cz-pz)*t)),look=new Vector3(worldX(plan,aim[0]),f*9+focus,worldZ(plan,aim[1]));
+  const cameraAt=(t:number)=>new Vector3(worldX(plan,px+(cx-px)*t),f*FLOOR_HEIGHT+eye,worldZ(plan,pz+(cz-pz)*t)),look=new Vector3(worldX(plan,aim[0]),f*FLOOR_HEIGHT+focus,worldZ(plan,aim[1]));
   points.push({position:cameraAt(0),look,seconds:.65,cut:true},{position:cameraAt(.09),look,seconds:2.8});
 
  }
@@ -57,7 +58,7 @@ export function CameraRig({plan,layout,interactions,mode,floor,command,tourId,op
       const {x,z,n}=entrancePose(plan,layout);
       aim(new Vector3(worldX(plan,x+n[0]*1.2),5.2,worldZ(plan,z+n[1]*1.2)),new Vector3(worldX(plan,x-n[0]*5),4.7,worldZ(plan,z-n[1]*5)));
       currentFloor.current=0;
-      walkingHeight.current=0;restEye.current=5.2;
+      walkingHeight.current=-.5;restEye.current=5.2;
     }
   },[mode,plan,layout]);
 

@@ -3,7 +3,7 @@ import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {sql} from './db';
 import {credentialKey,storagePaths} from './runtime';
-export type Provider='openai'|'runpod'|'gpu-worker';
+export type Provider='openai'|'runpod'|'gpu-worker'|'pixabay';
 export type ProviderConfig={apiKey:string;textModel?:string;speechModel?:string;endpointId?:string;publicBaseUrl?:string;workerUrl?:string;hourlyRateInr?:number};
 export function seal(value:string,key:Buffer){
  const iv=randomBytes(12),cipher=createCipheriv('aes-256-gcm',key,iv),data=Buffer.concat([cipher.update(value,'utf8'),cipher.final()]);
@@ -22,6 +22,7 @@ export async function getProvider(provider:Provider):Promise<ProviderConfig|null
  const result=await sql('SELECT encrypted FROM provider_credentials WHERE provider=$1',[provider]);
  if(result.rowCount)return JSON.parse(unseal(result.rows[0].encrypted,await encryptionKey()));
  if(provider==='openai'&&process.env.OPENAI_API_KEY)return {apiKey:process.env.OPENAI_API_KEY,textModel:process.env.OPENAI_TEXT_MODEL||'gpt-6.1-sol',speechModel:'gpt-transcribe'};
+ if(provider==='pixabay'&&process.env.PIXABAY_API_KEY)return {apiKey:process.env.PIXABAY_API_KEY};
  return null;
 }
 export async function saveProvider(provider:Provider,config:ProviderConfig){
@@ -30,7 +31,7 @@ export async function saveProvider(provider:Provider,config:ProviderConfig){
  await sql('INSERT INTO provider_credentials(provider,encrypted) VALUES($1,$2) ON CONFLICT(provider) DO UPDATE SET encrypted=$2,updated_at=now()',[provider,seal(JSON.stringify(next),await encryptionKey())]);
 }
 export async function providerStatus(){
- const [openai,runpod,worker]=await Promise.all([getProvider('openai'),getProvider('runpod'),getProvider('gpu-worker')]);
- return {openai:{configured:!!openai,textModel:openai?.textModel||'gpt-6.1-sol',speechModel:openai?.speechModel||'gpt-transcribe'},runpod:{configured:!!runpod,endpointId:runpod?.endpointId||'',publicBaseUrl:runpod?.publicBaseUrl||process.env.PUBLIC_BASE_URL||process.env.RENDER_EXTERNAL_URL||''},'gpu-worker':{configured:!!worker,workerUrl:worker?.workerUrl||'http://127.0.0.1:8787',hourlyRateInr:worker?.hourlyRateInr??59.32}};
+ const [openai,runpod,worker,pixabay]=await Promise.all([getProvider('openai'),getProvider('runpod'),getProvider('gpu-worker'),getProvider('pixabay')]);
+ return {pixabay:{configured:!!pixabay},openai:{configured:!!openai,textModel:openai?.textModel||'gpt-6.1-sol',speechModel:openai?.speechModel||'gpt-transcribe'},runpod:{configured:!!runpod,endpointId:runpod?.endpointId||'',publicBaseUrl:runpod?.publicBaseUrl||process.env.PUBLIC_BASE_URL||process.env.RENDER_EXTERNAL_URL||''},'gpu-worker':{configured:!!worker,workerUrl:worker?.workerUrl||'http://127.0.0.1:8787',hourlyRateInr:worker?.hourlyRateInr??59.32}};
 }
 

@@ -1,3 +1,4 @@
+import {tnReview} from './tn-rules';
 import {makeHouseLayout,furnishingFrame} from './house3d/layout';
 import {serviceLayout} from './services';
 import { analyseSite, rounded } from './geometry';
@@ -32,7 +33,7 @@ export function generatePlan(req:Requirements,settings:Settings,variant:number,r
  let bedIndex=0;
  const requestFor=(r:Room)=>d.roomRequests.find(q=>q.id===r.id);
  for(let f=0;f<levels;f++){
-  const custom=d.levels.find(l=>l.floor===f),beds=custom?custom.bedrooms:Math.floor(req.bedrooms/levels)+(f<req.bedrooms%levels?1:0),baths=custom?custom.bathrooms:Math.floor(req.bathrooms/levels)+(f<req.bathrooms%levels?1:0);
+  const custom=d.levels.find(l=>l.floor===f),beds=custom?custom.bedrooms:Math.floor(req.bedrooms/levels)+(f>=levels-req.bedrooms%levels?1:0),baths=custom?custom.bathrooms:Math.floor(req.bathrooms/levels)+(f>=levels-req.bathrooms%levels?1:0);
   const foyerDepth=f===0&&d.twoDoors?5:0;
   if(foyerDepth)add({id:'0-foyer',kind:'foyer',label:'Entrance foyer',floor:f,x:corridorX,y:0,w:corridor,h:foyerDepth});
   add({id:`${f}-passage`,kind:'passage',label:'Clear passage',floor:f,x:corridorX,y:foyerDepth,w:corridor,h:fp.h-foyerDepth});
@@ -61,7 +62,7 @@ export function generatePlan(req:Requirements,settings:Settings,variant:number,r
    if(suiteFor.has(item.id)&&(side?rightW:leftW)<14.5)side=leftW>=14.5?0:1;
    (side?east:west).push(item);
   }
-  const minDepth=(r:Room)=>requestFor(r)?.mode==='exact'?requestFor(r)!.h:suiteFor.has(r.id)?11.5:MIN[r.kind]?.[1]||4;
+  const minDepth=(r:Room)=>requestFor(r)?.mode==='exact'?requestFor(r)!.h:suiteFor.has(r.id)?17:MIN[r.kind]?.[1]||4;
   for(let attempt=0;attempt<items.length;attempt++){
    const groups=[west,east],caps=[fp.h-(levels>1&&stairWest?stairD:0),fp.h-(levels>1&&!stairWest?stairD:0)],totals=groups.map(g=>g.reduce((s,r)=>s+minDepth(r),0));
    const side=totals[0]>caps[0]+.01?0:totals[1]>caps[1]+.01?1:-1;if(side<0)break;
@@ -80,11 +81,11 @@ export function generatePlan(req:Requirements,settings:Settings,variant:number,r
     const q=requestFor(item),length=tooLarge?h*weights(item)/Math.max(1,group.reduce((s,r)=>s+weights(r),0)):q?.mode==='exact'?q.h:minDepth(item)+Math.max(0,h-fixed-minimum)*weights(item)/Math.max(1,weight);
     const rh=q?.mode==='exact'&&!tooLarge?Math.min(length,h-y):index===group.length-1?Math.max(.1,h-y):Math.min(length,h-y),rw=q?.mode==='exact'?Math.min(w,q.w||w):w,rx=side?x+w-rw:x;
     const bath=suiteFor.get(item.id);
-    if(bath&&rw>=14.5&&rh>=11.4){
-     const bw=Math.min(6.1,rw-9),bh=Math.min(7.8,rh-3.4),bx=side?rx+rw-bw:rx,bedX=side?rx:rx+bw;
-     add({...item,label:q?.label||item.label,x:bedX,y,w:rw-bw,h:rh});
+    if(bath&&rw>=14.5&&rh>=17){
+     const bw=Math.min(6.1,rw-9),bh=Math.min(7.8,rh-10.5),bx=side?rx+rw-bw:rx;
+     add({...item,label:q?.label||item.label,x:rx,y,w:rw,h:rh-bh});
      add({...bath,label:'Attached bath · '+item.label,attachedTo:item.id,x:bx,y:y+rh-bh,w:bw,h:bh});
-     add({id:item.id+'-dressing',attachedTo:item.id,kind:'passage',label:'Dressing',floor:f,x:bx,y,w:bw,h:rh-bh});
+     add({id:item.id+'-dressing',attachedTo:item.id,kind:'passage',label:'Dressing',floor:f,x:side?rx:rx+bw,y:y+rh-bh,w:rw-bw,h:bh});
     }else if(bath){add({...item,x:rx,y,w:rw,h:Math.max(.1,rh-6)});add({...bath,attachedTo:item.id,label:'Attached bath · '+item.label,x:rx,y:y+Math.max(.1,rh-6),w:rw,h:Math.min(6,rh-.1)});checks.push({id:'suite-'+item.id,title:'Bedroom suite needs more space',detail:'Increase the footprint or reduce the floor programme.',status:'conflict'});}
     else add({...item,label:q?.label||item.label,x:rx,y,w:rw,h:rh});
     if(rw<w-.05)add({id:`${item.id}-clearance`,kind:'passage',label:'Clearance',floor:f,x:side?x:rx+rw,y,w:w-rw,h:rh});y+=rh;
@@ -129,7 +130,7 @@ export function generatePlan(req:Requirements,settings:Settings,variant:number,r
    while(changed){changed=false;for(const door of layout.doors.filter(v=>v.floor===f))if(door.rooms?.some(id=>reached.has(id)))for(const id of door.rooms||[])if(!reached.has(id)){reached.add(id);changed=true;}}
    for(const r of rooms.filter(r=>r.floor===f&&!['passage','foyer'].includes(r.kind)))if(!reached.has(r.id))checks.push({id:'access-'+r.id,title:r.label+' has no connected doorway',detail:'Revise the room size or floor programme to provide a clear entrance.',status:'conflict',target:r.id});
  }
- checks.push(...serviceLayout(physical).checks);
+ checks.push(...serviceLayout(physical).checks,...tnReview(req,physical,layout));
  for(const c of checks.filter(c=>c.status!=='pass'))if(!warnings.includes(c.title+': '+c.detail))warnings.push(c.title+': '+c.detail);
  const valid=rooms.every(r=>r.w>0&&r.h>0&&r.x>=-.01&&r.y>=-.01&&r.x+r.w<=fp.w+.05&&r.y+r.h<=fp.h+.05);
  return {...base,valid,warnings:[...new Set(warnings)]};

@@ -1,3 +1,4 @@
+import {applyTNSetbacks,tnSetbackMinimums} from './tn-rules';
 import { designOf, type Plan, type PlotVertex, type Point, type Rect, type Requirements, type Settings, type SiteAnalysis } from './types';
 const EPS=1e-7;
 export const rounded=(v:number)=>Math.round(v*100)/100;
@@ -54,17 +55,17 @@ export function validatePolygon(poly:Point[]):string[]{
 }
 export function plotVertices(req:Requirements,settings:Settings):PlotVertex[]{
   const d=designOf(req);
-  if(d.plotMode==='polygon'&&d.vertices.length)return d.vertices.map(p=>({...p}));
+  if(d.plotMode==='polygon'&&d.vertices.length)return applyTNSetbacks(req,d.vertices.map(p=>({...p})));
   const values={north:settings.sideSetback,east:settings.sideSetback,south:settings.sideSetback,west:settings.sideSetback};
   values[req.roadSide]=settings.frontSetback;
   values[({north:'south',east:'west',south:'north',west:'east'} as const)[req.roadSide]]=settings.rearSetback;
   const s=d.customSetbacks?d.setbacks:values;
-  return [
+  return applyTNSetbacks(req,[
     {id:'A',x:0,y:0,setback:s.north,road:req.roadSide==='north'},
     {id:'B',x:req.plotWidth,y:0,setback:s.east,road:req.roadSide==='east'},
     {id:'C',x:req.plotWidth,y:req.plotDepth,setback:s.south,road:req.roadSide==='south'},
     {id:'D',x:0,y:req.plotDepth,setback:s.west,road:req.roadSide==='west'},
-  ];
+  ]);
 }
 export function analyseSite(req:Requirements,settings:Settings):SiteAnalysis{
   const raw=plotVertices(req,settings),issues=validatePolygon(raw);
@@ -112,6 +113,7 @@ export function analyseSite(req:Requirements,settings:Settings):SiteAnalysis{
       }
     }
   }
+  if(tnSetbackMinimums(req)){const maximum=polygonArea(poly)*2/Math.max(1,req.floors);if(best.w*best.h>maximum){const scale=Math.sqrt(maximum/(best.w*best.h));best={x:best.x+best.w*(1-scale)/2,y:best.y+best.h*(1-scale)/2,w:best.w*scale,h:best.h*scale};issues.push('The footprint was reduced to stay within the base FSI 2.0 envelope; no premium FSI or exclusions were assumed.');}}
   best={x:rounded(best.x),y:rounded(best.y),w:Math.floor(best.w*100)/100,h:Math.floor(best.h*100)/100};
   // Rounding an inset position must not move a footprint across a boundary.
   if(best.w>0&&!rectFitsPlot(best,poly)){best={x:best.x+.02,y:best.y+.02,w:Math.max(0,best.w-.04),h:Math.max(0,best.h-.04)};}

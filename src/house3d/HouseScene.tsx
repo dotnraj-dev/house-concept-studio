@@ -1,5 +1,7 @@
+import {CEILING_LEVEL,GROUND_LEVEL} from '../building-dimensions';
+import {TVJoinery,WovenRug,KitchenDetails,DiningDetails,BathroomDetails,VanityDetails,KitchenSink,KitchenStorage} from './InteriorDetails';
+import {Block} from './Surface';
 import {Architecture,EntryGarden} from './Architecture';
-import {architecturalBox} from './box-uv';
 import {plotEdges} from '../site-context';
 import {bathroomFixtures} from './bathroom';
 import {HipRoof,SiteWorld,SiteFinish} from './SiteWorld';
@@ -12,7 +14,7 @@ import { DoubleSide, Object3D, PlaneGeometry, Quaternion, RepeatWrapping, SRGBCo
 import type { Asset, Plan, Room } from '../types';
 import { AssetModel, FreeModel } from './Assets';
 import { FLOOR_HEIGHT, shelfSpot, furnishingFrame, type DoorSpec, type HouseLayout, type Interaction, type WindowSpec } from './layout';
-import { PBR_SURFACES, surfaceTexture, type PbrSurface, type Surface } from './materials';
+import { type Surface } from './materials';
 import { stairDimensions } from './stairs';
 import { doorTargetAngle } from './doors';
 import {facadePieces} from './facade';
@@ -22,37 +24,7 @@ type Mode='overview'|'walk'|'tour';
 type Props={plan:Plan;layout:HouseLayout;interactions:Interaction[];assets:Asset[];mode:Mode;cutaway:boolean;contextVisible?:boolean;showServices?:boolean;xray?:boolean;
   openDoors:Set<string>;doorAngles:Map<string,number>;openShelves:Set<string>;tvOn:Set<string>;chimneyOn:Set<string>;onInteract:(id:string)=>void};
 
-function PbrMaterial({surface,size,color,metalness,opacity,emissive}:{surface:PbrSurface;size:[number,number,number];color:string;metalness:number;opacity:number;emissive?:string}){
-  const paths=['color','normal','roughness'].map(name=>`/assets/materials/${surface}-${name}.jpg`);
-  const loaded=useTexture(paths);
-  const maps=useMemo(()=>loaded.map((source,index)=>{
-    const texture=source.clone();
-    texture.wrapS=texture.wrapT=RepeatWrapping;
-    texture.repeat.set(1,1);
-    texture.anisotropy=8;
-    if(index===0)texture.colorSpace=SRGBColorSpace;
-    texture.needsUpdate=true;
-    return texture;
-  }),[loaded[0],loaded[1],loaded[2],size[0],size[1],size[2]]);
-  useEffect(()=>()=>maps.forEach(map=>map.dispose()),[maps]);
-  return <meshStandardMaterial color={color} map={maps[0]} normalMap={maps[1]} normalScale={new Vector2(.35,.35)} roughnessMap={maps[2]}
-    roughness={surface==='marble'?.32:surface==='woodfloor'?.65:.92} metalness={metalness} transparent={opacity<1} opacity={opacity}
-    emissive={emissive||'#000000'} emissiveIntensity={emissive ? .35 : 0}/>;
-}
-
-export function Block({position,size,color,metalness=0,opacity=1,emissive,surface,solid=false}:{position:[number,number,number];size:[number,number,number];color:string;metalness?:number;opacity?:number;emissive?:string;surface?:Surface;solid?:boolean}){
-  const pbr=surface&&PBR_SURFACES.includes(surface as PbrSurface);
-  const map=useMemo(()=>surface&&!pbr?surfaceTexture(surface,size):null,[surface,pbr,size[0],size[1],size[2]]);
-  useEffect(()=>()=>{map?.dispose();},[map]);
-  const geometry=useMemo(()=>architecturalBox(size,position,surface==='stackstone'?6.5:5),[...size,...position,surface]);
-  useEffect(()=>()=>geometry.dispose(),[geometry]);
-  return <mesh geometry={geometry} userData={{solid}} position={position} castShadow={opacity===1} receiveShadow>
-    {pbr?<Suspense fallback={<meshStandardMaterial color={color}/>}><PbrMaterial surface={surface as PbrSurface} size={size} color={color}
-      metalness={metalness} opacity={opacity} emissive={emissive}/></Suspense>:
-      <meshStandardMaterial color={color} map={map} metalness={metalness} roughness={opacity<1 ? .12 : surface==='concrete' ? .88 : .78}
-        transparent={opacity<1} opacity={opacity} emissive={emissive||'#000000'} emissiveIntensity={emissive ? .35 : 0}/>}
-  </mesh>;
-}
+export {Block} from './Surface';
 
 function Door({door,open,angles}:{door:DoorSpec;open:boolean;angles:Map<string,number>}){
   const pivot=useRef<Group>(null);
@@ -101,6 +73,7 @@ function Window({window,assets,furnished}:{window:WindowSpec;assets:Asset[];furn
   return <group position={[x,base+(window.sill??3)+half,z]}>
     <Block position={[0,0,0]} size={alongX?[window.width,height,.18]:[.18,height,window.width]} color="#c2d7da" opacity={.16}/>
     <Block position={[0,0,0]} size={alongX?[.07,height,.25]:[.25,height,.07]} color="#e5e6df"/>
+    {window.width>7&&[-.33,.33].map(t=><Block key={'casement-'+t} position={alongX?[window.width*t,0,0]:[0,0,window.width*t]} size={alongX?[.045,height,.21]:[.21,height,.045]} color="#e5e6df"/>)}
     <Block position={[0,0,0]} size={alongX?[window.width,.07,.25]:[.25,.07,window.width]} color="#e5e6df"/>
     {[-1,1].map(side=><Block key={`edge-${side}`} position={[0,side*half,0]} size={alongX?[window.width+.25,.12,.28]:[.28,.12,window.width+.25]} color="#ebe7dd"/>)}
     {[-1,1].map(side=><Block key={side} position={alongX?[side*(window.width/2-.1),0,.12]:[.12,0,side*(window.width/2-.1)]}
@@ -136,10 +109,10 @@ function RoomLight({room}:{room:Room}){
   const target=useMemo(()=>new Object3D(),[]);
   return <group position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT,room.y+room.h/2]}>
     <primitive object={target} position={[0,.1,0]}/>
-    <spotLight position={[0,8.05,0]} target={target} color="#fff2df" intensity={65} angle={1.12} penumbra={.72} castShadow={['living','lounge'].includes(room.kind)}
+    <spotLight position={[0,CEILING_LEVEL-.5,0]} target={target} color="#fff2df" intensity={48} angle={1.12} penumbra={.72} castShadow={false}
       distance={24} decay={2} shadow-mapSize={[512,512]} shadow-bias={-.0008} shadow-normalBias={.025}/>
-    {['living','lounge','dining'].includes(room.kind)&&[-1,1].flatMap(a=>[-1,1].map(b=><group key={a+'-'+b} position={[a*room.w*.31,8.77,b*room.h*.31]}><mesh><cylinderGeometry args={[.19,.19,.04,20]}/><meshStandardMaterial color="#eee8d9" emissive="#ffd9a0" emissiveIntensity={1.8}/></mesh></group>))}
-    <mesh position={[0,8.18,0]}><cylinderGeometry args={[.4,.4,.065,24]}/><meshStandardMaterial color="#fff4d9" emissive="#ffe2a9" emissiveIntensity={1.1}/></mesh>
+    {['living','lounge','dining'].includes(room.kind)&&[-1,1].flatMap(a=>[-1,1].map(b=><group key={a+'-'+b} position={[a*room.w*.31,CEILING_LEVEL-.1,b*room.h*.31]}><mesh><cylinderGeometry args={[.19,.19,.04,20]}/><meshStandardMaterial color="#eee8d9" emissive="#ffd9a0" emissiveIntensity={1.8}/></mesh></group>))}
+    <mesh position={[0,CEILING_LEVEL-.25,0]}><cylinderGeometry args={[.4,.4,.065,24]}/><meshStandardMaterial color="#fff4d9" emissive="#ffe2a9" emissiveIntensity={1.1}/></mesh>
   </group>;
 }
 
@@ -159,18 +132,18 @@ function Furniture({room,layout,assets,openShelves,tvOn,chimneyOn,toiletStyle,fu
     const {sofa,rug,coffee,tv}=livingFurniture(room),featureX=sofa.x,sofaZ=sofa.z;
     const [sx,sz]=shelfSpot(room);
     return <group>
-      <Block position={[rug.x,base+.055,rug.z]} size={[rug.w,.05,rug.d]} color="#d7cab8" surface="fabric"/>
+      <Suspense fallback={null}><WovenRug {...rug} base={base}/></Suspense>
       <AssetModel category="sofa" assets={assets} position={[featureX,base+.1,sofaZ]} size={[sofa.w,2.7,sofa.d]} rotation={Math.PI}/>
       <Block position={[tv.x,base+4.1,tv.z]} size={[tv.w,2.15,tv.d]} color="#181e20" metalness={.16}/>
       <Block position={[tv.x,base+4.1,tv.z+.11]} size={[3.28,1.91,.04]} color={tvOn.has(`tv-${room.id}`)?'#9cb6bd':'#13191b'} emissive={tvOn.has(`tv-${room.id}`)?'#2f7284':undefined}/>
-      <Block solid position={[tv.x,base+.72,tv.z+.45]} size={[3.7,1.3,1.05]} color="#b79c78" surface="timber"/>
+      <TVJoinery room={room}/>
       <AssetModel category="coffee" assets={assets} position={[coffee.x,base+.1,coffee.z]} size={[coffee.w,1.4,coffee.d]}/>
       <Shelf position={[sx,base,sz]} open={openShelves.has(`shelf-${room.id}`)} assets={assets}/>
       <AssetModel category="plant" assets={assets} position={[room.x+room.w-1.05,base+.1,room.y+room.h-1.1]} size={[.9,2.1,.9]}/>
     </group>;
   }
   if(room.kind==='dining'){const table=diningFurniture(room);return <group>
-    <AssetModel category="dining" assets={assets} position={[table.x,base+.1,table.z]} size={[table.w,2.5,table.d]} fit="stretch"/>
+    <AssetModel category="dining" assets={assets} position={[table.x,base+.1,table.z]} size={[table.w,2.5,table.d]} fit="stretch"/><DiningDetails {...table} base={base}/>
     {table.chairs.map((chair,i)=><DiningChair key={i} assets={assets} position={[chair.x,base,chair.z]} rotation={chair.rotation}/>)}
   </group>;}
   if(room.kind==='bedroom'){const bed=bedroomFurniture(room);return <group>
@@ -179,18 +152,16 @@ function Furniture({room,layout,assets,openShelves,tvOn,chimneyOn,toiletStyle,fu
     <AssetModel category="plant" assets={assets} position={[room.x+room.w-1.05,base+.1,room.y+room.h-1.05]} size={[.8,1.9,.8]}/>
   </group>;}
   if(room.kind==='kitchen')return <group>
-    <Block solid position={[cx,base+1,room.y+room.h-.85]} size={[Math.max(2,room.w-1.2),2,1.7]} color="#c4b5a1" surface="timber"/>
-    {Array.from({length:Math.max(1,Math.floor((room.w-1.2)/2.1))},(_,i)=>{const n=Math.max(1,Math.floor((room.w-1.2)/2.1)),w=(room.w-1.2)/n,x=room.x+.6+(i+.5)*w;return <group key={i}><Block position={[x,base+1.08,room.y+room.h-1.72]} size={[w-.065,1.75,.065]} color="#cbb898" surface="timber"/><Block position={[x,base+1.64,room.y+room.h-1.79]} size={[Math.min(.6,w*.4),.045,.12]} color="#665b51" metalness={.62}/></group>;})}
-    <Block position={[cx,base+2.05,room.y+room.h-.85]} size={[Math.max(2,room.w-1.2),.14,1.85]} color="#5b6560"/>
-    <AssetModel category="sink" assets={assets} position={[cx-1.3,base+2.13,room.y+room.h-1.1]} size={[2.2,.7,1.5]}/>
+    <KitchenStorage room={room} open={openShelves.has(`shelf-${room.id}`)}/>
+    <Block position={[cx,base+2.99,room.y+room.h-.85]} size={[Math.max(2,room.w-1.2),.14,1.85]} color="#ffffff" surface="quartz"/><KitchenDetails room={room} hasWindows={layout.windows.some(w=>w.roomId===room.id)}/>
+    <KitchenSink position={[cx-1.3,base+3.075,room.y+room.h-.85]}/>
     <AssetModel category="fridge" assets={assets} position={[room.x+room.w-1.2,base+.1,room.y+1.3]} size={[2.1,5.4,2.0]}/>
-    <Shelf position={[shelfSpot(room)[0],base,shelfSpot(room)[1]]} open={openShelves.has(`shelf-${room.id}`)} assets={assets}/>
-    <Chimney position={[cx+1,base+4.8,room.y+room.h-1]} on={chimneyOn.has(`chimney-${room.id}`)} assets={assets}/>
-    <Block position={[cx+1,base+2.14,room.y+room.h-.82]} size={[2.0,.04,1.3]} color="#292d2e"/>
+    <Chimney position={[cx+1,base+5.4,room.y+room.h-1]} on={chimneyOn.has(`chimney-${room.id}`)} assets={assets}/>
+    <Block position={[cx+1,base+3.09,room.y+room.h-.82]} size={[2.0,.04,1.3]} color="#292d2e"/>
   </group>;
   if(room.kind==='bathroom')return <group>{bathroomFixtures(room,layout).map(f=><group key={f.kind} position={[f.x,base+.08,f.z]} rotation={[0,f.angle,0]}>
-    {f.kind==='basin'?<><AssetModel category="basin" assets={assets} position={[0,0,0]} size={[f.width,2.85,f.depth]}/><Block position={[0,4.65,-f.depth/2+.04]} size={[1.72,2.1,.10]} color="#786756"/><Block position={[0,4.65,-f.depth/2+.105]} size={[1.58,1.96,.035]} color="#c8d7d5" metalness={.82}/></>:toiletStyle==='indian'?<><Block position={[0,.07,0]} size={[1.75,.14,2.2]} color="#f2efea"/><mesh position={[0,.147,0]} rotation={[-Math.PI/2,0,0]} scale={[.44,.75,1]}><circleGeometry args={[1,32]}/><meshStandardMaterial color="#b1c0ba"/></mesh></>:<AssetModel category="toilet" assets={assets} position={[0,0,0]} size={[f.width,2.55,f.depth]}/>}
-  </group>)}</group>;
+    {f.kind==='basin'?<><AssetModel category="basin" assets={assets} position={[0,0,0]} size={[f.width,2.85,f.depth]}/><Block position={[0,4.65,-f.depth/2+.17]} size={[1.72,2.1,.10]} color="#786756"/><Block position={[0,4.65,-f.depth/2+.235]} size={[1.58,1.96,.035]} color="#dce3df" metalness={1} roughness={.025}/><VanityDetails depth={f.depth}/></>:toiletStyle==='indian'?<><Block position={[0,.07,0]} size={[1.75,.14,2.2]} color="#f2efea"/><mesh position={[0,.147,0]} rotation={[-Math.PI/2,0,0]} scale={[.44,.75,1]}><circleGeometry args={[1,32]}/><meshStandardMaterial color="#b1c0ba"/></mesh></>:<AssetModel category="toilet" assets={assets} position={[0,0,0]} size={[f.width,2.55,f.depth]}/>}
+  </group>)}<BathroomDetails room={room} layout={layout}/></group>;
   if(room.kind==='foyer')return furnished&&shoeRack?<group><Block solid position={[room.x+.25,base+1.05,room.y+room.h-.7]} size={[.4,2.1,1.2]} color="#ba9a74" surface="timber"/></group>:null;
   if(room.kind==='pooja')return <group><Block position={[cx,base+1.3,room.y+room.h-.6]} size={[Math.min(3,room.w-.8),2.6,.8]} color="#be9a65" surface="timber"/><mesh position={[cx,base+2.85,room.y+room.h-.6]}><cylinderGeometry args={[.29,.12,.32,24]}/><meshStandardMaterial color="#ba964f" roughness={.27} metalness={.65}/></mesh></group>;
   if(room.kind==='utility')return <AssetModel category="basin" assets={assets} position={[cx,base+.1,room.y+room.h-1]} size={[2.2,2.8,1.8]}/>;
@@ -204,10 +175,10 @@ function Furniture({room,layout,assets,openShelves,tvOn,chimneyOn,toiletStyle,fu
           size={[flightWidth,.18,run/steps+.025]} color="#eee4d2" surface="stone"/>
       </group>)}
       <Block position={[cx,FLOOR_HEIGHT/2-.13,room.y+(back+room.h)/2]} size={[room.w-.3,.26,room.h-back]} color="#eee4d2" surface="stone"/>
-      {[room.x+.3,room.x+room.w/2-.1].map(x=><Handrail key={x} start={[x,2.8,room.y+front]} end={[x,7.3,room.y+back]}/>)}
-      {[room.x+room.w/2+.1,room.x+room.w-.3].map(x=><Handrail key={x} start={[x,7.3,room.y+back]} end={[x,11.8,room.y+front]}/>)}
+      {[room.x+.3,room.x+room.w/2-.1].map(x=><Handrail key={x} start={[x,2.8,room.y+front]} end={[x,FLOOR_HEIGHT/2+2.8,room.y+back]}/>)}
+      {[room.x+room.w/2+.1,room.x+room.w-.3].map(x=><Handrail key={x} start={[x,FLOOR_HEIGHT/2+2.8,room.y+back]} end={[x,FLOOR_HEIGHT+2.8,room.y+front]}/>)}
       {[0,.5,1].flatMap(t=>[room.x+.3,room.x+room.w-.3].map((x,index)=>{
-        const height=index===0?t*4.5:(2-t)*4.5;
+        const height=index===0?t*FLOOR_HEIGHT/2:(2-t)*FLOOR_HEIGHT/2;
         return <Block key={`${t}-${x}`} position={[x,height+1.4,room.y+front+t*run]} size={[.07,2.8,.07]} color="#827568" metalness={.4}/>;
       }))}
     </group>:<group>
@@ -230,7 +201,7 @@ function Furniture({room,layout,assets,openShelves,tvOn,chimneyOn,toiletStyle,fu
 function Site({plan}:{plan:Plan}){
  const polygon=plotEdges(plan);
  const shape=useMemo(()=>{const sh=new Shape();polygon.forEach((p,i)=>i?sh.lineTo(p.x-plan.offsetX,-p.y+plan.offsetY):sh.moveTo(p.x-plan.offsetX,-p.y+plan.offsetY));sh.closePath();return sh;},[plan]);
- return <group><mesh rotation={[-Math.PI/2,0,0]} position={[0,-.06,0]} receiveShadow><shapeGeometry args={[shape]}/><Suspense fallback={<meshStandardMaterial color="#a2af8c"/>}><SiteFinish type="lawn" repeat={[.15,.15]}/></Suspense></mesh>{polygon.map((p,i)=>{const q=polygon[(i+1)%polygon.length],dx=q.x-p.x,dz=q.y-p.y,length=Math.hypot(dx,dz);if((plan.design?.siteContext?.edges.find(e=>e.edge===p.id)?.use|| (p.road?'road':'open'))==='road')return null;return <group key={i} position={[(p.x+q.x)/2-plan.offsetX,1.1,(p.y+q.y)/2-plan.offsetY]} rotation={[0,-Math.atan2(dz,dx),0]}><Block position={[0,0,0]} size={[length,2.2,.25]} color="#d8d0bd" surface="stone"/></group>;})}</group>;
+ return <group><mesh rotation={[-Math.PI/2,0,0]} position={[0,GROUND_LEVEL-.06,0]} receiveShadow><shapeGeometry args={[shape]}/><Suspense fallback={<meshStandardMaterial color="#a2af8c"/>}><SiteFinish type="lawn" repeat={[.15,.15]}/></Suspense></mesh>{polygon.map((p,i)=>{const q=polygon[(i+1)%polygon.length],dx=q.x-p.x,dz=q.y-p.y,length=Math.hypot(dx,dz);if((plan.design?.siteContext?.edges.find(e=>e.edge===p.id)?.use|| (p.road?'road':'open'))==='road')return null;return <group key={i} position={[(p.x+q.x)/2-plan.offsetX,GROUND_LEVEL+1.1,(p.y+q.y)/2-plan.offsetY]} rotation={[0,-Math.atan2(dz,dx),0]}><Block position={[0,0,0]} size={[length,2.2,.25]} color="#d8d0bd" surface="stone"/></group>;})}</group>;
 }
 
 export function HouseScene({plan,layout,interactions,assets,mode,cutaway,contextVisible=true,showServices=false,xray=false,openDoors,doorAngles,openShelves,tvOn,chimneyOn,onInteract}:Props){
@@ -239,16 +210,16 @@ export function HouseScene({plan,layout,interactions,assets,mode,cutaway,context
   const furnished=plan.design?.furnished!==false;
   const shellCutaway=mode==='overview'&&cutaway;
   return <group name="HouseExport" userData={{exportRoot:true}} position={[-plan.width/2,0,-plan.depth/2]}>
-    <Site plan={plan}/>{!shellCutaway&&<><Architecture plan={plan} layout={layout} assets={assets}/><EntryGarden plan={plan} layout={layout} assets={assets}/></>}{contextVisible&&<SiteWorld plan={plan}/>}
-    <Block position={[plan.width/2,-.2,plan.depth/2]} size={[plan.width,.4,plan.depth]} color="#ddd8ce" surface="concrete"/>
+    <Site plan={plan}/>{!shellCutaway&&<><Architecture plan={plan} layout={layout} assets={assets}/><EntryGarden plan={plan} layout={layout} assets={assets}/></>}{contextVisible&&<group position={[0,GROUND_LEVEL,0]}><SiteWorld plan={plan}/></group>}
+    <Block position={[plan.width/2,GROUND_LEVEL/2,plan.depth/2]} size={[plan.width,-GROUND_LEVEL,plan.depth]} color="#ddd8ce" surface="concrete"/>
     {plan.rooms.filter(room=>room.floor>0&&room.kind!=='stairs').map(room=><Block key={`slab-${room.id}`}
       position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT-.17,room.y+room.h/2]} size={[room.w,.34,room.h]} color="#ddd8ce" surface="concrete" opacity={shellCutaway ? .56 : 1}/>)}
     {plan.rooms.map(room=><group key={room.id}>
       {!(room.kind==='stairs'&&room.floor>0)&&<Block position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT+.035,room.y+room.h/2]} size={[room.w,.07,room.h]}
         color={room.kind==='bathroom'?'#ffffff':room.kind==='portico'?'#dedbd3':room.kind==='terrace'?'#e5ddd0':'#fff9ef'}
-        surface={room.kind==='bathroom'?'tile':room.kind==='portico'?'concrete':plan.design?.floorFinish==='tile'?'limestone':(plan.design?.floorFinish||'limestone') as Surface}/>}
+        surface={room.kind==='bathroom'?'bathfloor':room.kind==='portico'?'concrete':plan.design?.floorFinish==='woodfloor'?'woodfloor':'porcelain'}/>}
       {(furnished||['kitchen','bathroom','stairs','pooja','utility','foyer','portico'].includes(room.kind))&&(()=>{const frame=furnishingFrame(plan,room);const rotate=!['portico','foyer','bathroom'].includes(room.kind);return <group position={rotate?[room.x+room.w/2,0,room.y+room.h/2]:[0,0,0]} rotation={[0,rotate?frame.angle:0,0]}><Furniture layout={layout} room={rotate?frame.local:room} assets={assets} openShelves={openShelves} tvOn={tvOn} chimneyOn={chimneyOn} furnished={furnished} shoeRack={plan.design?.shoeRack} toiletStyle={plan.design?.roomRequests.find(q=>q.id===room.id)?.toiletStyle||(plan.toiletStyle==='both'?(plan.rooms.filter(r=>r.kind==='bathroom').findIndex(r=>r.id===room.id)%2?'indian':'western'):plan.toiletStyle)}/></group>;})()}
-      {!shellCutaway&&!['portico','terrace','stairs'].includes(room.kind)&&<Block position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT+8.88,room.y+room.h/2]} size={[room.w,.10,room.h]} color="#faf8f0" surface="paint" opacity={xray?.18:1}/>}
+      {!shellCutaway&&!['portico','terrace','stairs'].includes(room.kind)&&<Block position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT+CEILING_LEVEL,room.y+room.h/2]} size={[room.w,.10,room.h]} color="#faf8f0" surface="paint" opacity={xray?.18:1}/>}
       {!['portico','terrace','stairs'].includes(room.kind)&&room.floor<8&&<RoomLight room={room}/>}
       {room.floor>0&&room.kind==='terrace'&&<>
         {room.y===0&&<Block position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT+1.8,room.y+.15]} size={[room.w,3.5,.14]} color="#bed3d0" opacity={.48}/>}
@@ -259,8 +230,12 @@ export function HouseScene({plan,layout,interactions,assets,mode,cutaway,context
     </group>)}
     {layout.walls.filter(wall=>!(shellCutaway&&wall.exterior&&wall.z<.25&&wall.d<.4)).map(wall=><Block key={wall.id}
       position={[wall.x+wall.w/2,wall.floor*FLOOR_HEIGHT+wall.bottom+wall.height/2,wall.z+wall.d/2]}
-      size={[wall.w,wall.height,wall.d]} color={wall.exterior?finish.wall:'#f6f1e6'} opacity={xray?.18:1} surface={wall.rooms?.some(id=>plan.rooms.find(r=>r.id===id)?.kind==='bathroom')?'marble':plan.design?.wallFinish==='stone'?'stone':plan.design?.wallFinish==='timber'?'timber':'paint'}/>)}
-    {layout.walls.filter(w=>w.bottom===0&&w.height>1).map(w=><Block key={'skirt-'+w.id} position={[w.x+w.w/2,w.floor*9+.18,w.z+w.d/2]} size={[w.w+.015,.25,w.d+.035]} color="#bfb6a8" surface="limestone"/>)}
+      size={[wall.w,wall.height,wall.d]} color={wall.exterior?finish.wall:'#f6f1e6'} opacity={xray?.18:1} surface={plan.design?.wallFinish==='stone'?'stone':plan.design?.wallFinish==='timber'?'timber':'paint'}/>)}
+    {plan.rooms.filter(r=>r.kind==='bathroom').flatMap(room=>layout.walls.filter(w=>w.rooms?.includes(room.id)).map(w=>{
+      const along=w.w>w.d,cx=w.x+w.w/2,cz=w.z+w.d/2,side=along?(room.y+room.h/2>cz?1:-1):(room.x+room.w/2>cx?1:-1);
+      return <Block key={'wet-'+room.id+'-'+w.id} position={[cx+(along?0:side*(w.w/2+.008)),room.floor*FLOOR_HEIGHT+w.bottom+w.height/2,cz+(along?side*(w.d/2+.008):0)]} size={along?[w.w,w.height,.014]:[.014,w.height,w.d]} color="#ffffff" surface="bathwall" opacity={xray?.18:1}/>;
+    }))}
+    {layout.walls.filter(w=>w.bottom===0&&w.height>1).map(w=><Block key={'skirt-'+w.id} position={[w.x+w.w/2,w.floor*FLOOR_HEIGHT+.18,w.z+w.d/2]} size={[w.w+.015,.25,w.d+.035]} color="#bfb6a8" surface="limestone"/>)}
     {layout.doors.filter(door=>!door.arch).map(door=><Door key={door.id} door={door} open={openDoors.has(door.id)} angles={doorAngles}/>)}
     {layout.windows.map(window=><Window key={window.id} window={window} assets={assets} furnished={furnished&&!plan.rooms.some(r=>r.id===window.roomId&&r.kind==='bathroom')}/>)}
     {!shellCutaway&&facadePieces(plan,layout).map(piece=><Block key={piece.id} position={piece.position} size={piece.size} color={piece.surface==='timber'?finish.trim:piece.color} surface={piece.surface}/>)}

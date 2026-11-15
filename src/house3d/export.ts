@@ -12,7 +12,7 @@ export function prepareExport(root:Object3D){
   root.updateMatrixWorld(true);
   const copy=root.clone(true),remove:Object3D[]=[],materials=new Map<Material,Material>(),textures:Texture[]=[];
   const packedImages=new Map<unknown,Map<unknown,HTMLCanvasElement>>();
-  copy.traverse(object=>{if(object.userData.interactionId)remove.push(object);});
+  copy.traverse(object=>{if(object.userData.interactionId||object.userData.runtimeOnly)remove.push(object);});
   remove.forEach(object=>object.removeFromParent());
   const cloneMaterial=(source:Material)=>{
     if(materials.has(source))return materials.get(source)!;

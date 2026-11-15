@@ -1,3 +1,4 @@
+import {FLOOR_HEIGHT} from './building-dimensions';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {analyseSite,polygonArea,rectFitsPlot,validatePolygon} from './geometry';
@@ -35,7 +36,7 @@ test('legacy saved projects acquire safe v2 defaults without losing dimensions',
 test('rotated stairs remain walkable from each floor and open only onto their landing',()=>{
  for(const facing of ['north','east','south','west'] as const){const p=plan({...req,floors:4,design:{...designOf(req),houseFacing:facing,mainDoorFacing:facing}}),layout=makeHouseLayout(p);
   for(const r of p.rooms.filter(r=>r.kind==='stairs'&&r.floor<3)){const frame=furnishingFrame(p,r),local=frame.local,{front,back}=stairDimensions(local),left=local.x+local.w*.25,right=local.x+local.w*.75,path:[number,number][]=[];
-   for(let z=.6;z<=back+.4;z+=.1)path.push(frame.transform(left,local.y+z));for(let x=left;x<=right;x+=.1)path.push(frame.transform(x,local.y+back+.4));for(let z=back+.4;z>=front-.4;z-=.1)path.push(frame.transform(right,local.y+z));let height=r.floor*9;for(const [x,z] of path){const next=stairSurface(r,x,z,height,facing);assert.notEqual(next,null,'Unsafe '+facing+' stair');height=next!;}assert.equal(height,(r.floor+1)*9);const doorway=layout.doors.find(d=>d.rooms?.includes(r.id))!;const [entryX,entryZ]=frame.transform(0,local.y+2);assert.ok(Math.abs((doorway.axis==='x'?doorway.x+doorway.width/2:doorway.z+doorway.width/2)-(doorway.axis==='x'?entryX:entryZ))<.2);
+   for(let z=.6;z<=back+.4;z+=.1)path.push(frame.transform(left,local.y+z));for(let x=left;x<=right;x+=.1)path.push(frame.transform(x,local.y+back+.4));for(let z=back+.4;z>=front-.4;z-=.1)path.push(frame.transform(right,local.y+z));let height=r.floor*FLOOR_HEIGHT;for(const [x,z] of path){const next=stairSurface(r,x,z,height,facing);assert.notEqual(next,null,'Unsafe '+facing+' stair');height=next!;}assert.equal(height,(r.floor+1)*FLOOR_HEIGHT);const doorway=layout.doors.find(d=>d.rooms?.includes(r.id))!;const [entryX,entryZ]=frame.transform(0,local.y+2);assert.ok(Math.abs((doorway.axis==='x'?doorway.x+doorway.width/2:doorway.z+doorway.width/2)-(doorway.axis==='x'?entryX:entryZ))<.2);
   }
  }
 });
