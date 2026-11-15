@@ -19,8 +19,8 @@ export function builtinModel(category:string):Group|null{
   for(const x of [-2.4,2.4]){const pillow=soft(.84,.86,.25,x,1.68,.38,x<0?'accent':'linen',.16);pillow.rotation.z=x<0?.17:-.17;pillow.rotation.x=-.18;}
  }else if(category==='bed'){
   soft(5.3,.5,6.65,0,.5,0,'wood',.06);soft(5.15,2.8,.32,0,1.7,-3.15,'fabric',.1);soft(5,.63,6.3,0,1.04,.07,'linen',.16);
-  const cloth=new PlaneGeometry(5.07,4.15,48,40),vertices=cloth.attributes.position;
-  for(let i=0;i<vertices.count;i++){const x=vertices.getX(i),z=vertices.getY(i);vertices.setZ(i,.025*Math.sin(x*7+z*2.1)+.018*Math.sin(z*9+x*.6)-Math.pow(Math.abs(x)/2.54,18)*.22);}
+  const cloth=new PlaneGeometry(5.5,4.15,48,40),vertices=cloth.attributes.position;
+  for(let i=0;i<vertices.count;i++){const x=vertices.getX(i),z=vertices.getY(i);vertices.setZ(i,.025*Math.sin(x*7+z*2.1)+.018*Math.sin(z*9+x*.6)-Math.max(0,Math.abs(x)-2.55)*.95);}
   cloth.computeVertexNormals();const quilt=mesh(cloth,'accent',0,1.43,1.1);quilt.rotation.x=-Math.PI/2;mat('accent').side=DoubleSide;for(const x of [-1.28,1.28]){const pillow=soft(2.05,.32,1.27,x,1.53,-2,'linen',.14);pillow.rotation.y=x<0?-.04:.04;}
   for(const x of [-2.4,2.4])for(const z of [-2.8,2.8])leg(x,z,.35);
  }else if(category==='dining'){
