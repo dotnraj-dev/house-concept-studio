@@ -198,10 +198,10 @@ Keep these files intact and link to them rather than duplicating their text here
 | [REGIONAL-DESIGN-UPDATE.md](REGIONAL-DESIGN-UPDATE.md) | Regional styles, context and research scope. |
 | [INTERIOR-REALISM-UPDATE.md](INTERIOR-REALISM-UPDATE.md) | Interior material, lighting/reflection and reference-search work. |
 | [FURNISHING-UPDATE.md](FURNISHING-UPDATE.md) | Furnishing choices, measured placement and clearance behaviour. |
+| [FACADE-KIT-UPDATE.md](FACADE-KIT-UPDATE.md) | Parametric Tamil Nadu facade recipes, browser screenshot comparisons, export evidence and remaining visual/access limits. |
 | [TAMIL-NADU-RULES.md](TAMIL-NADU-RULES.md) | Building-rule sources, supported checks and review limits. Architectural style does not replace the site's applicable rules. |
 | [BUILD-REPORT.md](BUILD-REPORT.md), [BUILD-REPORT-2026-11-14.md](BUILD-REPORT-2026-11-14.md) | Previous build records and validation scope. |
 | [STAGING-REPORT.md](STAGING-REPORT.md) | Staging results and recorded limitations. |
 | [HOSTING.md](HOSTING.md), [DEPLOYMENT.md](DEPLOYMENT.md) | Hosting/deployment configuration and verification records. |
 | [GPU-SETUP.md](GPU-SETUP.md) | Optional rendering worker/GPU setup; not evidence of achieved quality. |
 | [Material licences](public/assets/materials/LICENSE.md) | Existing material attribution and reuse information. |
-

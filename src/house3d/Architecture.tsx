@@ -38,7 +38,7 @@ export function Architecture({plan,layout,assets}:{plan:Plan;layout:HouseLayout;
  {entry&&[entryU-entry.width*.75,entryU+entry.width*.75].map((u,i)=>light(u,5.6,-.25,'entry-'+i))}
  </group>;
 }
-export function EntryGarden({plan,layout,assets}:{plan:Plan;layout:HouseLayout;assets:Asset[]}){
+export function EntryGarden({plan,layout,assets,pathOnly=false}:{plan:Plan;layout:HouseLayout;assets:Asset[];pathOnly?:boolean}){
  const e=entrancePose(plan,layout),poly=plan.site?.polygon;
  if(!poly)return null;
  let distance=0;for(let d=.2;d<40;d+=.2){if(!pointInPolygon({x:e.x+plan.offsetX+e.n[0]*d,y:e.z+plan.offsetY+e.n[1]*d},poly))break;distance=d;}
@@ -46,7 +46,7 @@ export function EntryGarden({plan,layout,assets}:{plan:Plan;layout:HouseLayout;a
  const angle=Math.atan2(e.n[0],e.n[1]),roadFacing=plan.design?.twoDoors?plan.design.outerFacing:plan.design?.houseFacing||plan.roadSide;
  const roadEdge=poly.findIndex(p=>p.road);const a=poly[roadEdge],b=poly[(roadEdge+1)%poly.length];
  const path=<group position={[e.x,GROUND_LEVEL,e.z]} rotation={[0,angle,0]}>{[0,1,2].map(i=>{const top=1.5-i*.5;return <Block key={i} position={[0,top/2,(i+.5)*.9]} size={[3.9,top,.9]} color="#d8d4c8" surface="limestone"/>;})}<Block position={[0,-.005,distance/2]} size={[3.9,.1,distance]} color="#f2eee4" surface="pavers"/>{[-1,1].filter(()=>distance>3).map(s=><group key={s} position={[s*2.9,0,Math.min(distance/2,2.4)]}><Block position={[0,.35,0]} size={[.85,.7,Math.min(3,distance-1)]} color="#b6aea0" surface="stackstone"/><AssetModel category="plant" assets={assets} position={[0,.7,0]} size={[.8,1.9,.8]}/></group>)}</group>;
- if(!a||roadFacing!==plan.roadSide)return path;
+ if(pathOnly||!a||roadFacing!==plan.roadSide)return path;
  const dx=b.x-a.x,dz=b.y-a.y,len=Math.hypot(dx,dz),ux=dx/len,uz=dz/len;
  const along=(x:number,z:number)=>(x+plan.offsetX-a.x)*ux+(z+plan.offsetY-a.y)*uz;
  const parking=plan.rooms.find(r=>r.kind==='portico'&&r.floor===0),openings:[[number,number],...Array<[number,number]>]=[[Math.max(0,along(e.x,e.z)-2.2),Math.min(len,along(e.x,e.z)+2.2)]];

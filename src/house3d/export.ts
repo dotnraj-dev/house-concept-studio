@@ -1,6 +1,7 @@
-import {NoColorSpace,Source,type Material,type Mesh,type MeshStandardMaterial,type Object3D,type Texture} from 'three';
+import {METRES_PER_FOOT} from '../building-dimensions';
+import {Group,Matrix4,Mesh as ExportMesh,Color,type InstancedMesh,NoColorSpace,Source,type Material,type Mesh,type MeshStandardMaterial,type Object3D,type Texture} from 'three';
 
-export const FEET_TO_METRES=.3048;
+export const FEET_TO_METRES=METRES_PER_FOOT;
 export function packedMetalRoughPixels(rough:Uint8ClampedArray,metal?:Uint8ClampedArray){
   const result=new Uint8ClampedArray(rough.length);
   for(let i=0;i<result.length;i+=4){result[i]=0;result[i+1]=rough[i+1];result[i+2]=metal?metal[i+2]:255;result[i+3]=255;}
@@ -11,12 +12,41 @@ export function packedMetalRoughPixels(rough:Uint8ClampedArray,metal?:Uint8Clamp
 export function prepareExport(root:Object3D){
   root.updateMatrixWorld(true);
   const copy=root.clone(true),remove:Object3D[]=[],materials=new Map<Material,Material>(),textures:Texture[]=[];
+  const instanceMaterials:Material[]=[];
+  // Blender receives ordinary nodes with the exact live instance transforms.
+  // This avoids depending on importer support for EXT_mesh_gpu_instancing.
+  const instanced:InstancedMesh[]=[];
+  copy.traverse(o=>{if((o as InstancedMesh).isInstancedMesh)instanced.push(o as InstancedMesh);});
+  for(const source of instanced){
+    const group=new Group();group.copy(source,false);group.userData={...source.userData,hcsExpandedInstances:source.count};
+    for(let i=0;i<source.count;i++){
+      const matrix=new Matrix4();source.getMatrixAt(i,matrix);
+      let material=source.material;
+      if(source.instanceColor){const color=new Color();source.getColorAt(i,color);const tint=(m:Material)=>{const clone=m.clone() as MeshStandardMaterial;if(clone.color)clone.color.multiply(color);instanceMaterials.push(clone);return clone;};material=Array.isArray(material)?material.map(tint):tint(material);}
+      const mesh=new ExportMesh(source.geometry,material);mesh.name=source.name+' '+i;mesh.matrixAutoUpdate=false;mesh.matrix.copy(matrix);mesh.castShadow=source.castShadow;mesh.receiveShadow=source.receiveShadow;group.add(mesh);
+    }
+    source.parent?.add(group);source.removeFromParent();
+  }
   const packedImages=new Map<unknown,Map<unknown,HTMLCanvasElement>>();
+  const exportTextures=new Map<Texture,Texture>();
+  const copyTexture=(source:Texture,preserveAlpha=false)=>{
+    // The exporter otherwise converts every original JPEG to PNG, making this
+    // ordinary two-storey house exceed the upload limit. Keep JPEG encoding for
+    // original opaque JPEGs, without reducing their resolution. Masks stay PNG.
+    const image=source.image as {src?:string}|undefined;
+    if(preserveAlpha||!image?.src||!(/\.jpe?g(?:[?#]|$)/i.test(image.src)))return source;
+    if(exportTextures.has(source))return exportTextures.get(source)!;
+    const texture=source.clone();texture.userData={...source.userData,mimeType:'image/jpeg'};
+    exportTextures.set(source,texture);textures.push(texture);return texture;
+  };
   copy.traverse(object=>{if(object.userData.interactionId||object.userData.runtimeOnly)remove.push(object);});
   remove.forEach(object=>object.removeFromParent());
   const cloneMaterial=(source:Material)=>{
     if(materials.has(source))return materials.get(source)!;
     const material=source.clone() as MeshStandardMaterial;materials.set(source,material);
+    for(const key of ['map','normalMap','roughnessMap','metalnessMap','emissiveMap','aoMap'] as const){
+      const texture=material[key];if(texture)material[key]=copyTexture(texture,key==='map'&&(material.alphaTest>0||material.transparent));
+    }
     const rough=material.roughnessMap,metal=material.metalnessMap;
     if(!rough||rough===metal||rough.colorSpace!==NoColorSpace||metal&&metal.colorSpace!==NoColorSpace)return material;
     // Imported glTF materials are already packed. Generated room materials often
@@ -48,5 +78,5 @@ export function prepareExport(root:Object3D){
   copy.scale.multiplyScalar(FEET_TO_METRES);copy.position.multiplyScalar(FEET_TO_METRES);
   copy.userData={...copy.userData,hcsUnits:'metres',hcsExportVersion:2};
   copy.updateMatrixWorld(true);
-  return {root:copy,dispose:()=>{materials.forEach(material=>material.dispose());textures.forEach(texture=>texture.dispose());}};
+  return {root:copy,dispose:()=>{materials.forEach(material=>material.dispose());textures.forEach(texture=>texture.dispose());instanceMaterials.forEach(material=>material.dispose());}};
 }

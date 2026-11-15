@@ -1,0 +1,25 @@
+{
+  "demoMode": true,
+  "plotFeet": [
+    30,
+    50
+  ],
+  "floors": 2,
+  "viewport": [
+    1600,
+    1100
+  ],
+  "fov": 52,
+  "lighting": "warm",
+  "streetFacing": "north",
+  "styles": [
+    "tn-contemporary-slats",
+    "tn-jaali-stone",
+    "tn-curved-villa",
+    "tn-tiled-bungalow",
+    "tn-narrow-g2"
+  ],
+  "browserErrors": [],
+  "verifiedAt": "2026-11-15T13:35:13.754Z",
+  "glbBytes": 33070768
+}

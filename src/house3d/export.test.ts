@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {Box3,BoxGeometry,Group,Mesh,MeshStandardMaterial,Vector3} from 'three';
+import {Box3,BoxGeometry,Group,Mesh,MeshStandardMaterial,Vector3,Texture} from 'three';
 import {FEET_TO_METRES,packedMetalRoughPixels,prepareExport} from './export';
 
 test('export has physical metre dimensions and leaves the live scene intact',()=>{
@@ -20,4 +20,17 @@ test('roughness packing preserves roughness and does not invent metallic surface
   const rough=new Uint8ClampedArray([12,88,9,255,0,220,0,255]);
   assert.deepEqual([...packedMetalRoughPixels(rough)],[0,88,255,255,0,220,255,255]);
   assert.deepEqual([...packedMetalRoughPixels(rough,new Uint8ClampedArray([0,0,17,255,0,0,31,255]))],[0,88,17,255,0,220,31,255]);
+});
+
+test('opaque JPEG export stays compact while alpha-cut images keep their encoding',()=>{
+  const image={src:'/assets/materials/paint-color.jpg',width:1024,height:1024};
+  const texture=new Texture(image as unknown as HTMLImageElement),root=new Group();
+  const opaque=new MeshStandardMaterial({map:texture}),mask=new MeshStandardMaterial({map:texture,alphaTest:.5});
+  root.add(new Mesh(new BoxGeometry(1,1,1),opaque),new Mesh(new BoxGeometry(1,1,1),mask));
+  const exported=prepareExport(root),a=(exported.root.children[0] as Mesh).material as MeshStandardMaterial,b=(exported.root.children[1] as Mesh).material as MeshStandardMaterial;
+  assert.equal(a.map?.userData.mimeType,'image/jpeg');
+  assert.equal(a.map?.image,image);assert.notEqual(a.map,texture);
+  assert.equal(b.map,texture);assert.equal(b.alphaTest,.5);
+  assert.equal(texture.userData.mimeType,undefined);
+  exported.dispose();texture.dispose();opaque.dispose();mask.dispose();
 });
