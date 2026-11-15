@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {fetchReferencePhotos,referencePhotos,referenceQuery} from './pixabay';
+import {referenceCacheKey,fetchReferencePhotos,referencePhotos,referenceQuery} from './pixabay';
 test('reference search normalises input and rejects empty or oversized searches',()=>{assert.equal(referenceQuery('  Kerala   house  '),'Kerala house');assert.throws(()=>referenceQuery(' '));assert.throws(()=>referenceQuery('x'.repeat(101)));});
 test('reference results exclude unsafe links and never expose upstream fields',()=>{
  const hits=[{id:3,pageURL:'https://pixabay.com/photos/house-3/',webformatURL:'https://cdn.pixabay.com/photo/house.jpg',user:'Architect',tags:'house',key:'secret',imageURL:'https://evil.invalid/leak'}];
@@ -18,3 +18,5 @@ test('Pixabay requests use a fixed host and bounded photo results',async()=>{
  const r=await fetchReferencePhotos('Kerala house','secret',request);assert.equal(r.total,1);assert.equal(sent!.origin,'https://pixabay.com');assert.equal(sent!.searchParams.get('safesearch'),'true');assert.equal(sent!.searchParams.get('per_page'),'12');
 });
 
+
+test('reference cache isolation checks a replacement key instead of validating it with older-key results',()=>{const a=referenceCacheKey('Living room','old-secret'),b=referenceCacheKey('living room','new-secret');assert.notEqual(a,b);assert.equal(a,referenceCacheKey('living room','old-secret'));assert.equal(a.includes('old-secret'),false);});

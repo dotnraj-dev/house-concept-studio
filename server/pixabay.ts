@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import {getProvider} from './integrations';
 import {sql} from './db';
 
@@ -12,12 +13,13 @@ export async function fetchReferencePhotos(query:string,key:string,request:typeo
  if(!response.ok)throw Object.assign(new Error(response.status===429?'Pixabay request limit reached. Try again later.':'Pixabay rejected the search. Check the saved API key.'),{statusCode:response.status===429?429:502});
  try{const data=await response.json();return {photos:referencePhotos(data),total:Math.max(0,Number(data.total)||0)};}catch{throw Object.assign(new Error('Pixabay returned an unreadable response.'),{statusCode:502});}
 }
+export const referenceCacheKey=(query:string,key:string)=>createHash('sha256').update(key).digest('hex').slice(0,24)+':'+query.toLocaleLowerCase('en');
 const recent:number[]=[];
 export async function searchReferences(value:string):Promise<ReferenceResults>{
- const query=referenceQuery(value),cacheKey=query.toLocaleLowerCase('en');
+ const query=referenceQuery(value),config=await getProvider('pixabay');if(!config)throw Object.assign(new Error('Add the Pixabay key in Settings → Connections first.'),{statusCode:400});
+ const cacheKey=referenceCacheKey(query,config.apiKey);
  const cached=await sql("SELECT data,expires_at FROM reference_cache WHERE query=$1 AND expires_at>now()",[cacheKey]);
  if(cached.rowCount)return {...cached.rows[0].data,query,cached:true,expiresAt:new Date(cached.rows[0].expires_at).toISOString()};
- const config=await getProvider('pixabay');if(!config)throw Object.assign(new Error('Add the Pixabay key in Settings → Connections first.'),{statusCode:400});
  const now=Date.now();while(recent.length&&recent[0]<now-60000)recent.shift();if(recent.length>=20)throw Object.assign(new Error('Please wait a minute before making more reference searches.'),{statusCode:429});recent.push(now);
  const result=await fetchReferencePhotos(query,config.apiKey),expiresAt=new Date(now+86400000).toISOString();
  await sql("DELETE FROM reference_cache WHERE expires_at<=now()");
