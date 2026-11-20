@@ -26,8 +26,10 @@ export const isPhone = (info: TestInfo) => info.project.name === 'phone';
 
 /** Switch workspace mode with the segmented buttons, or the compact select on phones. */
 export async function openMode(page: Page, label: 'Brief' | '2D' | '3D' | 'Present' | 'Proposal') {
-  const buttons = page.locator('.workspace-modes');
-  if (await buttons.isVisible().catch(() => false)) await buttons.getByRole('button', {name: label, exact: true}).click();
+  // Wait for the workspace header before choosing between the desktop buttons and the phone select.
+  await expect(page.getByLabel('Project title')).toBeVisible();
+  const buttons = page.getByRole('navigation', {name: 'Workspace mode'});
+  if (await buttons.isVisible()) await buttons.getByRole('button', {name: label, exact: true}).click();
   else await chooseOption(page, 'Workspace mode', new RegExp(`^${label}$`));
 }
 

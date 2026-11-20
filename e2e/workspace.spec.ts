@@ -7,7 +7,8 @@ test('signs in with the demo admin account', async ({page}) => {
   await page.getByLabel('Email address').fill('admin@demo.local');
   await page.getByLabel('Password').fill('DemoPassword123!');
   await page.getByRole('button', {name: /sign in/i}).click();
-  await expect(page.getByRole('navigation', {name: 'Studio navigation'})).toBeAttached();
+  await expect(page.getByRole('heading', {level: 1, name: /^Good (morning|afternoon|evening)/})).toBeVisible();
+  await expect(page.getByRole('button', {name: 'Sign out'})).toBeAttached();
   await noHorizontalOverflow(page);
   watch.assertClean();
 });
