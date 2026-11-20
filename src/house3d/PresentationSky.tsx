@@ -2,9 +2,9 @@ import {useMemo} from 'react';
 import {Color,Vector3,BackSide} from 'three';
 import type {ExteriorLightId} from './exterior-lighting';
 const palettes={
- day:['#89b5d6','#e2eaeb'],
- golden:['#d9c1ab','#f4dcbb'],
- sunset:['#7d91b5','#ebc9bb'],
+ day:['#4f8dc7','#dbe8ef'],
+ golden:['#7e9cc0','#f2d6b3'],
+ sunset:['#5d76a6','#f0bf9c'],
  dusk:['#263e67','#8e9cb5']
 } as const;
 /** Procedural sky only; the measured house and streetscape remain navigable geometry. */

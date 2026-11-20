@@ -1,9 +1,9 @@
 import {facadeStyle} from './facade-styles';
 import type {Direction} from '../types';
 export const EXTERIOR_LIGHTS={
- day:{label:'Clear daylight',color:'#fff9ee',sun:2.8,elevation:1.45,sky:'#b5d3e6',ground:'#bec1af',ambient:.14,hemisphere:.65,environment:.55,exposure:1,fixtures:.12},
- golden:{label:'Golden hour',color:'#ffe9cc',sun:2.6,elevation:.22,sky:'#c4d4e0',ground:'#bcb7a5',ambient:.16,hemisphere:.65,environment:.5,exposure:1,fixtures:.8},
- sunset:{label:'Sunset',color:'#ffe0bf',sun:1.9,elevation:.12,sky:'#aebfce',ground:'#b0ada2',ambient:.16,hemisphere:.7,environment:.5,exposure:1,fixtures:1.4},
+ day:{label:'Clear daylight',color:'#fff6e8',sun:3.5,elevation:1.15,sky:'#a9cbe3',ground:'#b8b5a4',ambient:.03,hemisphere:.36,environment:.4,exposure:1.02,fixtures:.12},
+ golden:{label:'Golden hour',color:'#ffd9a8',sun:3.3,elevation:.3,sky:'#c9d2d8',ground:'#b7ad98',ambient:.04,hemisphere:.4,environment:.36,exposure:1.04,fixtures:.8},
+ sunset:{label:'Sunset',color:'#ffc996',sun:2.6,elevation:.16,sky:'#a8b6c8',ground:'#ab9f92',ambient:.05,hemisphere:.46,environment:.34,exposure:1.05,fixtures:1.4},
  dusk:{label:'Dusk · warm house lights',color:'#bbcae1',sun:.32,elevation:.2,sky:'#748ca9',ground:'#899098',ambient:.18,hemisphere:.68,environment:.35,exposure:1.05,fixtures:3.2}
 } as const;
 export type ExteriorLightId=keyof typeof EXTERIOR_LIGHTS;

@@ -6,6 +6,8 @@ import {doorDesignFor,roomFitout,type DoorDesign} from '../fitout';
 import {CEILING_LEVEL,GROUND_LEVEL} from '../building-dimensions';
 import {TVJoinery,WovenRug,KitchenDetails,DiningDetails,BathroomDetails,VanityDetails,KitchenSink,KitchenStorage} from './InteriorDetails';
 import {Block} from './Surface';
+import {StaticBatcher} from './StaticBatcher';
+import {InteriorKit,ModernHood} from './InteriorKit';
 import {Architecture,EntryGarden} from './Architecture';
 import {plotEdges} from '../site-context';
 import {bathroomFixtures} from './bathroom';
@@ -15,9 +17,9 @@ import { ServiceScene } from './ServiceScene';
 import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import { Suspense, useEffect, useMemo, useRef } from 'react';
-import { DoubleSide, Object3D, PlaneGeometry, Quaternion, RepeatWrapping, SRGBColorSpace, Vector2, Vector3, Shape, type Group } from 'three';
+import { DoubleSide, Object3D, type SpotLight, PlaneGeometry, Quaternion, RepeatWrapping, SRGBColorSpace, Vector2, Vector3, Shape, type Group } from 'three';
 import type { Asset, Plan, Room } from '../types';
-import { AssetModel, FreeModel } from './Assets';
+import { AssetModel, FreeModel, LibraryModel } from './Assets';
 import { FLOOR_HEIGHT, furnishingFrame, type DoorSpec, type HouseLayout, type Interaction, type WindowSpec } from './layout';
 import { type Surface } from './materials';
 import { stairDimensions } from './stairs';
@@ -67,7 +69,7 @@ function CurtainPanel({width,height,x}:{width:number;height:number;x:number}){
     }
     positions.needsUpdate=true;
   });
-  return <mesh geometry={geometry} position={[x,0,.1]} castShadow receiveShadow>
+  return <mesh geometry={geometry} position={[x,0,.1]} castShadow receiveShadow userData={{dynamic:true}}>
     <meshStandardMaterial color="#ede8dc" normalMap={maps[0]} roughnessMap={maps[1]} normalScale={new Vector2(.24,.24)} roughness={1} side={DoubleSide}/>
   </mesh>;
 }
@@ -117,11 +119,16 @@ function Handrail({start,end}:{start:[number,number,number];end:[number,number,n
   </mesh>;
 }
 
-function RoomLight({room}:{room:Room}){
+/** Room spotlights are only active where they can be seen: in the cutaway overview, or on the floor the
+ * camera is on while walking/touring. Every active light adds cost to every lit pixel, so 14 always-on
+ * room spots made the exterior view and walkthrough far slower without visible benefit. */
+function RoomLight({room,interior,walking}:{room:Room;interior:boolean;walking:boolean}){
   const target=useMemo(()=>new Object3D(),[]);
+  const light=useRef<SpotLight>(null);
+  useFrame(({camera,invalidate})=>{if(!light.current)return;const on=interior&&(!walking||Math.floor((camera.position.y+.5)/FLOOR_HEIGHT)===room.floor);if(light.current.visible!==on){light.current.visible=on;invalidate();}});
   return <group position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT,room.y+room.h/2]}>
     <primitive object={target} position={[0,.1,0]}/>
-    <spotLight position={[0,CEILING_LEVEL-.5,0]} target={target} color="#fff2df" intensity={48} angle={1.12} penumbra={.72} castShadow={false}
+    <spotLight ref={light} visible={false} position={[0,CEILING_LEVEL-.5,0]} target={target} color="#fff2df" intensity={48} angle={1.12} penumbra={.72} castShadow={false}
       distance={24} decay={2} shadow-mapSize={[512,512]} shadow-bias={-.0008} shadow-normalBias={.025}/>
     {['living','lounge','dining'].includes(room.kind)&&[-1,1].flatMap(a=>[-1,1].map(b=><group key={a+'-'+b} position={[a*room.w*.31,CEILING_LEVEL-.1,b*room.h*.31]}><mesh><cylinderGeometry args={[.19,.19,.04,20]}/><meshStandardMaterial color="#eee8d9" emissive="#ffd9a0" emissiveIntensity={1.8}/></mesh></group>))}
     <mesh position={[room.w*.26,CEILING_LEVEL-.18,room.h*.23]}><cylinderGeometry args={[.4,.4,.065,24]}/><meshStandardMaterial color="#fff4d9" emissive="#ffe2a9" emissiveIntensity={1.1}/></mesh>
@@ -132,8 +139,8 @@ function Chimney({position,on,assets}:{position:[number,number,number];on:boolea
   const fan=useRef<Group>(null);
   useFrame((_,delta)=>{if(fan.current&&on)fan.current.rotation.y+=delta*9;});
   return <group position={position}>
-    <AssetModel category="chimney" assets={assets} position={[0,0,0]} size={[2.6,3.2,1.5]}/>
-    <group ref={fan} position={[0,-.08,0]}><Block position={[0,0,0]} size={[1.3,.06,.22]} color="#333b39"/><Block position={[0,0,0]} size={[.22,.06,1.3]} color="#333b39"/></group>
+    {assets.some(a=>a.category.toLowerCase()==='chimney')?<AssetModel category="chimney" assets={assets} position={[0,0,0]} size={[2.6,3.2,1.5]}/>:<ModernHood size={[2.6,3.2,1.5]}/>}
+    {assets.some(a=>a.category.toLowerCase()==='chimney')&&<group ref={fan} position={[0,-.08,0]}><Block position={[0,0,0]} size={[1.3,.06,.22]} color="#333b39"/><Block position={[0,0,0]} size={[.22,.06,1.3]} color="#333b39"/></group>}
     {on&&<pointLight position={[0,-.6,0]} color="#fff3cf" intensity={9} distance={8}/>}
   </group>;
 }
@@ -165,7 +172,7 @@ function Furniture({room,layout,assets,openShelves,tvOn,chimneyOn,toiletStyle,fu
   </group>;}
   if(room.kind==='kitchen'){const q=kitchenCounter(room);return <group>
     <KitchenStorage room={room} open={openShelves.has(`shelf-${room.id}`)}/>
-    <Block position={[q.x,base+2.99,q.z]} size={[q.w,.14,1.85]} color="#ffffff" surface="quartz"/><KitchenDetails room={room} hasWindows={layout.windows.some(w=>w.roomId===room.id)}/>
+    <Block position={[q.x,base+2.99,q.z]} size={[q.w,.14,1.85]} color="#1b1c1f" surface="quartz"/><KitchenDetails room={room} hasWindows={layout.windows.some(w=>w.roomId===room.id)}/>
     <KitchenSink position={[q.sinkX,base+3.075,q.z]}/>
 
     <Chimney position={[q.hobX,base+5.4,room.y+room.h-1]} on={chimneyOn.has(`chimney-${room.id}`)} assets={assets}/>
@@ -201,7 +208,7 @@ function Furniture({room,layout,assets,openShelves,tvOn,chimneyOn,toiletStyle,fu
     {[room.x+.35,room.x+room.w-.35].map(x=><Block solid key={x} position={[x,base+4.3,room.y+.35]} size={[.46,8.6,.46]} color="#ede3d2" surface="stone"/>)}
   </group>;
   if(room.kind==='terrace')return <group>
-    <FreeModel id="furniture-kit/benchcushion" position={[cx,base+.1,room.y+1.05]} size={[Math.min(4,room.w-1),2.2,1.8]} rotation={Math.PI}/>
+    {[-1,1].map(side=><LibraryModel key={side} file="terracechair/plastic_monobloc_chair_01.glb" position={[cx+side*1.35,base+.1,room.y+1.25]} size={[1.9,2.75,1.9]} rotation={Math.PI+side*.25}/>)}
     {room.h>6&&<AssetModel category="plant" assets={assets} position={[room.x+1.1,base+.1,room.y+room.h-1.1]} size={[1.3,2.6,1.3]}/>}
   </group>;
   return null;
@@ -229,7 +236,7 @@ export function HouseScene({onSelect,plan,layout,interactions,assets,mode,cutawa
       const f=Math.floor(Math.max(0,event.point.y)/FLOOR_HEIGHT);
       const inside=plan.rooms.find(r=>r.floor===f&&x>r.x&&x<r.x+r.w&&z>r.y&&z<r.y+r.h);
       onSelect(inside?{kind:'room',id:inside.id}:{kind:'facade'});
-    }}>
+    }}><StaticBatcher/>
     <Site plan={plan} boundary={!kit}/>{!shellCutaway&&!kit&&<><Architecture plan={plan} layout={layout} assets={assets}/><EntryGarden plan={plan} layout={layout} assets={assets}/></>}{!shellCutaway&&kit&&<><Suspense fallback={null}><FacadeKit plan={plan} layout={layout} servicesVisible={showServices} lightPower={lightPower}/></Suspense><EntryGarden plan={plan} layout={layout} assets={assets} pathOnly/></>}{contextVisible&&<group userData={{siteContext:true}} position={[0,GROUND_LEVEL,0]}><SiteWorld plan={plan}/></group>}
     <Block position={[plan.width/2,GROUND_LEVEL/2,plan.depth/2]} size={[plan.width,-GROUND_LEVEL,plan.depth]} color="#ddd8ce" surface="concrete"/>
     {plan.rooms.filter(room=>room.floor>0&&room.kind!=='stairs').map(room=><Block key={`slab-${room.id}`}
@@ -240,8 +247,9 @@ export function HouseScene({onSelect,plan,layout,interactions,assets,mode,cutawa
         surface={room.kind==='bathroom'?'bathfloor':room.kind==='portico'?'concrete':plan.design?.floorFinish==='woodfloor'?'woodfloor':'porcelain'}/>}
       {(furnished||['kitchen','bathroom','stairs','pooja','utility','foyer','portico'].includes(room.kind))&&(()=>{const frame=furnishingFrame(plan,room);const rotate=!['portico','foyer','bathroom'].includes(room.kind);return <group position={rotate?[room.x+room.w/2,0,room.y+room.h/2]:[0,0,0]} rotation={[0,rotate?frame.angle:0,0]}><Furniture layout={layout} room={rotate?frame.local:room} assets={assets} openShelves={openShelves} tvOn={tvOn} chimneyOn={chimneyOn} furnished={furnished} shoeRack={plan.design?.shoeRack} toiletStyle={plan.design?.roomRequests.find(q=>q.id===room.id)?.toiletStyle||(plan.toiletStyle==='both'?(plan.rooms.filter(r=>r.kind==='bathroom').findIndex(r=>r.id===room.id)%2?'indian':'western'):plan.toiletStyle)}/></group>;})()}
       <RoomFitoutScene assets={assets} plan={plan} room={room} layout={layout} open={openShelves} hideHigh={shellCutaway}/>
+      <InteriorKit plan={plan} room={room} layout={layout} interior={mode!=='overview'||cutaway} walking={mode!=='overview'} hideHigh={shellCutaway}/>
       {!shellCutaway&&!['portico','terrace','stairs'].includes(room.kind)&&<Block position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT+CEILING_LEVEL,room.y+room.h/2]} size={[room.w,.10,room.h]} color="#faf8f0" surface="paint" opacity={xray?.18:1}/>}
-      {!['portico','terrace','stairs'].includes(room.kind)&&room.floor<8&&<RoomLight room={room}/>}
+      {!['portico','terrace','stairs'].includes(room.kind)&&room.floor<8&&<RoomLight room={room} interior={mode!=='overview'||cutaway} walking={mode!=='overview'}/>}
       {!kit&&room.floor>0&&room.kind==='terrace'&&<>
         {room.y===0&&<Block position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT+1.8,room.y+.15]} size={[room.w,3.5,.14]} color="#bed3d0" opacity={.48}/>}
         {room.x===0&&<Block position={[room.x,room.floor*FLOOR_HEIGHT+1.8,room.y+room.h/2]} size={[.14,3.5,room.h]} color="#bed3d0" opacity={.48}/>}
