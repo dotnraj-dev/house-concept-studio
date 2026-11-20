@@ -1,7 +1,7 @@
 import {Suspense, useMemo, useRef} from 'react';
 import {useFrame} from '@react-three/fiber';
 import {useTexture} from '@react-three/drei';
-import {CanvasTexture, DoubleSide, LatheGeometry, MeshStandardMaterial, SRGBColorSpace, Vector2, type RectAreaLight} from 'three';
+import {CanvasTexture, DoubleSide, LatheGeometry, MeshPhysicalMaterial, MeshStandardMaterial, SRGBColorSpace, Vector2, type RectAreaLight} from 'three';
 import {RectAreaLightUniformsLib} from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import {CEILING_LEVEL, FLOOR_HEIGHT} from '../building-dimensions';
 import {fitoutOf} from '../fitout';
@@ -11,6 +11,8 @@ import {LibraryModel} from './Assets';
 import {roomFitments} from './fitout-layout';
 import {furnishingFrame, type HouseLayout} from './layout';
 import {bedroomFurniture, kitchenCounter, livingFurniture} from './furniture';
+import {bathroomFixtures} from './bathroom';
+import {showerZone} from './interior-layout';
 
 /**
  * Indian interior kit (AGENTS.md §4): false ceilings with cove light, fluted TV wall, pooja mandir details,
@@ -140,6 +142,37 @@ function PoojaDetails({plan, room, layout}: {plan: Plan; room: Room; layout: Hou
   </group>;
 }
 
+
+const showerGlass = new MeshPhysicalMaterial({color: '#e8f2f1', metalness: 0, roughness: .04, transmission: .92, thickness: .08, transparent: true, opacity: .32, side: DoubleSide});
+const hoodGlass = new MeshPhysicalMaterial({color: '#141618', metalness: .3, roughness: .06, clearcoat: 1, clearcoatRoughness: .03});
+
+/** Wet/dry separation: frameless glass panel with a kerb at the open side of the shower; vanity mirror LED bar. */
+function BathroomKit({room, layout}: {room: Room; layout: HouseLayout}) {
+  const base = room.floor * FLOOR_HEIGHT, s = showerZone(room, layout);
+  const basin = bathroomFixtures(room, layout).find(f => f.kind === 'basin');
+  return <group name={`Bathroom kit · ${room.label}`}>
+    {s && <group position={[s.x, base + .08, s.z]} rotation={[0, s.angle, 0]}>
+      <Block position={[0, .06, s.depth / 2 - .05]} size={[s.width, .12, .1]} color="#d9d6cf" surface="stone"/>
+      <mesh position={[-s.width * .18, 3.25, s.depth / 2 - .05]} material={showerGlass}><boxGeometry args={[s.width * .64, 6.3, .03]}/></mesh>
+      <mesh position={[s.width * .14 + .02, 3.25, s.depth / 2 - .05]} material={steel}><boxGeometry args={[.03, 6.3, .05]}/></mesh>
+    </group>}
+    {basin && <group position={[basin.x, base + .08, basin.z]} rotation={[0, basin.angle, 0]}>
+      <mesh position={[0, 5.78, -basin.depth / 2 + .26]} material={downlight}><boxGeometry args={[1.5, .06, .06]}/></mesh>
+    </group>}
+  </group>;
+}
+
+/** Modern slanted black-glass chimney hood with a brushed-steel duct (replaces the low-poly kit hood). Wall side is +Z. */
+export function ModernHood({size}: {size: [number, number, number]}) {
+  const [w, h, d] = size, canopy = .38;
+  return <group name="Kitchen chimney hood">
+    <mesh position={[0, canopy / 2, 0]} material={steel} castShadow><boxGeometry args={[w, canopy, d]}/></mesh>
+    <mesh position={[0, canopy + .32, -d * .12]} rotation={[.55, 0, 0]} material={hoodGlass} castShadow><boxGeometry args={[w * .96, .78, .04]}/></mesh>
+    <mesh position={[0, canopy + (h - canopy) / 2, d * .2]} material={steel} castShadow><boxGeometry args={[w * .34, h - canopy, d * .5]}/></mesh>
+    <mesh position={[w * .32, canopy - .02, -d / 2 - .005]} material={downlight}><boxGeometry args={[.22, .04, .02]}/></mesh>
+  </group>;
+}
+
 /** One hook per room from HouseScene; frame-based pieces use the same furnishing frame as Furniture. */
 export function InteriorKit({plan, room, layout, interior, walking, hideHigh}: {plan: Plan; room: Room; layout: HouseLayout} & Flags) {
   const flags = {interior, walking, hideHigh};
@@ -151,6 +184,7 @@ export function InteriorKit({plan, room, layout, interior, walking, hideHigh}: {
   const hindu = fitoutOf(plan.design).faith === 'hindu';
   return <group name={`Interior kit · ${room.label}`}>
     {ceiling && <FalseCeiling room={room} flags={flags}/>}
+    {room.kind === 'bathroom' && <BathroomKit room={room} layout={layout}/>}
     {room.kind === 'pooja' && hindu && <Suspense fallback={null}><PoojaDetails plan={plan} room={room} layout={layout}/></Suspense>}
     <group position={[room.x + room.w / 2, 0, room.y + room.h / 2]} rotation={[0, frame.angle, 0]}>
       {furnished && (room.kind === 'living' || room.kind === 'lounge') && <TvFeatureWall room={local}/>}

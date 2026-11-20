@@ -11,6 +11,12 @@ Built ahead of Codex's B1 (2D editor) so neither lane waits. All pieces live in 
 | Kitchen | Black galaxy granite counter (was white quartz), 2 ft dado tiles above the counter, steel pot and kadai on the hob. |
 | Pooja (when the customer selects the Hindu prayer option) | Stepped gopuram-style crown with a brass kalasam on the prayer cabinet, backlit jaali panel, a pair of turned brass kuthuvilakku floor lamps with five glowing wicks, kolam floor decal, brass diya lantern and kalash pot from the library. Neutral/other-faith options are unchanged. |
 
+## Added in pass 1b
+| Room | Element |
+|---|---|
+| Bathrooms with a shower zone | Frameless glass wet/dry partition with a steel edge profile and a stone kerb; LED bar above the vanity mirror. |
+| Kitchen | Modern slanted black-glass chimney hood with a brushed-steel canopy and duct (replaces the low-poly kit hood; an uploaded hood model still takes priority). |
+
 ## Evidence
 `docs/screenshots/interior-kit/after-*.png` (living TV wall, kitchen, parents bedroom, pooja with the Hindu option). Before images: `docs/screenshots/realism` and earlier workspace captures.
 
@@ -20,4 +26,3 @@ Performance: RectAreaLights only switch on in the cutaway view or on the camera'
 - Inspector options per room (ceiling on/off, TV wall finish: fluted/marble/louvre, headboard fabric, granite colour) as B1 actions with ids.
 - Dado tiles are close to the wall colour: offer tile colours and a decorative border.
 - Pooja room bell-and-jaali double doors (door design system) and a marble mandir variant.
-- Bathroom vanity mirror light and wet/dry glass partition.

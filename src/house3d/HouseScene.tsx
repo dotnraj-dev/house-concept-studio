@@ -7,7 +7,7 @@ import {CEILING_LEVEL,GROUND_LEVEL} from '../building-dimensions';
 import {TVJoinery,WovenRug,KitchenDetails,DiningDetails,BathroomDetails,VanityDetails,KitchenSink,KitchenStorage} from './InteriorDetails';
 import {Block} from './Surface';
 import {StaticBatcher} from './StaticBatcher';
-import {InteriorKit} from './InteriorKit';
+import {InteriorKit,ModernHood} from './InteriorKit';
 import {Architecture,EntryGarden} from './Architecture';
 import {plotEdges} from '../site-context';
 import {bathroomFixtures} from './bathroom';
@@ -139,8 +139,8 @@ function Chimney({position,on,assets}:{position:[number,number,number];on:boolea
   const fan=useRef<Group>(null);
   useFrame((_,delta)=>{if(fan.current&&on)fan.current.rotation.y+=delta*9;});
   return <group position={position}>
-    <AssetModel category="chimney" assets={assets} position={[0,0,0]} size={[2.6,3.2,1.5]}/>
-    <group ref={fan} position={[0,-.08,0]}><Block position={[0,0,0]} size={[1.3,.06,.22]} color="#333b39"/><Block position={[0,0,0]} size={[.22,.06,1.3]} color="#333b39"/></group>
+    {assets.some(a=>a.category.toLowerCase()==='chimney')?<AssetModel category="chimney" assets={assets} position={[0,0,0]} size={[2.6,3.2,1.5]}/>:<ModernHood size={[2.6,3.2,1.5]}/>}
+    {assets.some(a=>a.category.toLowerCase()==='chimney')&&<group ref={fan} position={[0,-.08,0]}><Block position={[0,0,0]} size={[1.3,.06,.22]} color="#333b39"/><Block position={[0,0,0]} size={[.22,.06,1.3]} color="#333b39"/></group>}
     {on&&<pointLight position={[0,-.6,0]} color="#fff3cf" intensity={9} distance={8}/>}
   </group>;
 }
