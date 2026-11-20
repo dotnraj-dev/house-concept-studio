@@ -7,6 +7,7 @@ import {CEILING_LEVEL,GROUND_LEVEL} from '../building-dimensions';
 import {TVJoinery,WovenRug,KitchenDetails,DiningDetails,BathroomDetails,VanityDetails,KitchenSink,KitchenStorage} from './InteriorDetails';
 import {Block} from './Surface';
 import {StaticBatcher} from './StaticBatcher';
+import {InteriorKit} from './InteriorKit';
 import {Architecture,EntryGarden} from './Architecture';
 import {plotEdges} from '../site-context';
 import {bathroomFixtures} from './bathroom';
@@ -171,7 +172,7 @@ function Furniture({room,layout,assets,openShelves,tvOn,chimneyOn,toiletStyle,fu
   </group>;}
   if(room.kind==='kitchen'){const q=kitchenCounter(room);return <group>
     <KitchenStorage room={room} open={openShelves.has(`shelf-${room.id}`)}/>
-    <Block position={[q.x,base+2.99,q.z]} size={[q.w,.14,1.85]} color="#ffffff" surface="quartz"/><KitchenDetails room={room} hasWindows={layout.windows.some(w=>w.roomId===room.id)}/>
+    <Block position={[q.x,base+2.99,q.z]} size={[q.w,.14,1.85]} color="#1b1c1f" surface="quartz"/><KitchenDetails room={room} hasWindows={layout.windows.some(w=>w.roomId===room.id)}/>
     <KitchenSink position={[q.sinkX,base+3.075,q.z]}/>
 
     <Chimney position={[q.hobX,base+5.4,room.y+room.h-1]} on={chimneyOn.has(`chimney-${room.id}`)} assets={assets}/>
@@ -246,6 +247,7 @@ export function HouseScene({onSelect,plan,layout,interactions,assets,mode,cutawa
         surface={room.kind==='bathroom'?'bathfloor':room.kind==='portico'?'concrete':plan.design?.floorFinish==='woodfloor'?'woodfloor':'porcelain'}/>}
       {(furnished||['kitchen','bathroom','stairs','pooja','utility','foyer','portico'].includes(room.kind))&&(()=>{const frame=furnishingFrame(plan,room);const rotate=!['portico','foyer','bathroom'].includes(room.kind);return <group position={rotate?[room.x+room.w/2,0,room.y+room.h/2]:[0,0,0]} rotation={[0,rotate?frame.angle:0,0]}><Furniture layout={layout} room={rotate?frame.local:room} assets={assets} openShelves={openShelves} tvOn={tvOn} chimneyOn={chimneyOn} furnished={furnished} shoeRack={plan.design?.shoeRack} toiletStyle={plan.design?.roomRequests.find(q=>q.id===room.id)?.toiletStyle||(plan.toiletStyle==='both'?(plan.rooms.filter(r=>r.kind==='bathroom').findIndex(r=>r.id===room.id)%2?'indian':'western'):plan.toiletStyle)}/></group>;})()}
       <RoomFitoutScene assets={assets} plan={plan} room={room} layout={layout} open={openShelves} hideHigh={shellCutaway}/>
+      <InteriorKit plan={plan} room={room} layout={layout} interior={mode!=='overview'||cutaway} walking={mode!=='overview'} hideHigh={shellCutaway}/>
       {!shellCutaway&&!['portico','terrace','stairs'].includes(room.kind)&&<Block position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT+CEILING_LEVEL,room.y+room.h/2]} size={[room.w,.10,room.h]} color="#faf8f0" surface="paint" opacity={xray?.18:1}/>}
       {!['portico','terrace','stairs'].includes(room.kind)&&room.floor<8&&<RoomLight room={room} interior={mode!=='overview'||cutaway} walking={mode!=='overview'}/>}
       {!kit&&room.floor>0&&room.kind==='terrace'&&<>
