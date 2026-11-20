@@ -34,3 +34,16 @@ for model in quality['models']:
     assert len(data) < 25*1024*1024, 'Model exceeds the application asset limit'
     assert gltf.get('materials') and gltf.get('textures'), 'Expected a textured PBR model'
 print(f"Validated {len(quality['models'])} detailed CC0 GLBs with embedded PBR textures.")
+
+library = json.loads((root / 'assets/quality/library.json').read_text(encoding='utf-8'))
+for model in library['models']:
+    assert model['license'] == 'CC0-1.0', model['id']
+    data = (root / 'assets/quality' / model['file']).read_bytes()
+    assert data[:4] == b'glTF' and struct.unpack_from('<I', data, 8)[0] == len(data), model['id']
+    length = struct.unpack_from('<I', data, 12)[0]
+    gltf = json.loads(data[20:20+length])
+    assert all('bufferView' in image for image in gltf.get('images', [])), f"Textures must be embedded: {model['id']}"
+    assert all(not buffer.get('uri') for buffer in gltf.get('buffers', [])), f"Buffers must be embedded: {model['id']}"
+    assert len(data) < 8*1024*1024, f"Library model too heavy for iPad/integrated GPU: {model['id']}"
+    assert model['bytes'] == len(data), f"Stale size in library.json: {model['id']}"
+print(f"Validated {len(library['models'])} curated library GLBs (embedded, under 8 MB each).")
