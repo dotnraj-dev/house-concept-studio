@@ -172,11 +172,11 @@ export function House3D({active=true,plan,floor,assets,projectId,canRender=false
   const climatePanel=study&&<ClimatePanel study={inputs} onChange={setInputs} lat={site.latitude} lon={site.longitude} isDefault={!plan.design?.siteContext} elevation={sun.elevation} paths={paths.length} doors={!!openDoors.size} openDoors={()=>setOpenDoors(openDoors.size?new Set():new Set(layout.doors.filter(d=>!d.arch).map(d=>d.id)))}/>;
   return <div className={'house-viewer workspace-viewer '+(present?'present-viewer':'')+(touch?' touch-viewer':'')+(mode==='walk'?' walk-viewer':'')} ref={viewerRef}>
     <div className="canvas-tools" role="toolbar" aria-label="3D viewing tools">
-      <Button title="Road-facing front elevation" className={mode==='overview'&&cameraPreset==='front'?'active':''} onClick={frontView}><Camera size={15}/><span>Front view</span></Button>
-      {!present&&<><Button className={mode==='overview'&&cameraPreset==='corner'?'active':''} onClick={()=>{overview();setCutaway(false);}} title="Corner view · drag to orbit or tap to select"><Move size={15}/><span>Orbit / select</span></Button>
-      <Button className={mode==='walk'?'active':''} onClick={walk}><Footprints size={15}/><span>Walk inside</span></Button></>}
-      <Button className={mode==='tour'?'active':''} onClick={tour}><Play size={15}/><span>Guided tour</span></Button>
-      {!present&&<><Button className={cutaway?'active':''} onClick={()=>{overview(true);setCutaway(!cutaway);}}><Layers size={15}/><span>Cutaway</span></Button>
+      <Button aria-label="Front view" title="Road-facing front elevation" className={mode==='overview'&&cameraPreset==='front'?'active':''} onClick={frontView}><Camera size={15}/><span>Front view</span></Button>
+      {!present&&<><Button className={mode==='overview'&&cameraPreset==='corner'?'active':''} onClick={()=>{overview();setCutaway(false);}} title="Corner view · drag to orbit or tap to select" aria-label="Orbit / select"><Move size={15}/><span>Orbit / select</span></Button>
+      <Button aria-label="Walk inside" title="Walk inside" className={mode==='walk'?'active':''} onClick={walk}><Footprints size={15}/><span>Walk inside</span></Button></>}
+      <Button aria-label="Guided tour" title="Guided tour" className={mode==='tour'?'active':''} onClick={tour}><Play size={15}/><span>Guided tour</span></Button>
+      {!present&&<><Button aria-label="Cutaway" title="Cutaway" className={cutaway?'active':''} onClick={()=>{overview(true);setCutaway(!cutaway);}}><Layers size={15}/><span>Cutaway</span></Button>
       <details className="viewer-options"><summary aria-label="More viewing tools"><MoreHorizontal size={18}/></summary><div className="viewer-options-menu">
        <label><Checkbox checked={xray} onChange={e=>setXray(e.target.checked)}/> Transparent walls</label>
        <label><Checkbox checked={showServices} onChange={e=>setShowServices(e.target.checked)}/> Plumbing</label>

@@ -1,14 +1,15 @@
 import {expect, test} from '@playwright/test';
 import {chooseOption, isPhone, noHorizontalOverflow, openMode, seed, waitFor3D, watchErrors} from './helpers';
 
-test('signs in with the demo admin account', async ({page}) => {
+test('signs in with the demo admin account', async ({page}, info) => {
   const watch = watchErrors(page);
   await page.goto('/');
   await page.getByLabel('Email address').fill('admin@demo.local');
   await page.getByLabel('Password').fill('DemoPassword123!');
   await page.getByRole('button', {name: /sign in/i}).click();
   await expect(page.getByRole('heading', {level: 1, name: /^Good (morning|afternoon|evening)/})).toBeVisible();
-  await expect(page.getByRole('button', {name: 'Sign out'})).toBeAttached();
+  // Phones hide the sidebar (and its Sign out button) behind the menu.
+  if (!isPhone(info)) await expect(page.getByRole('button', {name: 'Sign out'})).toBeAttached();
   await noHorizontalOverflow(page);
   watch.assertClean();
 });
@@ -50,6 +51,8 @@ test('3D house renders, front view works and the compass turns with the camera',
   await page.mouse.up();
   await expect.poll(() => ring.getAttribute('transform')).not.toBe(before);
   await page.getByRole('button', {name: 'Front view'}).first().click();
+  // Icon-only toolbar buttons on phones must still carry accessible names (regression).
+  for (const name of ['Orbit / select', 'Walk inside', 'Guided tour', 'Cutaway']) await expect(page.getByRole('button', {name, exact: true}).first()).toBeAttached();
   await noHorizontalOverflow(page);
   watch.assertClean();
 });
