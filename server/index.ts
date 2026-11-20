@@ -18,11 +18,11 @@ import { getProvider, saveProvider, providerStatus, type Provider } from './inte
 import {workerBaseUrl,workerHealth} from './gpu-worker';
 import {storagePaths,validateHostingEnvironment,validRequestOrigin,buildIdentifier} from './runtime';
 import {getStoredFile,putStoredFile} from './files';
+import {equaliseLoginTiming,externalApi,loginByAccount,loginByIp,registerSecurity,tooMany,trustProxySetting} from './security';
 
-const app = Fastify({ logger: true, bodyLimit: 2 * 1024 * 1024 });
+const app = Fastify({ logger: true, bodyLimit: 2 * 1024 * 1024, trustProxy: trustProxySetting() });
 const uploadDir = storagePaths().uploads;
 const isProduction = process.env.NODE_ENV === 'production';
-const loginAttempts = new Map<string, { count: number; until: number }>();
 
 const reqSchema = requirementsSchema;
 const ratiosSchema = z.object({ front: z.number().min(.25).max(.42), middle: z.number().min(.22).max(.36), livingShare: z.number().min(.38).max(.68), kitchenShare: z.number().min(.40).max(.60) });
@@ -44,10 +44,7 @@ app.addHook('onRequest', async (request, reply) => {
     if (!validRequestOrigin(origin,host)) return reply.code(403).send({ error: 'Invalid request origin.' });
   }
 });
-app.addHook('onSend',async(_request,reply,payload)=>{
-  reply.header('X-Content-Type-Options','nosniff').header('X-Frame-Options','DENY').header('Referrer-Policy','same-origin');
-  return payload;
-});
+registerSecurity(app);
 app.setErrorHandler((error, _request, reply) => {
   if (error instanceof z.ZodError) return reply.code(400).send({ error: 'Please check the entered values.', details: error.flatten() });
   app.log.error(error);
@@ -56,16 +53,18 @@ app.setErrorHandler((error, _request, reply) => {
 
 app.post('/api/login', async (request, reply) => {
   const body = z.object({ email: z.email(), password: z.string() }).parse(request.body);
-  const ip = request.ip;
-  const recent = loginAttempts.get(ip);
-  if (recent && recent.until > Date.now() && recent.count >= 8) return reply.code(429).send({ error: 'Too many attempts. Try again later.' });
-  const result = await sql('SELECT * FROM users WHERE email=$1 AND active=true', [body.email.toLowerCase()]);
+  const ip = request.ip, account = body.email.toLowerCase();
+  const wait = Math.max(loginByIp.blocked(ip), loginByAccount.blocked(account));
+  if (wait) return tooMany(reply, wait);
+  const result = await sql('SELECT * FROM users WHERE email=$1 AND active=true', [account]);
   const user = result.rows[0];
+  if (!user) equaliseLoginTiming(body.password);
   if (!user || !checkPassword(body.password, user.password_hash)) {
-    loginAttempts.set(ip, { count: (recent?.until ?? 0) > Date.now() ? recent!.count + 1 : 1, until: Date.now() + 15 * 60_000 });
+    loginByIp.hit(ip); loginByAccount.hit(account);
     return reply.code(401).send({ error: 'Incorrect email or password.' });
   }
-  loginAttempts.delete(ip);
+  loginByAccount.reset(account);
+  await sql('DELETE FROM sessions WHERE expires_at<=now()');
   setSessionCookie(reply, await createSession(user.id));
   return { user: { id: user.id, name: user.name, email: user.email, role: user.role, active: user.active, permissions: user.permissions } };
 });
@@ -196,6 +195,7 @@ app.get('/api/assets/:id/file', async (request, reply) => {
 
 app.post('/api/transcribe', async (request, reply) => {
   const user = await requireUser(request, reply); if (!user || !requireFeature(user, 'intake.voice', reply)) return;
+  const waitVoice = externalApi.hit(`voice:${user.id}`); if (waitVoice) return tooMany(reply, waitVoice, 'Hourly transcription limit reached. Try again later.');
   const provider=await getProvider('openai');
   if(!provider)return reply.code(503).send({error:'Configure speech transcription in Settings. Recording and manual transcripts work without a key.'});
   const file = await request.file();
@@ -213,6 +213,7 @@ app.post('/api/extract', async (request, reply) => {
   const user = await requireUser(request, reply); if (!user || !requireFeature(user, 'intake.ai', reply)) return;
   const {text,useAI}=z.object({text:z.string().min(3).max(10000),useAI:z.boolean().default(false)}).parse(request.body);
   if(!useAI)return localExtract(text);
+  const waitAI = externalApi.hit(`ai:${user.id}`); if (waitAI) return tooMany(reply, waitAI, 'Hourly AI request limit reached. Use local extraction or try again later.');
   const provider=await getProvider('openai');
   if(!provider)return reply.code(503).send({error:'Configure an AI provider in Settings or use local extraction.'});
   const schema = { type:'object', additionalProperties:false, properties: {
@@ -231,7 +232,7 @@ app.post('/api/extract', async (request, reply) => {
   return { ...parsed, usage:output.usage };
 });
 
-app.get('/api/references/search',async(request,reply)=>{const user=await requireUser(request,reply);if(!user||!requireFeature(user,'assets.manage',reply))return;const {q}=z.object({q:z.string().min(2).max(100)}).parse(request.query);return searchReferences(q);});
+app.get('/api/references/search',async(request,reply)=>{const user=await requireUser(request,reply);if(!user||!requireFeature(user,'assets.manage',reply))return;const {q}=z.object({q:z.string().min(2).max(100)}).parse(request.query);const wait=externalApi.hit(`refs:${user.id}`);if(wait)return tooMany(reply,wait,'Hourly reference search limit reached.');return searchReferences(q);});
 app.get('/api/integrations/status',async(request,reply)=>{const user=await requireUser(request,reply);if(!user)return;return providerStatus();});
 app.patch('/api/integrations/:provider',async(request,reply)=>{
  const user=await requireUser(request,reply);if(!user)return;if(user.role!=='admin')return reply.code(403).send({error:'Only the administrator can configure provider credentials.'});
