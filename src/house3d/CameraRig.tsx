@@ -9,6 +9,7 @@ import { furnishingFrame, entrancePose, collidesAt, FLOOR_HEIGHT, type HouseLayo
 import {bathroomFixtures} from './bathroom';
 import { walkingSurface } from './navigation';
 import {collectObstacles,obstacleBlocks} from './obstacles';
+import {BATCHED_LAYER} from './static-batch';
 
 export type ViewCommand={id:number;position:[number,number,number];look:[number,number,number];floor:number;fov?:number};
 export type ViewerMode='overview'|'walk'|'tour';
@@ -41,7 +42,7 @@ export function CameraRig({active=true,touch,plan,layout,interactions,mode,floor
   const yaw=useRef(0),pitch=useRef(0),keys=useRef(new Set<string>()),jump=useRef(0),velocity=useRef(0),eye=useRef(5.2);
   const walkingHeight=useRef(floor*FLOOR_HEIGHT),restEye=useRef(5.2);
   const focusId=useRef(''),lastHover=useRef(''),currentFloor=useRef(floor),tourTime=useRef(0);
-  const ray=useMemo(()=>new Raycaster(),[]);
+  const ray=useMemo(()=>{const r=new Raycaster();r.layers.enable(BATCHED_LAYER);return r;},[]);
   const tour=useMemo(()=>tourPoints(plan,layout),[plan,layout]);
   const solids=useRef<ReturnType<typeof collectObstacles>>([]),solidStamp=useRef(-1);
 
