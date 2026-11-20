@@ -1,3 +1,4 @@
+import { Button, Input, Select, Checkbox } from '../ui';
 import {createPortal} from 'react-dom';
 import {useImperativeHandle,type Ref} from 'react';
 import {Compass} from './Compass';
@@ -171,28 +172,28 @@ export function House3D({active=true,plan,floor,assets,projectId,canRender=false
   const climatePanel=study&&<ClimatePanel study={inputs} onChange={setInputs} lat={site.latitude} lon={site.longitude} isDefault={!plan.design?.siteContext} elevation={sun.elevation} paths={paths.length} doors={!!openDoors.size} openDoors={()=>setOpenDoors(openDoors.size?new Set():new Set(layout.doors.filter(d=>!d.arch).map(d=>d.id)))}/>;
   return <div className={'house-viewer workspace-viewer '+(present?'present-viewer':'')+(touch?' touch-viewer':'')+(mode==='walk'?' walk-viewer':'')} ref={viewerRef}>
     <div className="canvas-tools" role="toolbar" aria-label="3D viewing tools">
-      <button title="Road-facing front elevation" className={mode==='overview'&&cameraPreset==='front'?'active':''} onClick={frontView}><Camera size={15}/><span>Front view</span></button>
-      {!present&&<><button className={mode==='overview'&&cameraPreset==='corner'?'active':''} onClick={()=>{overview();setCutaway(false);}} title="Corner view · drag to orbit or tap to select"><Move size={15}/><span>Orbit / select</span></button>
-      <button className={mode==='walk'?'active':''} onClick={walk}><Footprints size={15}/><span>Walk inside</span></button></>}
-      <button className={mode==='tour'?'active':''} onClick={tour}><Play size={15}/><span>Guided tour</span></button>
-      {!present&&<><button className={cutaway?'active':''} onClick={()=>{overview(true);setCutaway(!cutaway);}}><Layers size={15}/><span>Cutaway</span></button>
+      <Button title="Road-facing front elevation" className={mode==='overview'&&cameraPreset==='front'?'active':''} onClick={frontView}><Camera size={15}/><span>Front view</span></Button>
+      {!present&&<><Button className={mode==='overview'&&cameraPreset==='corner'?'active':''} onClick={()=>{overview();setCutaway(false);}} title="Corner view · drag to orbit or tap to select"><Move size={15}/><span>Orbit / select</span></Button>
+      <Button className={mode==='walk'?'active':''} onClick={walk}><Footprints size={15}/><span>Walk inside</span></Button></>}
+      <Button className={mode==='tour'?'active':''} onClick={tour}><Play size={15}/><span>Guided tour</span></Button>
+      {!present&&<><Button className={cutaway?'active':''} onClick={()=>{overview(true);setCutaway(!cutaway);}}><Layers size={15}/><span>Cutaway</span></Button>
       <details className="viewer-options"><summary aria-label="More viewing tools"><MoreHorizontal size={18}/></summary><div className="viewer-options-menu">
-       <label><input type="checkbox" checked={xray} onChange={e=>setXray(e.target.checked)}/> Transparent walls</label>
-       <label><input type="checkbox" checked={showServices} onChange={e=>setShowServices(e.target.checked)}/> Plumbing</label>
-       <label><input type="checkbox" checked={furnished} onChange={e=>setFurnished(e.target.checked)}/> Interiors (preview)</label>
-       <label>Light<select aria-label="Presentation lighting" value={mood} onChange={e=>setMood(e.target.value)}><option value="recipe">Recipe lighting</option><option value="day">Clear daylight</option><option value="golden">Golden hour</option><option value="sunset">Sunset</option><option value="dusk">Dusk · warm house lights</option></select></label>
-       <label><input type="checkbox" checked={enhanced} disabled={!qualityConfig.ssao} onChange={e=>setEnhanced(e.target.checked)}/> Contact shadows{!qualityConfig.ssao?' · High only':''}</label>
-       <label><input type="checkbox" checked={reflections} disabled={!qualityConfig.reflections} onChange={e=>setReflections(e.target.checked)}/> Live reflections{!qualityConfig.reflections?' · High only':''}</label>
-       <label><input type="checkbox" checked={contextVisible} onChange={e=>setContextVisible(e.target.checked)}/> Surroundings</label>
+       <label><Checkbox checked={xray} onChange={e=>setXray(e.target.checked)}/> Transparent walls</label>
+       <label><Checkbox checked={showServices} onChange={e=>setShowServices(e.target.checked)}/> Plumbing</label>
+       <label><Checkbox checked={furnished} onChange={e=>setFurnished(e.target.checked)}/> Interiors (preview)</label>
+       <label>Light<Select aria-label="Presentation lighting" value={mood} onChange={e=>setMood(e.target.value)}><option value="recipe">Recipe lighting</option><option value="day">Clear daylight</option><option value="golden">Golden hour</option><option value="sunset">Sunset</option><option value="dusk">Dusk · warm house lights</option></Select></label>
+       <label><Checkbox checked={enhanced} disabled={!qualityConfig.ssao} onChange={e=>setEnhanced(e.target.checked)}/> Contact shadows{!qualityConfig.ssao?' · High only':''}</label>
+       <label><Checkbox checked={reflections} disabled={!qualityConfig.reflections} onChange={e=>setReflections(e.target.checked)}/> Live reflections{!qualityConfig.reflections?' · High only':''}</label>
+       <label><Checkbox checked={contextVisible} onChange={e=>setContextVisible(e.target.checked)}/> Surroundings</label>
        <details className="controls-guide"><summary>Keyboard & touch controls</summary><p>W A S D or arrows: move. Mouse: look. Shift: sprint. Space: jump. C: crouch. E: interact. Esc: release the mouse.</p><p>Touch: one finger orbits, two fingers pan / zoom. In Walk, use the joystick to move and drag the house view to look; buttons jump, crouch and interact.</p></details>
-       <button onClick={()=>{onOpenDock?onOpenDock('climate'):setStudy(!study);}}><Sun size={15}/> Sun & breeze</button>
-       {canRender&&<button onClick={()=>onOpenDock?.('renders')}>Camera & render</button>}
-       <button onClick={()=>document.fullscreenElement?document.exitFullscreen():viewerRef.current?.requestFullscreen?.().catch(()=>{})}><Maximize size={15}/> Full screen</button>
-       <button disabled={exporting||loading} onClick={downloadModel}>{exporting?'Exporting…':'Download 3D'}</button><button disabled={loading} onClick={downloadCamera}>Download camera settings</button>
+       <Button onClick={()=>{onOpenDock?onOpenDock('climate'):setStudy(!study);}}><Sun size={15}/> Sun & breeze</Button>
+       {canRender&&<Button onClick={()=>onOpenDock?.('renders')}>Camera & render</Button>}
+       <Button onClick={()=>document.fullscreenElement?document.exitFullscreen():viewerRef.current?.requestFullscreen?.().catch(()=>{})}><Maximize size={15}/> Full screen</Button>
+       <Button disabled={exporting||loading} onClick={downloadModel}>{exporting?'Exporting…':'Download 3D'}</Button><Button disabled={loading} onClick={downloadCamera}>Download camera settings</Button>
       </div></details></>}
     </div>
-    <div className="room-jump"><select aria-label="Look inside a room" value="" onChange={e=>roomJump(e.target.value)}><option value="">Jump to a room…</option>{plan.rooms.filter(r=>!['portico','stairs','foyer','passage'].includes(r.kind)).map(r=><option key={r.id} value={r.id}>{r.floor===0?'Ground':'Floor '+r.floor} · {r.label}</option>)}{plan.rooms.filter(r=>r.floor===floor&&roomFitments(plan,r,layout).some(f=>['wardrobe','prayer','upper','sideboard'].includes(f.kind))).map(r=><option key={'storage:'+r.id} value={'storage:'+r.id}>Storage · {r.label}</option>)}{plan.rooms.filter(r=>r.floor===floor&&r.kind==='bathroom'&&showerZone(r,layout)).map(r=><option key={'shower:'+r.id} value={'shower:'+r.id}>Shower · {r.label}</option>)}</select></div>
-    {!present&&<div className="quality-control" role="toolbar" aria-label="Rendering quality"><label>Quality<select aria-label="Viewer quality" value={quality} onChange={e=>chooseQuality(e.target.value)}>{['auto','high','balanced','low'].map(q=><option key={q} value={q}>{q.charAt(0).toUpperCase()+q.slice(1)}</option>)}</select></label><span data-quality={actualQuality}>{actualQuality} {fps>0?'· '+fps+' fps':''}</span></div>}
+    <div className="room-jump"><Select aria-label="Look inside a room" value="" onChange={e=>roomJump(e.target.value)}><option value="">Jump to a room…</option>{plan.rooms.filter(r=>!['portico','stairs','foyer','passage'].includes(r.kind)).map(r=><option key={r.id} value={r.id}>{r.floor===0?'Ground':'Floor '+r.floor} · {r.label}</option>)}{plan.rooms.filter(r=>r.floor===floor&&roomFitments(plan,r,layout).some(f=>['wardrobe','prayer','upper','sideboard'].includes(f.kind))).map(r=><option key={'storage:'+r.id} value={'storage:'+r.id}>Storage · {r.label}</option>)}{plan.rooms.filter(r=>r.floor===floor&&r.kind==='bathroom'&&showerZone(r,layout)).map(r=><option key={'shower:'+r.id} value={'shower:'+r.id}>Shower · {r.label}</option>)}</Select></div>
+    {!present&&<div className="quality-control" role="toolbar" aria-label="Rendering quality"><label>Quality<Select aria-label="Viewer quality" value={quality} onChange={e=>chooseQuality(e.target.value)}>{['auto','high','balanced','low'].map(q=><option key={q} value={q}>{q.charAt(0).toUpperCase()+q.slice(1)}</option>)}</Select></label><span data-quality={actualQuality}>{actualQuality} {fps>0?'· '+fps+' fps':''}</span></div>}
     {climateTarget?createPortal(climatePanel,climateTarget):climatePanel}
     <div className="house-canvas">
       <ViewerBoundary><Canvas shadows frameloop={!active?'never':mode==='overview'&&!openShelves.size&&!chimneyOn.size&&!study?'demand':'always'} gl={{preserveDrawingBuffer:true}} dpr={Math.min(window.devicePixelRatio||1,qualityConfig.dpr)} camera={{position:[plan.width*.85,plan.depth*.8,plan.depth*.9],fov:52,near:.05,far:Math.max(400,(plan.levels||1)*40)}}
@@ -214,7 +215,7 @@ export function House3D({active=true,plan,floor,assets,projectId,canRender=false
       </Canvas></ViewerBoundary>
       {loading&&<div className="viewer-loading" role="status">Loading materials & models · {Math.round(progress)}%</div>}
       {mode==='walk'&&!present&&<><div className="viewer-crosshair">+</div><div className="viewer-interaction">{hover?`${hover} · E or click`:'Look at an object to interact'}</div>
-        {!locked&&!touch&&<button className="viewer-lock" onClick={()=>canvasRef.current?.requestPointerLock?.().catch(()=>{})}>Click to control the camera</button>}</>}
+        {!locked&&!touch&&<Button className="viewer-lock" onClick={()=>canvasRef.current?.requestPointerLock?.().catch(()=>{})}>Click to control the camera</Button>}</>}
       {mode==='tour'&&<div className="viewer-tour-label">GUIDED HOUSE TOUR · FRONT → INTERIOR → ALL FLOORS</div>}
       <Compass ref={compass}/>
       {touch&&mode==='walk'&&!present&&<TouchWalkControls motion={motion}/>}

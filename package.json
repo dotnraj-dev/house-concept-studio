@@ -13,7 +13,7 @@
     "download:assets": "python scripts/download-free-assets.py",
     "verify:assets": "python scripts/validate-free-assets.py",
     "smoke:local": "node --env-file=.env --import tsx scripts/local-smoke.ts",
-    "test": "node --import tsx --test server/*.test.ts src/*.test.ts src/house3d/*.test.ts"
+    "test": "node --require ./scripts/test-user-info.cjs --import tsx --test server/*.test.ts src/*.test.ts src/house3d/*.test.ts"
   },
   "dependencies": {
     "@fastify/multipart": "^9.0.0",

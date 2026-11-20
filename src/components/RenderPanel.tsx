@@ -1,3 +1,4 @@
+import { Button, Input, Select, Checkbox } from '../ui';
 import {useEffect,useState} from 'react';
 import {api} from '../api';
 import {ACTIVE_RENDER_STATES,RENDER_PROFILES,computeRenderCost,type RenderJob,type RenderProvider} from '../rendering';
@@ -22,9 +23,9 @@ export function RenderPanel({projectId,createScene,camera}:{projectId:string;cre
  return <details className="render-panel" open>
   <summary>Presentation renders <span>From the same house scene</span></summary>
   <p>Frame your view, choose the output quality and render with Blender. The plan, furniture and camera stay connected to your actual 3D house.</p>
-  <div className="render-controls"><label>Render connection<select value={provider} disabled={busy} onChange={e=>setProvider(e.target.value as RenderProvider)}><option value="gpu-worker">Rented GPU worker</option><option value="runpod">RunPod serverless</option></select></label><label>Output quality<select value={profileId} disabled={busy} onChange={e=>setProfile(e.target.value)}>{RENDER_PROFILES.map(p=><option key={p.id} value={p.id}>{p.name} · {p.width}px · {p.samples} samples</option>)}</select></label></div>
+  <div className="render-controls"><label>Render connection<Select value={provider} disabled={busy} onChange={e=>setProvider(e.target.value as RenderProvider)}><option value="gpu-worker">Rented GPU worker</option><option value="runpod">RunPod serverless</option></Select></label><label>Output quality<Select value={profileId} disabled={busy} onChange={e=>setProfile(e.target.value)}>{RENDER_PROFILES.map(p=><option key={p.id} value={p.id}>{p.name} · {p.width}px · {p.samples} samples</option>)}</Select></label></div>
   {provider==='gpu-worker'&&<div className="render-cost-note"><strong>{money(connections?.['gpu-worker']?.hourlyRateInr??59.32)}/hour rental rate</strong><span>Rental charges continue during setup and idle time. Cancelling a render does not stop the rented GPU.</span></div>}
-  <div className="inline-actions"><button className="button primary" disabled={!configured||busy||active} onClick={submit}>{busy?'Preparing…':'Render this view (paid)'}</button><button className="button secondary" disabled={busy} onClick={refresh}>Refresh connections & jobs</button></div>
+  <div className="inline-actions"><Button className="button primary" disabled={!configured||busy||active} onClick={submit}>{busy?'Preparing…':'Render this view (paid)'}</Button><Button className="button secondary" disabled={busy} onClick={refresh}>Refresh connections & jobs</Button></div>
   {!configured&&<p className="render-empty">Connect {provider==='gpu-worker'?'your rented GPU worker':'a Blender serverless endpoint'} in Settings first. The house viewer and 3D downloads work without a connection.</p>}
   {error&&<p role="alert" className="connection-message error">{error}</p>}
   {!jobs.length&&<p className="hint">No renders yet. Start with a test render to check the camera, materials and GPU before choosing Full HD or 4K.</p>}
@@ -32,9 +33,9 @@ export function RenderPanel({projectId,createScene,camera}:{projectId:string;cre
    <div className="render-job-heading"><strong className={`render-status ${j.status.toLowerCase()}`}>{j.status.replaceAll('_',' ')}</strong><time>{new Date(j.createdAt).toLocaleString('en-IN')}</time></div>
    <p className="render-job-meta">{j.provider==='gpu-worker'?'Rented GPU':'RunPod'}{j.elapsedSeconds!=null&&` · ${Math.round(j.elapsedSeconds)} seconds`}{j.elapsedSeconds!=null&&j.hourlyRateInr!=null&&` · ${money(computeRenderCost(j.elapsedSeconds,j.hourlyRateInr))} active-render estimate`}</p>
    {j.message&&<p role="status">{j.message}</p>}
-   {j.status==='SUBMISSION_UNKNOWN'&&<div className="render-uncertain"><p>Check the worker or provider dashboard first. This request may have started; a second submission could duplicate the work.</p><label><input type="checkbox" checked={confirmed===j.id} onChange={e=>setConfirmed(e.target.checked?j.id:'')}/> I checked and confirmed this job is stopped</label><button className="button secondary" disabled={busy||confirmed!==j.id} onClick={()=>jobAction(j.id,'resolve')}>Resolve submission (admin)</button></div>}
+   {j.status==='SUBMISSION_UNKNOWN'&&<div className="render-uncertain"><p>Check the worker or provider dashboard first. This request may have started; a second submission could duplicate the work.</p><label><Checkbox checked={confirmed===j.id} onChange={e=>setConfirmed(e.target.checked?j.id:'')}/> I checked and confirmed this job is stopped</label><Button className="button secondary" disabled={busy||confirmed!==j.id} onClick={()=>jobAction(j.id,'resolve')}>Resolve submission (admin)</Button></div>}
    {j.imageUrl&&<><img src={j.imageUrl} alt="Blender render of the current house design" loading="lazy"/><a className="button secondary" href={j.imageUrl} download="house-render.png">Download PNG</a></>}
-   {['IN_QUEUE','IN_PROGRESS','SUBMISSION_UNKNOWN'].includes(j.status)&&<button className="text-link" disabled={busy} onClick={()=>jobAction(j.id,'cancel')}>Cancel render</button>}
+   {['IN_QUEUE','IN_PROGRESS','SUBMISSION_UNKNOWN'].includes(j.status)&&<Button className="text-link" disabled={busy} onClick={()=>jobAction(j.id,'cancel')}>Cancel render</Button>}
   </article>)}
  </details>;
 }

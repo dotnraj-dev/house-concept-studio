@@ -207,3 +207,10 @@ Keep these files intact and link to them rather than duplicating their text here
 | [HOSTING.md](HOSTING.md), [DEPLOYMENT.md](DEPLOYMENT.md) | Hosting/deployment configuration and verification records. |
 | [GPU-SETUP.md](GPU-SETUP.md) | Optional rendering worker/GPU setup; not evidence of achieved quality. |
 | [Material licences](public/assets/materials/LICENSE.md) | Existing material attribution and reuse information. |
+
+## 10. UI design system
+
+- Use the shared components in [src/ui/](src/ui/) and the CSS variables in [src/ui/tokens.css](src/ui/tokens.css) for all future interface work. Extend those components and tokens when a needed state or control is missing.
+- Never add native `<select>` elements or one-off dropdowns. Use the shared `Select` or searchable `Combobox`, including for workspace and viewer controls. Keep option lists keyboard accessible and use the portal or touch bottom sheet so panels cannot clip them.
+- Avoid ad-hoc button, input, checkbox, toggle, spacing, colour, radius and shadow styles. Compose the shared components and tokens. Preserve light and dark themes, visible keyboard focus, reduced-motion behavior and touch targets.
+- Keep interface motion light enough for the existing AMD integrated-GPU 3D workspace. UI changes do not authorize changes to measured house geometry, plan generation, scene content or architectural reference claims.

@@ -71,7 +71,16 @@ export function CameraRig({active=true,touch,plan,layout,interactions,mode,floor
     walkingHeight.current=command.floor*FLOOR_HEIGHT;
     restEye.current=Math.max(2.8,Math.min(5.2,command.position[1]-walkingHeight.current));
     jump.current=0;velocity.current=0;
-    aim(new Vector3(...command.position),new Vector3(...command.look));
+    const target=new Vector3(...command.position),look=new Vector3(...command.look);
+    const from=camera.position.clone(),direction=look.clone().sub(target);
+    const endYaw=Math.atan2(-direction.x,-direction.z),endPitch=Math.atan2(direction.y,Math.hypot(direction.x,direction.z));
+    const startYaw=yaw.current,startPitch=pitch.current;
+    const yawDelta=((endYaw-startYaw+Math.PI*3)%(Math.PI*2))-Math.PI;
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches||from.distanceTo(target)<.02){aim(target,look);return;}
+    let frame=0;const start=performance.now();
+    const tick=(now:number)=>{const t=Math.min(1,(now-start)/280),ease=t*t*(3-2*t);camera.position.copy(from).lerp(target,ease);yaw.current=startYaw+yawDelta*ease;pitch.current=startPitch+(endPitch-startPitch)*ease;camera.rotation.order='YXZ';camera.rotation.set(pitch.current,yaw.current,0);invalidate();if(t<1)frame=requestAnimationFrame(tick);};
+    frame=requestAnimationFrame(tick);
+    return()=>cancelAnimationFrame(frame);
   },[command]);
 
   useEffect(()=>{if(mode==='tour'){tourTime.current=0;aim(tour[0].position,tour[0].look);}},[tourId,mode,tour]);
