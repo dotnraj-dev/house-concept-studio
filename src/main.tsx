@@ -5,5 +5,6 @@ import './styles.css';
 import './brief.css';
 import './components/workspace.css';
 import './ui/ui.css';
+import './ui/theme-mono.css';
 
 createRoot(document.getElementById('root')!).render(<React.StrictMode><App/></React.StrictMode>);
