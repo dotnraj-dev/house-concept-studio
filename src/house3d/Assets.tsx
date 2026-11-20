@@ -4,6 +4,7 @@ import { useGLTF, useTexture } from '@react-three/drei';
 import { Box3, RepeatWrapping, SRGBColorSpace, Vector2, Vector3, type Mesh, type MeshStandardMaterial } from 'three';
 import type { Asset } from '../types';
 import {BuiltinAsset} from './BuiltinAsset';
+import {CarModel} from './CarModel';
 import {BUILTIN_CATEGORIES} from './builtins';
 
 export const FREE_MODELS = {
@@ -73,6 +74,10 @@ function FittedModel({url,size,fit,open=false,decorate=false}:{url:string;size:[
 export function AssetModel({category,assets,position,size,rotation=0,fit='contain',fallback,open}:{category:keyof typeof FREE_MODELS;assets:Asset[];position:[number,number,number];size:[number,number,number];rotation?:number;fit?:'contain'|'stretch';fallback?:ReactNode;open?:boolean}){
   const uploaded=assets.find(asset=>asset.category.toLowerCase()===category);
   const quality=['sofa','chair'].includes(category)?`/assets/quality/${category}.glb`:null;
+  // Realistic CC0 library models (public/assets/quality/library.json) replace low-poly kit/procedural stand-ins.
+  const library=LIBRARY[category];
+  if(!uploaded&&category==='car')return <group userData={{solid:true}} position={position} rotation={[0,rotation,0]}><CarModel size={size}/></group>;
+  if(!uploaded&&library)return <group userData={{solid:true}} position={position} rotation={[0,rotation+(LIBRARY_TURN[category]||0),0]}><Suspense fallback={fallback||null}><FittedModel url={`/assets/quality/${library[variant(position,library.length)]}`} size={size} fit="contain"/></Suspense></group>;
   const userData={solid:!['curtain','chimney','door','tree','bush'].includes(category)};
   // Poly Haven's chair faces +Z; our table placement expects chairs facing -Z.
   if(!uploaded&&quality)return <group userData={userData} position={position} rotation={[0,rotation+(category==='chair'?Math.PI:0),0]}><Suspense fallback={fallback||null}><FittedModel url={quality} size={size} fit="contain"/></Suspense></group>;
@@ -82,6 +87,16 @@ export function AssetModel({category,assets,position,size,rotation=0,fit='contai
   if(!url)return <>{fallback}</>;
   return <group userData={userData} position={position} rotation={[0,rotation,0]}><Suspense fallback={fallback||null}><FittedModel url={url} size={size} fit={fit}
     open={open} decorate={!uploaded&&id.startsWith('furniture-kit/')}/></Suspense></group>;
+}
+
+/** Library GLBs per category; several entries give variety, chosen deterministically from the position. */
+const LIBRARY:Partial<Record<string,string[]>>={plant:['plant/potted_plant_01.glb','plant/potted_plant_02.glb'],shelf:['shelf/wooden_display_shelves_01.glb']};
+const LIBRARY_TURN:Partial<Record<string,number>>={};
+function variant(position:[number,number,number],count:number){return Math.abs(Math.round(position[0]*7+position[2]*13))%count;}
+
+/** Place one curated library model (file relative to /assets/quality/) fitted to explicit feet dimensions. */
+export function LibraryModel({file,position,size,rotation=0,solid=true}:{file:string;position:[number,number,number];size:[number,number,number];rotation?:number;solid?:boolean}){
+  return <group userData={{solid}} position={position} rotation={[0,rotation,0]}><Suspense fallback={null}><FittedModel url={`/assets/quality/${file}`} size={size} fit="contain"/></Suspense></group>;
 }
 
 export function FreeModel({id,position,size,rotation=0}:{id:string;position:[number,number,number];size:[number,number,number];rotation?:number}){

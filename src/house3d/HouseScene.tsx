@@ -18,7 +18,7 @@ import { useTexture } from '@react-three/drei';
 import { Suspense, useEffect, useMemo, useRef } from 'react';
 import { DoubleSide, Object3D, type SpotLight, PlaneGeometry, Quaternion, RepeatWrapping, SRGBColorSpace, Vector2, Vector3, Shape, type Group } from 'three';
 import type { Asset, Plan, Room } from '../types';
-import { AssetModel, FreeModel } from './Assets';
+import { AssetModel, FreeModel, LibraryModel } from './Assets';
 import { FLOOR_HEIGHT, furnishingFrame, type DoorSpec, type HouseLayout, type Interaction, type WindowSpec } from './layout';
 import { type Surface } from './materials';
 import { stairDimensions } from './stairs';
@@ -207,7 +207,7 @@ function Furniture({room,layout,assets,openShelves,tvOn,chimneyOn,toiletStyle,fu
     {[room.x+.35,room.x+room.w-.35].map(x=><Block solid key={x} position={[x,base+4.3,room.y+.35]} size={[.46,8.6,.46]} color="#ede3d2" surface="stone"/>)}
   </group>;
   if(room.kind==='terrace')return <group>
-    <FreeModel id="furniture-kit/benchcushion" position={[cx,base+.1,room.y+1.05]} size={[Math.min(4,room.w-1),2.2,1.8]} rotation={Math.PI}/>
+    {[-1,1].map(side=><LibraryModel key={side} file="terracechair/plastic_monobloc_chair_01.glb" position={[cx+side*1.35,base+.1,room.y+1.25]} size={[1.9,2.75,1.9]} rotation={Math.PI+side*.25}/>)}
     {room.h>6&&<AssetModel category="plant" assets={assets} position={[room.x+1.1,base+.1,room.y+room.h-1.1]} size={[1.3,2.6,1.3]}/>}
   </group>;
   return null;
