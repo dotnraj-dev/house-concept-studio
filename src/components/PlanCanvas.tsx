@@ -1,3 +1,4 @@
+import {Compass} from './Compass';
 import {FLOOR_HEIGHT} from '../building-dimensions';
 import {roomFitments,bedsideTables} from '../house3d/fitout-layout';
 import {bathroomFixtures} from '../house3d/bathroom';
@@ -38,6 +39,6 @@ export function PlanView({plan,floor,selectedRoom,onSelect,compact=false}:{plan:
  {layout.windows.filter(w=>w.floor===floor).map(w=><line key={w.id} x1={w.x} y1={w.z} x2={w.x+(w.axis==='x'?w.width:0)} y2={w.z+(w.axis==='z'?w.width:0)} stroke="#77a6a8" strokeWidth=".18"/>)}
  {services&&pipes.pipes.filter(p=>p.points.some(v=>Math.abs(v[1]-floor*FLOOR_HEIGHT)<2)).map(p=><polyline key={p.id} points={p.points.map(v=>`${v[0]},${v[2]}`).join(' ')} fill="none" stroke={PIPE_COLORS[p.system]} strokeWidth=".14"><title>{p.label}</title></polyline>)}
  </g>{services&&pipes.nodes.filter(n=>n.level===floor||n.level===(plan.levels||1)&&floor===(plan.levels||1)-1).map(n=><g key={n.id}><circle cx={n.x} cy={n.y} r=".65" fill="#327c9a"/><text x={n.x+.9} y={n.y} fontSize=".7">{n.label}</text></g>)}
- <g transform={`translate(${plan.plotWidth+2} 0)`}><path d="M 0 -2 L .65 0 H -.65 Z" fill="#304d42"/><text y="-2.6" textAnchor="middle" fontSize=".9">N</text></g><text x={plan.plotWidth/2} y={plan.plotDepth+3} textAnchor="middle" fontSize=".8">{levelName(floor)} · Road: {plan.roadSide} · Concept dimensions in feet</text>
- </svg></div>;
+ <g className="svg-compass" transform={`translate(${plan.plotWidth+3} 0)`} aria-label="North up"><circle r="1.25" fill="none" stroke="#81917d" strokeWidth=".05"/>{Array.from({length:16},(_,i)=><path key={i} d="M 0 -1.1 V -.85" transform={'rotate('+i*22.5+')'} stroke="#667a5f" strokeWidth=".06"/>)}<path d="M 0 -1.15 L .26 .45 L 0 .18 L -.26 .45 Z" fill="#a6543b"/>{[['N',0,-1.6],['E',1.8,.2],['S',0,2],['W',-1.8,.2]].map(([t,x,y])=><text key={t} x={x} y={y} textAnchor="middle" fontSize=".6" fill="#425a3b">{t}</text>)}</g><text x={plan.plotWidth/2} y={plan.plotDepth+3} textAnchor="middle" fontSize=".8">{levelName(floor)} · Road: {plan.roadSide} · Concept dimensions in feet</text>
+ </svg>{!compact&&<Compass plan/>}</div>;
 }

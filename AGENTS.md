@@ -200,6 +200,7 @@ Keep these files intact and link to them rather than duplicating their text here
 | [FURNISHING-UPDATE.md](FURNISHING-UPDATE.md) | Furnishing choices, measured placement and clearance behaviour. |
 | [FACADE-KIT-UPDATE.md](FACADE-KIT-UPDATE.md) | Parametric Tamil Nadu facade recipes, browser screenshot comparisons, export evidence and remaining visual/access limits. |
 | [FACADE-PASS-2.md](FACADE-PASS-2.md) | Front-elevation camera, recipe colours/windows/lighting, streetscape, matched-camera evidence and visual/performance limits. |
+| [WORKSPACE-UPDATE.md](WORKSPACE-UPDATE.md) | Canvas workspace navigation, shared selection, compass convention, device controls, quality measurements and screenshot evidence. |
 | [TAMIL-NADU-RULES.md](TAMIL-NADU-RULES.md) | Building-rule sources, supported checks and review limits. Architectural style does not replace the site's applicable rules. |
 | [BUILD-REPORT.md](BUILD-REPORT.md), [BUILD-REPORT-2026-11-14.md](BUILD-REPORT-2026-11-14.md) | Previous build records and validation scope. |
 | [STAGING-REPORT.md](STAGING-REPORT.md) | Staging results and recorded limitations. |

@@ -1,0 +1,50 @@
+{
+  "errors": [],
+  "retainedCanvas": true,
+  "pick3d": {
+    "point": {
+      "id": "1-passage",
+      "x": 668.3534598806714,
+      "y": 431.96210719649093
+    },
+    "selected": [
+      "Bathroom 1"
+    ],
+    "inspector": "Bathroom 1"
+  },
+  "glb": {
+    "bytes": 33001152,
+    "nodes": 2747,
+    "runtimeOverlaysExcluded": true
+  },
+  "camera": {
+    "position": [
+      -3.5164656170947803,
+      1.219200000000001,
+      -19.524428346066774
+    ],
+    "quaternion": [
+      -0.008904918170323383,
+      0.9891348754719744,
+      -0.0676395688157148,
+      -0.13022207680668313
+    ],
+    "fov": 45,
+    "units": "metres"
+  },
+  "roomJumpEyeHeight": 5.150000005347113,
+  "climateMoved": true,
+  "quoteMoved": true,
+  "rulesMoved": true,
+  "qualityPersisted": true,
+  "printHasCompass": true,
+  "touchLook": {
+    "before": 180,
+    "after": 214.4,
+    "pointerLockRequired": false
+  },
+  "touchCrouch": {
+    "yBefore": 4.7,
+    "yAfter": 2.7500010602017406
+  }
+}

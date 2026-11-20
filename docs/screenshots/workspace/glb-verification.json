@@ -1,0 +1,14 @@
+{
+  "source": "exports/workspace/house.glb",
+  "bytes": 33001152,
+  "sha256": "309fc9a42094b2ab7a79b76a4b855a5f77c93508b09807e1f0fbd76cd028c498",
+  "nodes": 2747,
+  "meshes": 1669,
+  "embeddedImages": 57,
+  "units": "metres at export boundary; source geometry remains feet",
+  "runtimeOverlaysExcluded": true,
+  "externalImageURLs": false,
+  "requiresInstancingExtension": false,
+  "legacyFacadeFixture": true,
+  "blenderRenderExecuted": false
+}

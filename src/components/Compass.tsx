@@ -1,0 +1,4 @@
+import {forwardRef} from 'react';
+export const Compass=forwardRef<HTMLDivElement,{plan?:boolean}>(({plan=false},ref)=><div className={'compass '+(plan?'plan-compass':'')} aria-label={plan?'Compass: north up, east right':'Live true north compass'} ref={ref}>
+ <svg viewBox="0 0 100 100" aria-hidden="true"><g className="compass-ring">{Array.from({length:16},(_,i)=><path key={i} d={i%4?'M 50 13 V 18':'M 50 12 V 21'} transform={'rotate('+i*22.5+' 50 50)'} stroke="currentColor" strokeWidth={i%4?1:1.6}/>)}<path d="M 50 26 L 56 55 L 50 51 L 44 55 Z" fill="#b35339"/><path d="M 50 74 L 44 45 L 50 49 L 56 45 Z" fill="#a6aca5"/>{[['N',50,9],['E',92,53],['S',50,98],['W',8,53]].map(([t,x,y])=><text key={t} x={x} y={y} textAnchor="middle" fill={t==='N'?'#b35339':'currentColor'} fontSize="11" fontWeight="700">{t}</text>)}</g><circle cx="50" cy="50" r="3" fill="currentColor"/></svg>
+ <span className="compass-heading">{plan?'North up':'Facing N'}</span></div>);

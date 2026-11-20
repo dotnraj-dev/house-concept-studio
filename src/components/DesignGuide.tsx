@@ -20,6 +20,6 @@ export function DesignGuide({req,onChange,editable,canPlan,canVoice,onPlan,onFor
  {voice&&<VoiceInput text={input} onText={setInput} onExtract={()=>submit(input)} enabled={canVoice&&editable} actionLabel="Use this answer"/>}
  {error&&<p role="alert">{error}</p>}
  {answerValue(q.id,req)&&<button className="guide-current" onClick={()=>submit(answer(q.id))}>Keep current: {answer(q.id)}</button>}</fieldset>
- </section>:<section className="guide-question"><div className="guide-kicker"><Check size={17}/> Brief ready for review</div><h3>Does this feel like their home?</h3><p>Edit any answer above. Requests marked for review stay in the brief until the designer resolves them in the form.</p><button className="button primary" disabled={!canPlan} onClick={onPlan}>Open furnished plan <ArrowRight size={16}/></button></section>}
+ </section>:<section className="guide-question"><div className="guide-kicker"><Check size={17}/> Brief ready for review</div><h3>Does this feel like their home?</h3><p>Edit any answer above. Requests marked for review stay in the brief until the designer resolves them in the form.</p><button className="button primary" disabled={!canPlan} onClick={onPlan}>Generate house & open 3D <ArrowRight size={16}/></button></section>}
  </div><div className="guide-foot">{index>0&&<button onClick={()=>go(index-1,true)}><ArrowLeft size={15}/> Previous</button>}<button onClick={onForm}>Open detailed form <ArrowRight size={15}/></button></div></div>;
 }

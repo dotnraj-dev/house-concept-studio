@@ -1,0 +1,218 @@
+{
+  "viewports": [
+    {
+      "file": "after-desktop-brief.png",
+      "viewport": [
+        1440,
+        900
+      ],
+      "pageWidth": 1440,
+      "canvas": null
+    },
+    {
+      "file": "compass-angle-a.png",
+      "viewport": [
+        1440,
+        900
+      ],
+      "pageWidth": 1440,
+      "canvas": {
+        "width": 924,
+        "height": 791
+      }
+    },
+    {
+      "file": "compass-angle-b.png",
+      "viewport": [
+        1440,
+        900
+      ],
+      "pageWidth": 1440,
+      "canvas": {
+        "width": 924,
+        "height": 791
+      }
+    },
+    {
+      "file": "after-desktop-3d-selected.png",
+      "viewport": [
+        1440,
+        900
+      ],
+      "pageWidth": 1440,
+      "canvas": {
+        "width": 924,
+        "height": 791
+      }
+    },
+    {
+      "file": "after-desktop-2d.png",
+      "viewport": [
+        1440,
+        900
+      ],
+      "pageWidth": 1440,
+      "canvas": {
+        "width": 924,
+        "height": 834
+      }
+    },
+    {
+      "file": "after-desktop-present.png",
+      "viewport": [
+        1440,
+        900
+      ],
+      "pageWidth": 1440,
+      "canvas": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "file": "after-desktop-walk.png",
+      "viewport": [
+        1440,
+        900
+      ],
+      "pageWidth": 1440,
+      "canvas": {
+        "width": 924,
+        "height": 791
+      }
+    },
+    {
+      "file": "after-ipad-landscape-drawer.png",
+      "viewport": [
+        1180,
+        820
+      ],
+      "pageWidth": 1180,
+      "canvas": {
+        "width": 1180,
+        "height": 711
+      }
+    },
+    {
+      "file": "after-ipad-landscape-walk.png",
+      "viewport": [
+        1180,
+        820
+      ],
+      "pageWidth": 1180,
+      "canvas": {
+        "width": 1180,
+        "height": 711
+      }
+    },
+    {
+      "file": "after-ipad-portrait-drawer.png",
+      "viewport": [
+        820,
+        1180
+      ],
+      "pageWidth": 820,
+      "canvas": {
+        "width": 820,
+        "height": 1071
+      }
+    },
+    {
+      "file": "after-ipad-portrait-walk.png",
+      "viewport": [
+        820,
+        1180
+      ],
+      "pageWidth": 820,
+      "canvas": {
+        "width": 820,
+        "height": 1071
+      }
+    },
+    {
+      "file": "after-phone-3d-sheet.png",
+      "viewport": [
+        390,
+        844
+      ],
+      "pageWidth": 390,
+      "canvas": {
+        "width": 390,
+        "height": 734
+      }
+    }
+  ],
+  "compass": [
+    {
+      "test": "actual orbit drag",
+      "before": 165,
+      "after": 254.7,
+      "delta": 89.70000000000005
+    },
+    {
+      "test": "walk",
+      "facing": "N",
+      "heading": 0.1
+    },
+    {
+      "test": "walk",
+      "facing": "E",
+      "heading": 90
+    },
+    {
+      "test": "walk",
+      "facing": "S",
+      "heading": 179.9
+    },
+    {
+      "test": "walk",
+      "facing": "W",
+      "heading": 269.9
+    }
+  ],
+  "touch": [
+    {
+      "viewport": [
+        1180,
+        820
+      ],
+      "before": [
+        1.4000000000000004,
+        4.7,
+        -22.2
+      ],
+      "after": [
+        1.4000000000000004,
+        3.7,
+        -25.947182352940345
+      ]
+    }
+  ],
+  "performance": {
+    "workspaceAuto": {
+      "level": "balanced",
+      "fps": 14.3,
+      "canvas": {
+        "x": 224,
+        "y": 66,
+        "width": 924,
+        "height": 791
+      }
+    },
+    "matchedHigh": 10.5,
+    "matchedAuto": {
+      "level": "low",
+      "fps": 15.3
+    }
+  },
+  "errors": [],
+  "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001506) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "panelPersistence": {
+    "left": 240,
+    "right": 292,
+    "dock": 280,
+    "sheet": 360,
+    "leftOpen": true,
+    "rightOpen": true
+  }
+}

@@ -1,3 +1,4 @@
+import type {Selection} from '../workspace-state';
 import {facadeStyle} from './facade-styles';
 import {FacadeKit} from './facade-kit/FacadeKit';
 import {RoomFitoutScene} from './RoomFitoutScene';
@@ -25,7 +26,7 @@ import {facadePieces} from './facade';
 import {livingFurniture,bedroomFurniture,diningFurniture,kitchenCounter} from './furniture';
 
 type Mode='overview'|'walk'|'tour';
-type Props={plan:Plan;layout:HouseLayout;interactions:Interaction[];assets:Asset[];mode:Mode;cutaway:boolean;contextVisible?:boolean;lightPower?:number;showServices?:boolean;xray?:boolean;
+type Props={onSelect?:(selection:Selection)=>void;plan:Plan;layout:HouseLayout;interactions:Interaction[];assets:Asset[];mode:Mode;cutaway:boolean;contextVisible?:boolean;lightPower?:number;showServices?:boolean;xray?:boolean;
   openDoors:Set<string>;doorAngles:Map<string,number>;openShelves:Set<string>;tvOn:Set<string>;chimneyOn:Set<string>;onInteract:(id:string)=>void};
 
 export {Block} from './Surface';
@@ -212,17 +213,28 @@ function Site({plan,boundary=true}:{plan:Plan;boundary?:boolean}){
  return <group><mesh rotation={[-Math.PI/2,0,0]} position={[0,GROUND_LEVEL-.06,0]} receiveShadow><shapeGeometry args={[shape]}/><Suspense fallback={<meshStandardMaterial color="#a2af8c"/>}><SiteFinish type="lawn" repeat={[.15,.15]}/></Suspense></mesh>{boundary&&polygon.map((p,i)=>{const q=polygon[(i+1)%polygon.length],dx=q.x-p.x,dz=q.y-p.y,length=Math.hypot(dx,dz);if((plan.design?.siteContext?.edges.find(e=>e.edge===p.id)?.use|| (p.road?'road':'open'))==='road')return null;return <group key={i} position={[(p.x+q.x)/2-plan.offsetX,GROUND_LEVEL+1.1,(p.y+q.y)/2-plan.offsetY]} rotation={[0,-Math.atan2(dz,dx),0]}><Block position={[0,0,0]} size={[length,2.2,.25]} color="#d8d0bd" surface="stone"/></group>;})}</group>;
 }
 
-export function HouseScene({plan,layout,interactions,assets,mode,cutaway,contextVisible=true,lightPower=1,showServices=false,xray=false,openDoors,doorAngles,openShelves,tvOn,chimneyOn,onInteract}:Props){
+export function HouseScene({onSelect,plan,layout,interactions,assets,mode,cutaway,contextVisible=true,lightPower=1,showServices=false,xray=false,openDoors,doorAngles,openShelves,tvOn,chimneyOn,onInteract}:Props){
   const floorCount=plan.levels||Math.max(1,...plan.rooms.map(r=>r.floor+1));
   const finish=palette(plan.design?.style),kit=!!facadeStyle(plan.design?.style);
   const furnished=plan.design?.furnished!==false;
   const shellCutaway=mode==='overview'&&cutaway;
-  return <group name="HouseExport" userData={{exportRoot:true}} position={[-plan.width/2,0,-plan.depth/2]}>
-    <Site plan={plan} boundary={!kit}/>{!shellCutaway&&!kit&&<><Architecture plan={plan} layout={layout} assets={assets}/><EntryGarden plan={plan} layout={layout} assets={assets}/></>}{!shellCutaway&&kit&&<><Suspense fallback={null}><FacadeKit plan={plan} layout={layout} servicesVisible={showServices} lightPower={lightPower}/></Suspense><EntryGarden plan={plan} layout={layout} assets={assets} pathOnly/></>}{contextVisible&&<group position={[0,GROUND_LEVEL,0]}><SiteWorld plan={plan}/></group>}
+  return <group name="HouseExport" userData={{exportRoot:true}} position={[-plan.width/2,0,-plan.depth/2]} onClick={event=>{
+      if(mode!=='overview'||!onSelect)return;
+      event.stopPropagation();
+      let node=event.object;
+      while(node){if(node.userData.siteContext){onSelect({kind:'site'});return;}if(node.userData.roomId){onSelect({kind:'room',id:node.userData.roomId});return;}if(!node.parent)break;node=node.parent;}
+      if(event.point.y<GROUND_LEVEL+.2){onSelect({kind:'site'});return;}
+      const x=event.point.x+plan.width/2+Math.sign(event.camera.position.x-event.point.x)*.08;
+      const z=event.point.z+plan.depth/2+Math.sign(event.camera.position.z-event.point.z)*.08;
+      const f=Math.floor(Math.max(0,event.point.y)/FLOOR_HEIGHT);
+      const inside=plan.rooms.find(r=>r.floor===f&&x>r.x&&x<r.x+r.w&&z>r.y&&z<r.y+r.h);
+      onSelect(inside?{kind:'room',id:inside.id}:{kind:'facade'});
+    }}>
+    <Site plan={plan} boundary={!kit}/>{!shellCutaway&&!kit&&<><Architecture plan={plan} layout={layout} assets={assets}/><EntryGarden plan={plan} layout={layout} assets={assets}/></>}{!shellCutaway&&kit&&<><Suspense fallback={null}><FacadeKit plan={plan} layout={layout} servicesVisible={showServices} lightPower={lightPower}/></Suspense><EntryGarden plan={plan} layout={layout} assets={assets} pathOnly/></>}{contextVisible&&<group userData={{siteContext:true}} position={[0,GROUND_LEVEL,0]}><SiteWorld plan={plan}/></group>}
     <Block position={[plan.width/2,GROUND_LEVEL/2,plan.depth/2]} size={[plan.width,-GROUND_LEVEL,plan.depth]} color="#ddd8ce" surface="concrete"/>
     {plan.rooms.filter(room=>room.floor>0&&room.kind!=='stairs').map(room=><Block key={`slab-${room.id}`}
       position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT-.17,room.y+room.h/2]} size={[room.w,.34,room.h]} color="#ddd8ce" surface="concrete" opacity={shellCutaway ? .56 : 1}/>)}
-    {plan.rooms.map(room=><group key={room.id}>
+    {plan.rooms.map(room=><group key={room.id} userData={{roomId:room.id}}>
       {!(room.kind==='stairs'&&room.floor>0)&&<Block position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT+.035,room.y+room.h/2]} size={[room.w,.07,room.h]}
         color={room.kind==='bathroom'?'#ffffff':room.kind==='portico'?'#dedbd3':room.kind==='terrace'?'#e5ddd0':'#fff9ef'}
         surface={room.kind==='bathroom'?'bathfloor':room.kind==='portico'?'concrete':plan.design?.floorFinish==='woodfloor'?'woodfloor':'porcelain'}/>}

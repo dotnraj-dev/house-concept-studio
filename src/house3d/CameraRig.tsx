@@ -1,3 +1,5 @@
+import type {TouchMotion} from '../components/TouchWalkControls';
+import type {MutableRefObject} from 'react';
 import {GROUND_LEVEL} from '../building-dimensions';
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
@@ -11,7 +13,7 @@ import {collectObstacles,obstacleBlocks} from './obstacles';
 export type ViewCommand={id:number;position:[number,number,number];look:[number,number,number];floor:number;fov?:number};
 export type ViewerMode='overview'|'walk'|'tour';
 type Waypoint={position:Vector3;look:Vector3;seconds:number;cut?:boolean};
-type Props={plan:Plan;layout:HouseLayout;interactions:Interaction[];mode:ViewerMode;floor:number;command:ViewCommand|null;
+type Props={active?:boolean;touch?:MutableRefObject<TouchMotion>;plan:Plan;layout:HouseLayout;interactions:Interaction[];mode:ViewerMode;floor:number;command:ViewCommand|null;
   tourId:number;openDoors:Set<string>;doorAngles:ReadonlyMap<string,number>;onInteract:(id:string)=>void;onHover:(label:string)=>void;onTourDone:()=>void;onLockChange:(locked:boolean)=>void};
 
 export function tourPoints(plan:Plan,layout:HouseLayout):Waypoint[]{
@@ -34,7 +36,7 @@ export function tourPoints(plan:Plan,layout:HouseLayout):Waypoint[]{
  points.push({position:new Vector3(plan.width,Math.max(plan.depth*.8,levels*10),plan.depth),look:new Vector3(0,levels*4,0),seconds:3,cut:true});return points;
 }
 
-export function CameraRig({plan,layout,interactions,mode,floor,command,tourId,openDoors,doorAngles,onInteract,onHover,onTourDone,onLockChange}:Props){
+export function CameraRig({active=true,touch,plan,layout,interactions,mode,floor,command,tourId,openDoors,doorAngles,onInteract,onHover,onTourDone,onLockChange}:Props){
   const {camera,gl,scene,invalidate}=useThree();
   const yaw=useRef(0),pitch=useRef(0),keys=useRef(new Set<string>()),jump=useRef(0),velocity=useRef(0),eye=useRef(5.2);
   const walkingHeight=useRef(floor*FLOOR_HEIGHT),restEye=useRef(5.2);
@@ -75,6 +77,7 @@ export function CameraRig({plan,layout,interactions,mode,floor,command,tourId,op
   useEffect(()=>{if(mode==='tour'){tourTime.current=0;aim(tour[0].position,tour[0].look);}},[tourId,mode,tour]);
 
   useEffect(()=>{
+    if(!active){keys.current.clear();return;}
     const onKeyDown=(event:KeyboardEvent)=>{
       if(mode!=='walk')return;
       if(['INPUT','TEXTAREA','SELECT'].includes((event.target as HTMLElement).tagName))return;
@@ -90,8 +93,15 @@ export function CameraRig({plan,layout,interactions,mode,floor,command,tourId,op
       yaw.current-=event.movementX*.0023;
       pitch.current=Math.max(-1.36,Math.min(1.36,pitch.current-event.movementY*.0023));
     };
+    let drag: {id:number;x:number;y:number}|null=null;
+    const down=(event:PointerEvent)=>{if(mode!=='walk'||event.pointerType!=='touch')return;drag={id:event.pointerId,x:event.clientX,y:event.clientY};gl.domElement.setPointerCapture(event.pointerId);};
+    const move=(event:PointerEvent)=>{if(!drag||drag.id!==event.pointerId)return;
+      yaw.current-=(event.clientX-drag.x)*.005;pitch.current=Math.max(-1.36,Math.min(1.36,pitch.current-(event.clientY-drag.y)*.005));
+      drag={id:event.pointerId,x:event.clientX,y:event.clientY};};
+    const up=()=>{drag=null;};
+    gl.domElement.addEventListener('pointerdown',down);gl.domElement.addEventListener('pointermove',move);gl.domElement.addEventListener('pointerup',up);gl.domElement.addEventListener('pointercancel',up);
     const onLock=()=>onLockChange(document.pointerLockElement===gl.domElement);
-    const onBlur=()=>keys.current.clear();
+    const onBlur=()=>{keys.current.clear();if(touch){touch.current.forward=0;touch.current.side=0;touch.current.crouch=false;}drag=null;};
     const onClick=()=>{if(mode==='walk'&&document.pointerLockElement===gl.domElement&&focusId.current)onInteract(focusId.current);};
     window.addEventListener('keydown',onKeyDown);window.addEventListener('keyup',onKeyUp);
     window.addEventListener('blur',onBlur);
@@ -100,10 +110,11 @@ export function CameraRig({plan,layout,interactions,mode,floor,command,tourId,op
     return()=>{window.removeEventListener('keydown',onKeyDown);window.removeEventListener('keyup',onKeyUp);
       window.removeEventListener('blur',onBlur);
       document.removeEventListener('mousemove',onMouse);document.removeEventListener('pointerlockchange',onLock);
-      gl.domElement.removeEventListener('click',onClick);keys.current.clear();};
-  },[mode,gl,onInteract,onLockChange]);
+      gl.domElement.removeEventListener('click',onClick);gl.domElement.removeEventListener('pointerdown',down);gl.domElement.removeEventListener('pointermove',move);gl.domElement.removeEventListener('pointerup',up);gl.domElement.removeEventListener('pointercancel',up);keys.current.clear();};
+  },[mode,gl,onInteract,onLockChange,active]);
 
   useFrame((_,delta)=>{
+    if(!active)return;
     if(mode==='tour'){
       tourTime.current+=Math.min(delta,.08);
       let remaining=tourTime.current;
@@ -125,17 +136,19 @@ export function CameraRig({plan,layout,interactions,mode,floor,command,tourId,op
     const now=performance.now();
     if(now-solidStamp.current>200){solids.current=collectObstacles(scene);solidStamp.current=now;}
     const step=Math.min(delta,.06);
-    const desiredEye=keys.current.has('c')?3.25:restEye.current;
+    if(touch?.current.jump){if(jump.current<=.001)velocity.current=8;touch.current.jump=false;}
+    if(touch?.current.interact){if(focusId.current)onInteract(focusId.current);touch.current.interact=false;}
+    const desiredEye=keys.current.has('c')||touch?.current.crouch?3.25:restEye.current;
     eye.current+=(desiredEye-eye.current)*Math.min(1,step*9);
     velocity.current-=19*step;
     jump.current=Math.max(0,jump.current+velocity.current*step);
     if(jump.current===0)velocity.current=0;
     const speed=keys.current.has('shift')?10:5.5;
-    const forward=(keys.current.has('w')||keys.current.has('arrowup')?1:0)-(keys.current.has('s')||keys.current.has('arrowdown')?1:0);
-    const side=(keys.current.has('d')||keys.current.has('arrowright')?1:0)-(keys.current.has('a')||keys.current.has('arrowleft')?1:0);
+    const forward=(keys.current.has('w')||keys.current.has('arrowup')?1:0)-(keys.current.has('s')||keys.current.has('arrowdown')?1:0)+(touch?.current.forward||0);
+    const side=(keys.current.has('d')||keys.current.has('arrowright')?1:0)-(keys.current.has('a')||keys.current.has('arrowleft')?1:0)+(touch?.current.side||0);
     if(forward||side){
       restEye.current=5.2;
-      const magnitude=Math.hypot(forward,side);
+      const magnitude=Math.max(1,Math.hypot(forward,side));
       const dx=((-Math.sin(yaw.current)*forward+Math.cos(yaw.current)*side)/magnitude)*speed*step;
       const dz=((-Math.cos(yaw.current)*forward-Math.sin(yaw.current)*side)/magnitude)*speed*step;
       const slices=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.26));
