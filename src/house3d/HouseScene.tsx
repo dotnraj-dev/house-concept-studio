@@ -145,30 +145,31 @@ function Chimney({position,on,assets}:{position:[number,number,number];on:boolea
   </group>;
 }
 
-function Furniture({room,layout,assets,openShelves,tvOn,chimneyOn,toiletStyle,furnished=true,shoeRack=true}:{layout:HouseLayout;furnished?:boolean;shoeRack?:boolean;room:Room;assets:Asset[];openShelves:Set<string>;tvOn:Set<string>;chimneyOn:Set<string>;toiletStyle:Plan['toiletStyle']}){
+function Furniture({room,sourceRoom,frameAngle,plan,layout,assets,openShelves,tvOn,chimneyOn,toiletStyle,furnished=true,shoeRack=true}:{layout:HouseLayout;furnished?:boolean;shoeRack?:boolean;room:Room;sourceRoom:Room;frameAngle:number;plan:Plan;assets:Asset[];openShelves:Set<string>;tvOn:Set<string>;chimneyOn:Set<string>;toiletStyle:Plan['toiletStyle']}){
   const base=room.floor*FLOOR_HEIGHT,cx=room.x+room.w/2,cz=room.y+room.h/2;
+  const item=(key:string,footprint:{x:number;z:number;w:number;d:number})=>{const edit=plan.editor?.data.objects[`furniture-${sourceRoom.id}-${key}`];if(edit===null)return null;if(!edit)return {...footprint,rotation:0};const dx=edit.x-sourceRoom.x-sourceRoom.w/2,dz=edit.y-sourceRoom.y-sourceRoom.h/2,c=Math.cos(frameAngle),s=Math.sin(frameAngle);return {...footprint,x:c*dx-s*dz,z:s*dx+c*dz,w:edit.w,d:edit.h,rotation:edit.angle-frameAngle};};
+  const identity=(key:string,label:string)=>{const id=`furniture-${sourceRoom.id}-${key}`;return {editorObjectId:id,editorObjectLabel:label,roomId:plan.editor?.data.objects[id]?.roomId||sourceRoom.id};};
   if(room.kind==='living'||room.kind==='lounge'){
-    const {sofa,rug,coffee,tv}=livingFurniture(room),featureX=sofa.x,sofaZ=sofa.z;
+    const original=livingFurniture(room),sofa=item('sofa',original.sofa),rug=item('rug',original.rug),coffee=item('coffee',original.coffee),tv=item('tv',original.tv),plant=item('plant',{x:room.x+room.w-1.05,z:room.y+room.h-1.1,w:.9,d:.9});
 
     return <group>
-      <Suspense fallback={null}><WovenRug {...rug} base={base}/></Suspense>
-      <AssetModel category="sofa" assets={assets} position={[featureX,base+.1,sofaZ]} size={[sofa.w,2.7,sofa.d]} rotation={Math.PI}/>
-      <Block position={[tv.x,base+4.1,tv.z]} size={[tv.w,2.15,tv.d]} color="#181e20" metalness={.16}/>
-      <Block position={[tv.x,base+4.1,tv.z+.11]} size={[3.28,1.91,.04]} color={tvOn.has(`tv-${room.id}`)?'#9cb6bd':'#13191b'} emissive={tvOn.has(`tv-${room.id}`)?'#2f7284':undefined}/>
+      {rug&&<group userData={identity('rug','Rug')} position={[rug.x,0,rug.z]} rotation={[0,rug.rotation,0]}><Suspense fallback={null}><WovenRug x={0} z={0} w={rug.w} d={rug.d} base={base}/></Suspense></group>}
+      {sofa&&<group userData={identity('sofa','Sofa')}><AssetModel category="sofa" assets={assets} position={[sofa.x,base+.1,sofa.z]} size={[sofa.w,2.7,sofa.d]} rotation={Math.PI+sofa.rotation}/></group>}
+      {tv&&<group userData={identity('tv','TV')} position={[tv.x,0,tv.z]} rotation={[0,tv.rotation,0]}><Block position={[0,base+4.1,0]} size={[tv.w,2.15,tv.d]} color="#181e20" metalness={.16}/><Block position={[0,base+4.1,.11]} size={[Math.max(.5,tv.w-.22),1.91,.04]} color={tvOn.has(`tv-${room.id}`)?'#9cb6bd':'#13191b'} emissive={tvOn.has(`tv-${room.id}`)?'#2f7284':undefined}/></group>}
       <TVJoinery room={room}/>
-      <AssetModel category="coffee" assets={assets} position={[coffee.x,base+.1,coffee.z]} size={[coffee.w,1.4,coffee.d]}/>
+      {coffee&&<group userData={identity('coffee','Coffee table')}><AssetModel category="coffee" assets={assets} position={[coffee.x,base+.1,coffee.z]} size={[coffee.w,1.4,coffee.d]} rotation={coffee.rotation}/></group>}
 
-      <AssetModel category="plant" assets={assets} position={[room.x+room.w-1.05,base+.1,room.y+room.h-1.1]} size={[.9,2.1,.9]}/>
+      {plant&&<group userData={identity('plant','Plant')}><AssetModel category="plant" assets={assets} position={[plant.x,base+.1,plant.z]} size={[plant.w,2.1,plant.d]}/></group>}
     </group>;
   }
-  if(room.kind==='dining'){const table=diningFurniture(room);return <group>
-    <AssetModel category="dining" assets={assets} position={[table.x,base+.1,table.z]} size={[table.w,2.5,table.d]} fit="stretch"/><DiningDetails {...table} base={base}/>
-    {table.chairs.map((chair,i)=><DiningChair key={i} assets={assets} position={[chair.x,base,chair.z]} rotation={chair.rotation}/>)}
+  if(room.kind==='dining'){const original=diningFurniture(room),table=item('table',original);return <group>
+    {table&&<group userData={identity('table','Dining table')}><AssetModel category="dining" assets={assets} position={[table.x,base+.1,table.z]} size={[table.w,2.5,table.d]} fit="stretch" rotation={table.rotation}/><DiningDetails {...table} base={base}/></group>}
+    {original.chairs.map((chair,i)=>{const current=item(`chair-${i}`,chair);return current?<group key={i} userData={identity(`chair-${i}`,`Dining chair ${i+1}`)}><DiningChair assets={assets} position={[current.x,base,current.z]} rotation={chair.rotation+current.rotation}/></group>:null;})}
   </group>;}
-  if(room.kind==='bedroom'){const bed=bedroomFurniture(room);return <group>
-    <AssetModel category="bed" assets={assets} position={[bed.x,base+.1,bed.z]} size={[bed.w,2.7,bed.d]}/>
+  if(room.kind==='bedroom'){const bed=item('bed',bedroomFurniture(room)),plant=item('plant',{x:room.x+room.w-1.05,z:room.y+room.h-1.05,w:.8,d:.8});return <group>
+    {bed&&<group userData={identity('bed','Bed')}><AssetModel category="bed" assets={assets} position={[bed.x,base+.1,bed.z]} size={[bed.w,2.7,bed.d]} rotation={bed.rotation}/></group>}
 
-    <AssetModel category="plant" assets={assets} position={[room.x+room.w-1.05,base+.1,room.y+room.h-1.05]} size={[.8,1.9,.8]}/>
+    {plant&&<group userData={identity('plant','Plant')}><AssetModel category="plant" assets={assets} position={[plant.x,base+.1,plant.z]} size={[plant.w,1.9,plant.d]}/></group>}
   </group>;}
   if(room.kind==='kitchen'){const q=kitchenCounter(room);return <group>
     <KitchenStorage room={room} open={openShelves.has(`shelf-${room.id}`)}/>
@@ -229,7 +230,7 @@ export function HouseScene({onSelect,plan,layout,interactions,assets,mode,cutawa
       if(mode!=='overview'||!onSelect)return;
       event.stopPropagation();
       let node=event.object;
-      while(node){if(node.userData.siteContext){onSelect({kind:'site'});return;}if(node.userData.roomId){onSelect({kind:'room',id:node.userData.roomId});return;}if(!node.parent)break;node=node.parent;}
+      while(node){if(node.userData.siteContext){onSelect({kind:'site'});return;}if(node.userData.editorObjectId){onSelect({kind:'object',id:node.userData.editorObjectId,label:node.userData.editorObjectLabel,roomId:node.userData.roomId});return;}if(node.userData.roomId){onSelect({kind:'room',id:node.userData.roomId});return;}if(!node.parent)break;node=node.parent;}
       if(event.point.y<GROUND_LEVEL+.2){onSelect({kind:'site'});return;}
       const x=event.point.x+plan.width/2+Math.sign(event.camera.position.x-event.point.x)*.08;
       const z=event.point.z+plan.depth/2+Math.sign(event.camera.position.z-event.point.z)*.08;
@@ -245,7 +246,7 @@ export function HouseScene({onSelect,plan,layout,interactions,assets,mode,cutawa
       {!(room.kind==='stairs'&&room.floor>0)&&<Block position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT+.035,room.y+room.h/2]} size={[room.w,.07,room.h]}
         color={room.kind==='bathroom'?'#ffffff':room.kind==='portico'?'#dedbd3':room.kind==='terrace'?'#e5ddd0':'#fff9ef'}
         surface={room.kind==='bathroom'?'bathfloor':room.kind==='portico'?'concrete':plan.design?.floorFinish==='woodfloor'?'woodfloor':'porcelain'}/>}
-      {(furnished||['kitchen','bathroom','stairs','pooja','utility','foyer','portico'].includes(room.kind))&&(()=>{const frame=furnishingFrame(plan,room);const rotate=!['portico','foyer','bathroom'].includes(room.kind);return <group position={rotate?[room.x+room.w/2,0,room.y+room.h/2]:[0,0,0]} rotation={[0,rotate?frame.angle:0,0]}><Furniture layout={layout} room={rotate?frame.local:room} assets={assets} openShelves={openShelves} tvOn={tvOn} chimneyOn={chimneyOn} furnished={furnished} shoeRack={plan.design?.shoeRack} toiletStyle={plan.design?.roomRequests.find(q=>q.id===room.id)?.toiletStyle||(plan.toiletStyle==='both'?(plan.rooms.filter(r=>r.kind==='bathroom').findIndex(r=>r.id===room.id)%2?'indian':'western'):plan.toiletStyle)}/></group>;})()}
+      {(furnished||['kitchen','bathroom','stairs','pooja','utility','foyer','portico'].includes(room.kind))&&(()=>{const frame=furnishingFrame(plan,room);const rotate=!['portico','foyer','bathroom'].includes(room.kind);return <group position={rotate?[room.x+room.w/2,0,room.y+room.h/2]:[0,0,0]} rotation={[0,rotate?frame.angle:0,0]}><Furniture layout={layout} plan={plan} sourceRoom={room} frameAngle={rotate?frame.angle:0} room={rotate?frame.local:room} assets={assets} openShelves={openShelves} tvOn={tvOn} chimneyOn={chimneyOn} furnished={furnished} shoeRack={plan.design?.shoeRack} toiletStyle={plan.design?.roomRequests.find(q=>q.id===room.id)?.toiletStyle||(plan.toiletStyle==='both'?(plan.rooms.filter(r=>r.kind==='bathroom').findIndex(r=>r.id===room.id)%2?'indian':'western'):plan.toiletStyle)}/></group>;})()}
       <RoomFitoutScene assets={assets} plan={plan} room={room} layout={layout} open={openShelves} hideHigh={shellCutaway}/>
       <InteriorKit plan={plan} room={room} layout={layout} interior={mode!=='overview'||cutaway} walking={mode!=='overview'} hideHigh={shellCutaway}/>
       {!shellCutaway&&!['portico','terrace','stairs'].includes(room.kind)&&<Block position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT+CEILING_LEVEL,room.y+room.h/2]} size={[room.w,.10,room.h]} color="#faf8f0" surface="paint" opacity={xray?.18:1}/>}
@@ -257,6 +258,7 @@ export function HouseScene({onSelect,plan,layout,interactions,assets,mode,cutawa
         {room.y+room.h>=plan.depth-.05&&<Block position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT+1.8,plan.depth]} size={[room.w,3.5,.14]} color="#bed3d0" opacity={.48}/>}
       </>}
     </group>)}
+    {Object.values(plan.editor?.data.objects||{}).filter((v):v is NonNullable<typeof v>=>!!v&&!v.id.startsWith('furniture-')&&!['art','wardrobe','fridge','upper','shelves','loft','ac','prayer','laundry','sideboard'].includes(v.kind)).map(v=><group key={v.id} name={v.label} userData={{editorObjectId:v.id,editorObjectLabel:v.label,roomId:v.roomId}} position={[v.x,v.floor*FLOOR_HEIGHT,v.y]} rotation={[0,v.angle,0]}>{v.kind==='painting'?<><Block position={[0,4.7,0]} size={[v.w,2,.11]} color="#9b7652" surface="timber"/><Block position={[0,4.7,.065]} size={[v.w-.24,1.76,.025]} color="#d9d4c4"/></>:v.kind==='lamp'?<><mesh position={[0,.12,0]}><cylinderGeometry args={[.4,.43,.24,24]}/><meshStandardMaterial color="#a98b5d" metalness={.5}/></mesh><Block position={[0,2,0]} size={[.08,3.8,.08]} color="#a98b5d" metalness={.5}/><mesh position={[0,4,0]}><coneGeometry args={[.6,.8,32,1,true]}/><meshStandardMaterial color="#eee3ce" side={DoubleSide}/></mesh></>:<AssetModel category={v.kind==='table'?'coffee':v.kind==='stool'?'chair':v.kind as 'chair'|'sofa'|'plant'} assets={assets} position={[0,.04,0]} size={[v.w,2.6,v.h]}/>}</group>)}
     {layout.walls.filter(wall=>!(shellCutaway&&wall.exterior&&wall.z<.25&&wall.d<.4)).map(wall=><Block key={wall.id}
       position={[wall.x+wall.w/2,wall.floor*FLOOR_HEIGHT+wall.bottom+wall.height/2,wall.z+wall.d/2]}
       size={[wall.w,wall.height,wall.d]} color={wall.exterior?(facadeStyle(plan.design?.style)?.wall||finish.wall):'#f6f1e6'} neutralBase={wall.exterior&&kit} opacity={xray?.18:1} surface={plan.design?.wallFinish==='stone'?'stone':plan.design?.wallFinish==='timber'?'timber':'paint'}/>)}

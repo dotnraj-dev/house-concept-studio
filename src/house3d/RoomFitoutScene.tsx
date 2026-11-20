@@ -80,7 +80,7 @@ function Refrigerator({f,open}:{f:Fitting;open:boolean}){
 }
 function FittingModel({f,plan,room,open,assets}:{f:Fitting;plan:Plan;room:Room;open:boolean;assets:Asset[]}){
  const o=roomFitout(plan,room.attachedTo?{...room,id:room.attachedTo}:room),home=fitoutOf(plan.design),cabinet=f.kind==='wardrobe'||f.kind==='loft'||f.kind==='sideboard'||f.kind==='upper';
- return <group name={f.kind+' · '+room.label} position={[f.x,room.floor*FLOOR_HEIGHT+f.bottom,f.z]} rotation={[0,f.angle,0]}>
+ return <group name={f.kind+' · '+room.label} userData={{editorObjectId:f.id,editorObjectLabel:f.kind==='art'?'Painting':f.kind,roomId:room.id}} position={[f.x,room.floor*FLOOR_HEIGHT+f.bottom,f.z]} rotation={[0,f.angle,0]}>
  {cabinet&&(f.kind==="wardrobe"&&assets.some(a=>a.category.toLowerCase()==="shelf")?<AssetModel category="shelf" assets={assets} position={[0,0,0]} size={[f.width,f.height,f.depth]} open={open} fit="stretch"/>:<Cabinet f={f} style={f.kind==="wardrobe"?o.wardrobe:"hinged"} open={open}/>)}
  {f.kind==='fridge'&&(assets.some(a=>a.category.toLowerCase()==='fridge')?<AssetModel category="fridge" assets={assets} position={[0,0,0]} size={[f.width,f.height,f.depth]} open={open}/>:<Refrigerator f={f} open={open}/>)}
  {f.kind==='art'&&<WallArt width={f.width} height={f.height}/>}

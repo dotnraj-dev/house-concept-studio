@@ -1,11 +1,30 @@
 import type { Plan, Ratios, Requirements, Room, RoomKind, Settings } from './types';
+import {generatePlan as generateBasePlan} from './planner-v2';
+import {applyPlanEdits,migrateEdits} from './editor-model';
+import {makeHouseLayout} from './house3d/layout';
+import {tnReview} from './tn-rules';
 
 const round = (n: number) => Math.round(n * 10) / 10;
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
 export const roomArea = (room: Room) => round(room.w * room.h);
 export const totalArea = (plan: Plan) => Math.round(plan.rooms.filter(r => r.kind !== 'portico' && r.kind !== 'terrace').reduce((sum,r)=>sum+r.w*r.h,0)*100)/100;
 
-export { generatePlan } from './planner-v2';
+export function generatePlan(req:Requirements,settings:Settings,variant:number,ratios:Ratios):Plan{
+ const base=generateBasePlan(req,settings,variant,ratios);
+ const edited=applyPlanEdits(base,migrateEdits(req.design?.editor));
+ if(!req.design?.editor)return edited;
+ const layout=makeHouseLayout(edited),rules=tnReview(req,edited,layout);
+ const checks=[...(edited.checks||[]).filter(c=>!c.id.startsWith('tn-')),...rules];
+ const links=new Map(edited.rooms.map(r=>[r.id,new Set<string>()]));
+ for(const door of layout.doors)for(const a of door.rooms||[])for(const b of door.rooms||[])if(a!==b){links.get(a)?.add(b);links.get(b)?.add(a);}
+ const stairs=edited.rooms.filter(r=>r.kind==='stairs');for(const a of stairs)for(const b of stairs)if(a.floor+1===b.floor){links.get(a.id)?.add(b.id);links.get(b.id)?.add(a.id);}
+ const root=layout.doors.find(d=>d.main)?.rooms?.[0]||edited.rooms[0]?.id,seen=new Set<string>(),queue=root?[root]:[];while(queue.length){const id=queue.shift()!;if(seen.has(id))continue;seen.add(id);for(const next of links.get(id)||[])if(!seen.has(next))queue.push(next);}
+ for(const r of edited.rooms)if(!seen.has(r.id)&&!['terrace','portico'].includes(r.kind))checks.push({id:'editor-connect-'+r.id,title:'Room may be unreachable',detail:`${r.label} has no modelled door path from the entrance.`,status:'warning',target:r.id});
+ if(req.design?.vastuMode!=='none')for(const r of edited.rooms){const desired=r.kind==='pooja'?'north-east':r.kind==='kitchen'?'south-east':r.kind==='bedroom'&&/master/i.test(r.label)?'south-west':null;if(!desired)continue;const east=r.x+r.w/2>=edited.width/2,south=r.y+r.h/2>=edited.depth/2,actual=`${south?'south':'north'}-${east?'east':'west'}`;if(actual!==desired)checks.push({id:'editor-vastu-'+r.id,title:'Vastu preference',detail:`${r.label} is ${actual}; the overridable preference is ${desired}.`,status:'warning',target:r.id});}
+ const warnings=[...new Set([...edited.warnings,...rules.filter(c=>c.status!=='pass').map(c=>c.title+': '+c.detail)])];
+ for(const c of checks.filter(c=>c.id.startsWith('editor-connect-')||c.id.startsWith('editor-vastu-')))warnings.push(c.title+': '+c.detail);
+ return {...edited,checks,warnings};
+}
 export function generateLegacyPlan(req: Requirements, settings: Settings, variant: number, ratios: Ratios): Plan {
   const warnings: string[] = [];
   const plotWidth = Number(req.plotWidth) || 0;

@@ -53,6 +53,33 @@ export function makeHouseLayout(plan:Plan):HouseLayout{
    const outward:[number,number]=s.facing==='west'?[-1,0]:s.facing==='east'?[1,0]:s.facing==='north'?[0,-1]:[0,1];windows.push({id:'window-'+id,floor:s.floor,x:s.axis==='x'?left:s.at,z:s.axis==='x'?s.at:left,axis:s.axis,width,outward,sill,height,openableFraction,style,roomId:owner.id});
   }else add(s,id,s.start,len);
  }
+ const doorCounts=new Map<string,number>(),windowCounts=new Map<string,number>();
+ const doorSource=new Map<string,string>(),windowSource=new Map<string,string>();
+ for(const d of doors){const source=d.id,key=`door-${d.floor}-${(d.rooms||[]).slice().sort().join('_')}-${d.axis}`,n=doorCounts.get(key)||0;doorCounts.set(key,n+1);d.id=key+'-'+n;doorSource.set(d.id,source.replace(/^door-/,''));}
+ for(const w of windows){const source=w.id,side=w.outward[0]<0?'west':w.outward[0]>0?'east':w.outward[1]<0?'north':'south',key=`window-${w.roomId}-${side}`,n=windowCounts.get(key)||0;windowCounts.set(key,n+1);w.id=key+'-'+n;windowSource.set(w.id,source.replace(/^window-/,''));}
+ const edits=plan.editor?.data;if(!edits)return {walls,doors,windows};
+ const replaceOpening=(oldId:string,old:DoorSpec|WindowSpec,updated:DoorSpec|WindowSpec|null,type:'door'|'window')=>{
+  const source=type==='door'?doorSource.get(oldId):windowSource.get(oldId);if(!source)return;
+  const spanStart=old.axis==='x'?old.x:old.z,at=old.axis==='x'?old.z:old.x;
+  for(let i=walls.length-1;i>=0;i--)if(walls[i].id===source+'lintel'||walls[i].id===source+'sill'||walls[i].id===source+'head')walls.splice(i,1);
+  const nearWall=walls.find(w=>w.floor===old.floor&&w.id.startsWith(source)&&w.bottom===0);
+  walls.push({id:source+'filled',floor:old.floor,x:old.axis==='x'?spanStart:at-T/2,z:old.axis==='x'?at-T/2:spanStart,w:old.axis==='x'?old.width:T,d:old.axis==='z'?old.width:T,bottom:0,height:H,exterior:type==='window',rooms:nearWall?.rooms});
+  if(updated)carve(updated,type);
+ };
+ const carve=(opening:DoorSpec|WindowSpec,type:'door'|'window')=>{
+  const axis=opening.axis,start=axis==='x'?opening.x:opening.z,end=start+opening.width,at=axis==='x'?opening.z:opening.x;
+  const sill=type==='door'?0:(opening as WindowSpec).sill??2.1,height=type==='door'?7:(opening as WindowSpec).height??5.4;
+  for(let i=walls.length-1;i>=0;i--){const wall=walls[i],along=axis==='x'?wall.w>wall.d:wall.d>wall.w,wallAt=axis==='x'?wall.z+wall.d/2:wall.x+wall.w/2,a=axis==='x'?wall.x:wall.z,b=a+(axis==='x'?wall.w:wall.d);
+   if(wall.floor!==opening.floor||!along||Math.abs(wallAt-at)>.32||end<=a+.01||start>=b-.01||wall.bottom>=sill+height-.01||wall.bottom+wall.height<=sill+.01)continue;
+   walls.splice(i,1);const lo=Math.max(a,start),hi=Math.min(b,end),piece=(name:string,from:number,to:number,bottom:number,top:number)=>{if(to-from<.01||top-bottom<.01)return;walls.push({...wall,id:wall.id+'-'+opening.id+'-'+name,x:axis==='x'?from:wall.x,z:axis==='x'?wall.z:from,w:axis==='x'?to-from:wall.w,d:axis==='x'?wall.d:to-from,bottom,height:top-bottom});};
+   piece('left',a,lo,wall.bottom,wall.bottom+wall.height);piece('right',hi,b,wall.bottom,wall.bottom+wall.height);
+   piece('sill',lo,hi,wall.bottom,Math.min(sill,wall.bottom+wall.height));piece('head',lo,hi,Math.max(sill+height,wall.bottom),wall.bottom+wall.height);
+  }
+ };
+ for(const d of [...doors])if(Object.hasOwn(edits.doors,d.id)){const updated=edits.doors[d.id];replaceOpening(d.id,d,updated,'door');doors.splice(doors.indexOf(d),1);if(updated)doors.push(updated);}
+ for(const w of [...windows])if(Object.hasOwn(edits.windows,w.id)){const updated=edits.windows[w.id];replaceOpening(w.id,w,updated,'window');windows.splice(windows.indexOf(w),1);if(updated)windows.push(updated);}
+ for(const [id,d] of Object.entries(edits.doors))if(d&&!doors.some(v=>v.id===id)&&!doorSource.has(id)){doors.push(d);carve(d,'door');}
+ for(const [id,w] of Object.entries(edits.windows))if(w&&!windows.some(v=>v.id===id)&&!windowSource.has(id)){windows.push(w);carve(w,'window');}
  return {walls,doors,windows};
 }
 export function collidesAt(plan:Plan,layout:HouseLayout,x:number,z:number,floor:number,openDoors:Set<string>,radius=.3,doorAngles?:ReadonlyMap<string,number>){

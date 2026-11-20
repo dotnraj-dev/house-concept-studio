@@ -1,0 +1,44 @@
+[
+  {
+    "action": "add and delete pooja",
+    "ok": true
+  },
+  {
+    "action": "resize bedroom",
+    "before": "Parents bedroom, 8.6 by 11.04 feet",
+    "after": "Parents bedroom, 11.25 by 13.75 feet"
+  },
+  {
+    "action": "attach bathroom",
+    "attached": true
+  },
+  {
+    "action": "detach bathroom",
+    "detached": true
+  },
+  {
+    "action": "move window",
+    "before": [
+      "3.7",
+      "0",
+      "7.7",
+      "0"
+    ],
+    "after": [
+      "3.7",
+      "42",
+      "7.7",
+      "42"
+    ]
+  },
+  {
+    "action": "move painting",
+    "before": "translate(5.77 0.22999999999999998) rotate(0)",
+    "after": "translate(6.75 1) rotate(0)"
+  },
+  {
+    "action": "move sofa",
+    "before": "translate(5.700000000000001 4.309799999999999) rotate(-180)",
+    "after": "translate(7 5) rotate(-180)"
+  }
+]

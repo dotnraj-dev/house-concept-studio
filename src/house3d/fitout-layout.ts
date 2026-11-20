@@ -82,7 +82,7 @@ export function roomFitments(plan:Plan,room:Room,layout:HouseLayout):Fitting[]{
  if(enclosed&&opt.ac)place('ac',2.8,.72,.85,7.45,2.8,false);
  if(plan.design?.furnished!==false&&habitable&&opt.art)place('art',room.kind==='bedroom'?2.8:3.5,.10,2.2,3.9,2,false);
  if(plan.design?.furnished!==false&&room.kind==='lounge'&&room.w*room.h>190)place('sideboard',4.5,1.25,2.6,0,3);
- return items;
+ return items.filter(item=>plan.editor?.data.objects[item.id]!==null).map(item=>{const edit=plan.editor?.data.objects[item.id];return edit?{...item,x:edit.x,z:edit.y,angle:edit.angle}:item;});
 }
 export function bedsideTables(plan:Plan,room:Room,layout:HouseLayout):Footprint[]{
  if(room.kind!=='bedroom'||plan.design?.furnished===false)return [];

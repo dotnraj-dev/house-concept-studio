@@ -1,6 +1,7 @@
 import type {HomeFitout} from './fitout';
 import type {TNSiteRules} from './tn-rules';
 import type {SiteContext} from './site-context';
+import type {PlanEdits} from './editor-model';
 export const FEATURES = [
   'projects.view', 'projects.create', 'projects.edit', 'intake.ai', 'intake.voice',
   'plans.generate', 'plans.edit', 'plans.view3d', 'proposals.export',
@@ -52,9 +53,9 @@ export const DEFAULT_REQUIREMENTS: Requirements = {
 export type Project = { id: string; title: string; requirements: Requirements; paragraph: string; transcript: string; selectedVariant: number; ratios: Ratios; status: string; createdAt: string; updatedAt: string; ownerId: string };
 export type Ratios = { front: number; middle: number; livingShare: number; kitchenShare: number };
 export const DEFAULT_RATIOS: Ratios = { front: .34, middle: .29, livingShare: .57, kitchenShare: .5 };
-export type RoomKind = 'living'|'dining'|'kitchen'|'bedroom'|'bathroom'|'portico'|'utility'|'pooja'|'lounge'|'terrace'|'stairs'|'passage'|'foyer';
+export type RoomKind = 'living'|'dining'|'kitchen'|'bedroom'|'bathroom'|'toilet'|'pooja'|'study'|'store'|'utility'|'balcony'|'sit-out'|'empty room'|'portico'|'lounge'|'terrace'|'stairs'|'passage'|'foyer';
 export type Room = { featureWidth?:number; featureX?:number; attachedTo?:string; id: string; kind: RoomKind; label: string; floor: number; x: number; y: number; w: number; h: number };
-export type Plan = { rooms: Room[]; valid: boolean; width: number; depth: number; plotWidth: number; plotDepth: number; offsetX: number; offsetY: number; roadSide: Requirements['roadSide']; toiletStyle: Requirements['toiletStyle']; pooja: boolean; warnings: string[]; variantName: string; site?: SiteAnalysis; design?: DesignBrief; checks?: DesignCheck[]; levels?: number; mainDoorFacing?: Direction };
+export type Plan = { rooms: Room[]; valid: boolean; width: number; depth: number; plotWidth: number; plotDepth: number; offsetX: number; offsetY: number; roadSide: Requirements['roadSide']; toiletStyle: Requirements['toiletStyle']; pooja: boolean; warnings: string[]; variantName: string; site?: SiteAnalysis; design?: DesignBrief; checks?: DesignCheck[]; levels?: number; mainDoorFacing?: Direction; editor?:PlanEdits };
 export type Asset = { id: string; name: string; category: string; width: number; depth: number; height: number; license: string; source: string; fileUrl: string; createdAt: string };
 export type Settings = { companyName: string; costPerSqft: number; sideSetback: number; frontSetback: number; rearSetback: number; currency: string };
 export const DEFAULT_SETTINGS: Settings = { companyName: 'House Concept Studio', costPerSqft: 0, sideSetback: 3, frontSetback: 5, rearSetback: 3, currency: 'INR' };
@@ -74,6 +75,7 @@ export type LevelProgram = { floor:number; name:string; bedrooms:number; bathroo
 export type ServiceNode = { id:string; type:'tank'|'sump'|'septic'|'borewell'|'pump'|'sewer'|'rainwater'; label:string; x:number; y:number; level:number; capacity:number; side:Direction; locked:boolean };
 export type QuoteExtra = { id:string; label:string; quantity:number; rate:number; included:boolean; category:'interior'|'construction'|'service' };
 export type DesignBrief = {
+  editor?:PlanEdits;
   fitout?:HomeFitout; tnRules?:TNSiteRules; siteContext?:SiteContext; guideAnswers?:Record<string,string>;
   version:2; customerEmail:string; language:string; household:string; authority:string;
   plotMode:'rectangle'|'polygon'; vertices:PlotVertex[]; surveyImage?:string; measurement:'surveyed'|'approximate';
