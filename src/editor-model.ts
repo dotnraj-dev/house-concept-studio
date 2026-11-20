@@ -1,5 +1,6 @@
 import type {Plan,Room,RoomKind} from './types';
 import type {DoorSpec,WindowSpec} from './house3d/layout';
+import {validInterior,type RoomInterior} from './interior-options';
 
 export type EditorObject={id:string;kind:string;label:string;roomId:string;floor:number;x:number;y:number;w:number;h:number;angle:number};
 export type EditData={rooms:Record<string,Room|null>;doors:Record<string,DoorSpec|null>;windows:Record<string,WindowSpec|null>;objects:Record<string,EditorObject|null>};
@@ -62,6 +63,7 @@ export function moveRooms(e:PlanEdits,plan:Plan,ids:string[],dx:number,dy:number
 export function resizeRoom(e:PlanEdits,plan:Plan,id:string,x:number,y:number,w:number,h:number):PlanEdits{return updateRoom(e,plan,id,'Resize '+room(plan,id).label,r=>({...r,x:finite(x),y:finite(y),w:positive(w),h:positive(h)}));}
 export function renameRoom(e:PlanEdits,plan:Plan,id:string,label:string):PlanEdits{if(!label.trim()||label.length>120)throw Error('Enter a room name.');return updateRoom(e,plan,id,'Rename room',r=>({...r,label:label.trim()}));}
 export function changeKind(e:PlanEdits,plan:Plan,id:string,kind:RoomKind):PlanEdits{return updateRoom(e,plan,id,'Change room type',r=>({...r,kind,attachedTo:kind==='bathroom'?r.attachedTo:undefined}));}
+export function setRoomInterior(e:PlanEdits,plan:Plan,id:string,patch:RoomInterior):PlanEdits{const clean=validInterior(patch);if(!Object.keys(clean).length)throw Error('Choose an interior option.');return updateRoom(e,plan,id,'Change interior of '+room(plan,id).label,r=>({...r,interior:{...r.interior,...clean}}));}
 export function attachBathroom(e:PlanEdits,plan:Plan,id:string,bedroomId:string):PlanEdits{const b=room(plan,bedroomId),bath=room(plan,id);if(bath.kind!=='bathroom'||b.kind!=='bedroom'||b.floor!==bath.floor)throw Error('Choose a bathroom and bedroom on the same floor.');return updateRoom(e,plan,id,'Attach bathroom',r=>({...r,attachedTo:bedroomId}));}
 export function detachBathroom(e:PlanEdits,plan:Plan,id:string):PlanEdits{if(room(plan,id).kind!=='bathroom')throw Error('Choose a bathroom.');return updateRoom(e,plan,id,'Detach bathroom',r=>({...r,attachedTo:undefined}));}
 export function addDoor(e:PlanEdits,door:DoorSpec):PlanEdits{opening(door);return commit(e,'Add door',d=>{d.doors[door.id]=door;});}

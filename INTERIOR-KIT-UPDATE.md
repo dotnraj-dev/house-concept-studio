@@ -22,7 +22,19 @@ Built ahead of Codex's B1 (2D editor) so neither lane waits. All pieces live in 
 
 Performance: RectAreaLights only switch on in the cutaway view or on the camera's floor while walking; measured walk-mode frame time 28.7 ms with them vs 29.7 ms without (noise). npm test and build green.
 
-## Still to do (pass 2, after B1 lands)
-- Inspector options per room (ceiling on/off, TV wall finish: fluted/marble/louvre, headboard fabric, granite colour) as B1 actions with ids.
-- Dado tiles are close to the wall colour: offer tile colours and a decorative border.
-- Pooja room bell-and-jaali double doors (door design system) and a marble mandir variant.
+## Pass 2 (Claude lane, 2026-11-21, after B1)
+Every kit choice is now a per-room option in the Inspector (Edit room panel), stored the B1 way: `setRoomInterior` in `src/editor-model.ts` writes `room.interior` into the room override, so choices survive regeneration and style changes, and appear in undo/redo and the change history. Values are validated against `src/interior-options.ts`; unknown fields or values are rejected.
+
+| Room type | Options (default first) |
+|---|---|
+| Living, lounge | Ceiling: automatic / false ceiling / plain. TV wall: fluted timber / backlit marble (book-matched slabs, edge glow) / timber louvres with a lit shelf |
+| Bedroom | Ceiling (automatic = master bedroom only). Headboard: linen beige / teal velvet / charcoal / timber slats |
+| Dining, study, foyer | Ceiling: automatic / on / off |
+| Kitchen | Counter granite: black galaxy / tan brown / Kashmir white / tropical green. Dado tiles: ivory / sage / terracotta / Athangudi blue. Tile border: decorative listello band with brass pencil line / none |
+| Pooja | Mandir: carved teak / white marble (marble crown tiers and carved pilasters). Pooja doors: bell-and-jaali double doors / standard door |
+
+Bell-and-jaali double doors: two teak leaves with a solid lower panel and a cut-through jaali upper panel, hinged at both jambs and swinging to the same side. The brass bells appear only with the Hindu prayer option. Walk-mode collision uses `doorLeaves()` in `src/house3d/doors.ts`, which has the same hinge positions and leaf length, so both leaves block when closed and the doorway is clear when open.
+
+Tests: `src/interior-options.test.ts` covers defaults, per-type fields, override persistence through save/migrate/undo/redo, rejection of invalid values, pooja double-door marking and double-door collision on both wall axes. npm test 126/126, build green.
+
+Visual evidence gap: this pass was done by the unattended takeover task. Starting the browser preview was declined in that session, so **no before/after screenshots were captured for pass 2**. Per AGENTS.md §7, this is an open validation item, not a visual pass. Next session: capture living (each TV wall), kitchen (granite and dado variants), master bedroom (each headboard) and pooja (marble mandir, doors open and closed) into docs/screenshots/interior-kit/pass2-*.png and compare them with int-03 and the Pixabay int-px-01/04/05/08 and pooja-px-01 references.

@@ -5,17 +5,25 @@ import {livingFurniture,kitchenCounter} from './furniture';
 import type {Direction,Plan,Room} from '../types';
 import {pointInPolygon,pointSegmentDistance} from '../geometry';
 import {doorBlocks,doorTargetAngle} from './doors';
+import {interiorOf} from '../interior-options';
 import {FLOOR_HEIGHT,WALL_HEIGHT} from '../building-dimensions';
 export {FLOOR_HEIGHT};
 export type Axis='x'|'z';
 export type WallPiece={id:string;floor:number;x:number;z:number;w:number;d:number;bottom:number;height:number;exterior:boolean;rooms?:string[]};
-export type DoorSpec={id:string;floor:number;x:number;z:number;axis:Axis;width:number;main:boolean;balcony?:boolean;facing?:Direction;rooms?:string[];arch?:boolean;inner?:boolean;swing?:number};
+export type DoorSpec={id:string;floor:number;x:number;z:number;axis:Axis;width:number;main:boolean;balcony?:boolean;facing?:Direction;rooms?:string[];arch?:boolean;inner?:boolean;swing?:number;double?:boolean};
 export type WindowSpec={id:string;floor:number;x:number;z:number;axis:Axis;width:number;outward:[number,number];sill?:number;height?:number;openableFraction?:number;roomId:string;style?:WindowDesign};
 export type HouseLayout={walls:WallPiece[];doors:DoorSpec[];windows:WindowSpec[]};
 export type Interaction={id:string;label:string;action:'seat'|'window'|'door'|'shelf'|'tv'|'chimney'|'stairs'|'table';floor:number;x:number;y:number;z:number;size:[number,number,number];view?:[number,number,number];look?:[number,number,number]};
 type Segment={axis:Axis;at:number;start:number;end:number;floor:number;owners:Room[];facing?:Direction};
 const T=.28,H=WALL_HEIGHT,near=(a:number,b:number)=>Math.abs(a-b)<.035;
+/** Pooja rooms get bell-and-jaali double doors unless the customer chose a standard door (P3 pass 2). */
 export function makeHouseLayout(plan:Plan):HouseLayout{
+ const layout=buildLayout(plan);
+ const pooja=new Set(plan.rooms.filter(r=>r.kind==='pooja'&&interiorOf(r).poojaDoors==='jaali').map(r=>r.id));
+ if(!pooja.size)return layout;
+ return {...layout,doors:layout.doors.map(d=>!d.main&&!d.arch&&!d.balcony&&d.rooms?.some(id=>pooja.has(id))?{...d,double:true}:d)};
+}
+function buildLayout(plan:Plan):HouseLayout{
  const walls:WallPiece[]=[],doors:DoorSpec[]=[],windows:WindowSpec[]=[],segments:Segment[]=[];
  for(let f=0;f<(plan.levels||Math.max(1,...plan.rooms.map(r=>r.floor+1)));f++)for(const axis of ['x','z'] as Axis[]){
   const sides=plan.rooms.filter(r=>r.floor===f).flatMap(r=>axis==='x'?[{at:r.y,start:r.x,end:r.x+r.w,r},{at:r.y+r.h,start:r.x,end:r.x+r.w,r}]:[{at:r.x,start:r.y,end:r.y+r.h,r},{at:r.x+r.w,start:r.y,end:r.y+r.h,r}]);

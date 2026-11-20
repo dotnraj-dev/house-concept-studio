@@ -13,6 +13,10 @@ import {furnishingFrame, type HouseLayout} from './layout';
 import {bedroomFurniture, kitchenCounter, livingFurniture} from './furniture';
 import {bathroomFixtures} from './bathroom';
 import {showerZone} from './interior-layout';
+import {DADO_COLORS,HEADBOARD_COLORS,interiorOf} from '../interior-options';
+import {doorTargetAngle} from './doors';
+import type {DoorSpec} from './layout';
+import type {Group, Texture} from 'three';
 
 /**
  * Indian interior kit (AGENTS.md §4): false ceilings with cove light, fluted TV wall, pooja mandir details,
@@ -63,13 +67,20 @@ function FalseCeiling({room, flags}: {room: Room; flags: Flags}) {
   </group>;
 }
 
-/** Fluted timber TV wall with backlight, behind the existing TV joinery (local furnishing frame). */
+/** TV feature wall behind the existing TV joinery (local furnishing frame): fluted timber, backlit marble or louvres with a shelf. */
 function TvFeatureWall({room}: {room: Room}) {
-  const base = room.floor * FLOOR_HEIGHT, {tv} = livingFurniture(room);
+  const base = room.floor * FLOOR_HEIGHT, {tv} = livingFurniture(room), finish = interiorOf(room).tvWall;
   const w = Math.min(room.w - 1.2, tv.w + 4.2), h = 8.2, z = room.y + .07, flutes = Math.max(8, Math.round(w / .26));
-  return <group name="Fluted TV feature wall">
-    <Block position={[tv.x, base + h / 2 + .3, z]} size={[w, h, .1]} color="#5b4231" surface="timber"/>
-    {Array.from({length: flutes}, (_, i) => <Block key={i} position={[tv.x - w / 2 + (i + .5) * (w / flutes), base + h / 2 + .3, z + .09]} size={[w / flutes * .62, h - .3, .08]} color="#a47a52" surface="timber"/>)}
+  const slabs = Math.max(2, Math.round(w / 2.6)), louvres = Math.max(6, Math.round(w / .55));
+  return <group name={finish === 'marble' ? 'Backlit marble TV wall' : finish === 'louvre' ? 'Louvred TV wall with shelf' : 'Fluted TV feature wall'}>
+    <Block position={[tv.x, base + h / 2 + .3, z]} size={[w, h, .1]} color={finish === 'marble' ? '#e9e4da' : '#5b4231'} surface={finish === 'marble' ? 'marble' : 'timber'}/>
+    {finish === 'fluted' && Array.from({length: flutes}, (_, i) => <Block key={i} position={[tv.x - w / 2 + (i + .5) * (w / flutes), base + h / 2 + .3, z + .09]} size={[w / flutes * .62, h - .3, .08]} color="#a47a52" surface="timber"/>)}
+    {/* Book-matched slabs with thin joints, lifted off the wall so the edge glow reads as backlight. */}
+    {finish === 'marble' && Array.from({length: slabs}, (_, i) => <Block key={i} position={[tv.x - w / 2 + (i + .5) * (w / slabs), base + h / 2 + .3, z + .1]} size={[w / slabs - .03, h - .2, .06]} color={i % 2 ? '#efebe3' : '#e6e0d4'} surface="marble"/>)}
+    {finish === 'marble' && [-1, 1].map(side => <mesh key={side} position={[tv.x + side * (w / 2 - .02), base + h / 2 + .3, z + .06]} material={backGlow}><boxGeometry args={[.05, h - .3, .04]}/></mesh>)}
+    {finish === 'louvre' && Array.from({length: louvres}, (_, i) => <Block key={i} position={[tv.x - w / 2 + (i + .5) * (w / louvres), base + h / 2 + .3, z + .14]} size={[.12, h - .3, .22]} color="#8a6440" surface="timber"/>)}
+    {finish === 'louvre' && <Block position={[tv.x, base + 5.6, z + .45]} size={[w * .8, .12, .75]} color="#6f5036" surface="timber"/>}
+    {finish === 'louvre' && <mesh position={[tv.x, base + 5.53, z + .5]} material={downlight}><boxGeometry args={[w * .76, .02, .05]}/></mesh>}
     <mesh position={[tv.x, base + h + .38, z + .07]} material={backGlow}><boxGeometry args={[w - .4, .05, .05]}/></mesh>
     <LibraryModel file="decor/brass_vase_01.glb" position={[tv.x + Math.min(2.3, w / 2 - .6), base + 2.3, room.y + .9]} size={[.55, 1.1, .55]} solid={false}/>
   </group>;
@@ -78,22 +89,26 @@ function TvFeatureWall({room}: {room: Room}) {
 /** Upholstered padded headboard wall with a timber frame and a warm backlight. */
 function HeadboardWall({room}: {room: Room}) {
   const base = room.floor * FLOOR_HEIGHT, bed = bedroomFurniture(room), w = Math.min(room.w - .8, bed.w + 3.4), z = room.y + .06;
-  const cols = Math.max(3, Math.round(w / 1.3)), rows = 3, pw = w / cols, ph = 3.3 / rows;
-  return <group name="Bedroom headboard wall">
+  const finish = interiorOf(room).headboard, cols = Math.max(3, Math.round(w / 1.3)), rows = 3, pw = w / cols, ph = 3.3 / rows, slats = Math.max(10, Math.round(w / .3));
+  return <group name={'Bedroom headboard wall · ' + finish}>
     <Block position={[bed.x, base + 2.3, z]} size={[w + .3, 4.6, .12]} color="#6d4f39" surface="timber"/>
-    {Array.from({length: cols * rows}, (_, i) => {const c = i % cols, r = Math.floor(i / cols);
-      return <Block key={i} position={[bed.x - w / 2 + (c + .5) * pw, base + 1.05 + (r + .5) * ph, z + .13]} size={[pw - .07, ph - .07, .16]} color="#c9b8a2" surface="fabric"/>;})}
+    {finish === 'timber' ? Array.from({length: slats}, (_, i) => <Block key={i} position={[bed.x - w / 2 + (i + .5) * (w / slats), base + 2.75, z + .12]} size={[w / slats * .7, 3.3, .1]} color={HEADBOARD_COLORS.timber} surface="timber"/>)
+    : Array.from({length: cols * rows}, (_, i) => {const c = i % cols, r = Math.floor(i / cols);
+      return <Block key={i} position={[bed.x - w / 2 + (c + .5) * pw, base + 1.05 + (r + .5) * ph, z + .13]} size={[pw - .07, ph - .07, .16]} color={HEADBOARD_COLORS[finish]} surface="fabric"/>;})}
     <mesh position={[bed.x, base + 4.62, z + .12]} material={backGlow}><boxGeometry args={[w, .05, .05]}/></mesh>
   </group>;
 }
 
 /** 2 ft dado tiles above the counter and steel vessels on the hob (local frame). The counter itself is in HouseScene. */
 function TnKitchenFinish({room}: {room: Room}) {
-  const base = room.floor * FLOOR_HEIGHT, q = kitchenCounter(room);
+  const base = room.floor * FLOOR_HEIGHT, q = kitchenCounter(room), finish = interiorOf(room);
   const pot = useMemo(() => new LatheGeometry([[0, 0], [.42, 0], [.46, .05], [.46, .5], [.5, .55], [.44, .58]].map(([x, y]) => new Vector2(x, y)), 28), []);
   const kadai = useMemo(() => new LatheGeometry([[0, 0], [.2, .02], [.42, .12], [.55, .3], [.57, .34]].map(([x, y]) => new Vector2(x, y)), 28), []);
   return <group name="Tamil Nadu kitchen finish">
-    <Block position={[q.x, base + 4.1, room.y + room.h - .03]} size={[q.w, 2, .04]} color="#ece6d9" surface="tile"/>
+    <Block position={[q.x, base + 4.1, room.y + room.h - .03]} size={[q.w, 2, .04]} color={DADO_COLORS[finish.dado]} surface="tile"/>
+    {/* Decorative border: a contrasting listello band with a thin brass-tone pencil line, 1.4 ft above the counter. */}
+    {finish.dadoBorder === 'on' && <Block position={[q.x, base + 4.45, room.y + room.h - .055]} size={[q.w, .2, .03]} color="#7a4a2c" surface="tile"/>}
+    {finish.dadoBorder === 'on' && <mesh position={[q.x, base + 4.57, room.y + room.h - .06]} material={brass}><boxGeometry args={[q.w, .025, .02]}/></mesh>}
     <mesh geometry={pot} material={steel} position={[q.hobX - .45, base + 3.14, q.z]} castShadow/>
     <mesh geometry={kadai} material={steel} position={[q.hobX + .5, base + 3.14, q.z]} castShadow/>
   </group>;
@@ -129,9 +144,11 @@ function PoojaDetails({plan, room, layout}: {plan: Plan; room: Room; layout: Hou
   const kolam = useMemo(kolamTexture, []);
   const f = roomFitments(plan, room, layout).find(item => item.kind === 'prayer');
   if (!f) return null;
-  const base = room.floor * FLOOR_HEIGHT, w = f.width, d = f.depth;
-  return <group name="Pooja mandir details" position={[f.x, base + f.bottom, f.z]} rotation={[0, f.angle, 0]}>
-    {[0, 1, 2].map(i => <Block key={i} position={[0, f.height + .12 + i * .24, -d / 2 + d * .45]} size={[w * (.95 - i * .22), .24, d * (.8 - i * .15)]} color="#8a5a31" surface="timber"/>)}
+  const base = room.floor * FLOOR_HEIGHT, w = f.width, d = f.depth, marble = interiorOf(room).mandir === 'marble';
+  return <group name={marble ? 'White marble mandir details' : 'Pooja mandir details'} position={[f.x, base + f.bottom, f.z]} rotation={[0, f.angle, 0]}>
+    {[0, 1, 2].map(i => <Block key={i} position={[0, f.height + .12 + i * .24, -d / 2 + d * .45]} size={[w * (.95 - i * .22), .24, d * (.8 - i * .15)]} color={marble ? '#f4f1ea' : '#8a5a31'} surface={marble ? 'marble' : 'timber'}/>)}
+    {/* Marble variant: carved side pilasters with base and capital bands framing the cabinet. */}
+    {marble && [-1, 1].map(s => <group key={s}><Block position={[s * (w / 2 + .1), f.height / 2, d / 2 - .05]} size={[.2, f.height, .2]} color="#efeae0" surface="marble"/>{[.25, f.height - .25].map(y => <Block key={y} position={[s * (w / 2 + .1), y, d / 2 - .05]} size={[.27, .1, .27]} color="#e2dccf" surface="marble"/>)}</group>)}
     <mesh position={[0, f.height + .95, -d / 2 + d * .45]} material={brass} castShadow><coneGeometry args={[.16, .42, 20]}/></mesh>
     <mesh position={[0, f.height * .62, -d / 2 + .06]} material={backGlow}><planeGeometry args={[w * .7, f.height * .42]}/></mesh>
     <mesh position={[0, f.height * .62, -d / 2 + .1]}><planeGeometry args={[w * .74, f.height * .46]}/><meshStandardMaterial map={jaali} alphaMap={jaali} alphaTest={.5} color="#f3ead8" side={DoubleSide} roughness={.6}/></mesh>
@@ -180,7 +197,8 @@ export function InteriorKit({plan, room, layout, interior, walking, hideHigh}: {
   const masterBedroom = useMemo(() => plan.rooms.filter(r => r.kind === 'bedroom').sort((a, b) => b.w * b.h - a.w * a.h)[0]?.id, [plan.rooms]);
   const frame = furnishingFrame(plan, room);
   const local = frame.local;
-  const ceiling = !hideHigh && (['living', 'lounge', 'dining'].includes(room.kind) || room.id === masterBedroom);
+  const choice = interiorOf(room).ceiling;
+  const ceiling = !hideHigh && choice !== 'off' && (choice === 'on' || ['living', 'lounge', 'dining'].includes(room.kind) || room.id === masterBedroom);
   const hindu = fitoutOf(plan.design).faith === 'hindu';
   return <group name={`Interior kit · ${room.label}`}>
     {ceiling && <FalseCeiling room={room} flags={flags}/>}
@@ -190,6 +208,49 @@ export function InteriorKit({plan, room, layout, interior, walking, hideHigh}: {
       {furnished && (room.kind === 'living' || room.kind === 'lounge') && <TvFeatureWall room={local}/>}
       {furnished && room.kind === 'bedroom' && <HeadboardWall room={local}/>}
       {room.kind === 'kitchen' && <TnKitchenFinish room={local}/>}
+    </group>
+  </group>;
+}
+
+const bellMat = new MeshStandardMaterial({color: '#c39a4a', metalness: .9, roughness: .3});
+
+/** One pooja door leaf along local +X: teak stiles and rails, solid lower panel, cut-through jaali upper panel, optional brass bells. */
+function PoojaLeaf({length, bells, jaali}: {length: number; bells: boolean; jaali: Texture}) {
+  const L = length;
+  return <group>
+    {[.06, L - .06].map(x => <Block key={x} position={[x, 3.35, 0]} size={[.12, 6.65, .13]} color="#7a4c2a" surface="timber"/>)}
+    {[[.2, .3], [3.05, .22], [6.55, .2]].map(([y, h]) => <Block key={y} position={[L / 2, y, 0]} size={[L, h, .13]} color="#7a4c2a" surface="timber"/>)}
+    <Block position={[L / 2, 1.65, 0]} size={[L - .2, 2.6, .08]} color="#93623a" surface="timber"/>
+    <mesh position={[L / 2, 4.8, 0]}><planeGeometry args={[L - .22, 3.3]}/><meshStandardMaterial map={jaali} alphaMap={jaali} alphaTest={.5} color="#a06c3f" side={DoubleSide} roughness={.55}/></mesh>
+    <mesh position={[L - .17, 3.3, .1]} material={brass}><sphereGeometry args={[.05, 12, 10]}/></mesh>
+    {bells && [L * .3, L * .7].flatMap(x => [-.11, .11].map(z => <group key={x + ':' + z} position={[x, 6.28, z]}>
+      <mesh material={bellMat} position={[0, -.07, 0]}><coneGeometry args={[.07, .14, 14, 1, true]}/></mesh>
+      <mesh material={bellMat} position={[0, -.15, 0]}><sphereGeometry args={[.025, 8, 6]}/></mesh>
+    </group>))}
+  </group>;
+}
+
+/** Bell-and-jaali double doors for a pooja room (AGENTS.md §4). Leaves hinge at both jambs and swing to the same side;
+ *  walk collision uses doorLeaves() in doors.ts with the same hinge positions and leaf length. Bells only with the Hindu option. */
+export function PoojaDoor({door, open, angles, bells}: {door: DoorSpec; open: boolean; angles: Map<string, number>; bells: boolean}) {
+  const jaali = useTexture('/assets/materials/jaali-flower.png');
+  const left = useRef<Group>(null), right = useRef<Group>(null);
+  useFrame((_, delta) => {
+    if (!left.current || !right.current) return;
+    left.current.rotation.y += (doorTargetAngle(door, open) - left.current.rotation.y) * Math.min(1, delta * 5);
+    right.current.rotation.y = -left.current.rotation.y; angles.set(door.id, left.current.rotation.y);
+  }, -1);
+  const alongX = door.axis === 'x', half = door.width / 2 - .08, base = door.floor * FLOOR_HEIGHT;
+  const label = {actionId: door.id, label: 'Open / close pooja doors'};
+  return <group name="Pooja bell-and-jaali double doors" position={[door.x, base, door.z]}>
+    <Block position={[0, 3.45, 0]} size={[.19, 6.9, .19]} color="#6a4124" surface="timber"/>
+    <Block position={alongX ? [door.width, 3.45, 0] : [0, 3.45, door.width]} size={[.19, 6.9, .19]} color="#6a4124" surface="timber"/>
+    <Block position={alongX ? [door.width / 2, 6.82, 0] : [0, 6.82, door.width / 2]} size={alongX ? [door.width + .19, .18, .22] : [.22, .18, door.width + .19]} color="#6a4124" surface="timber"/>
+    <group ref={left} position={alongX ? [.06, 0, 0] : [0, 0, .06]} userData={label}>
+      <group rotation={[0, alongX ? 0 : -Math.PI / 2, 0]}><PoojaLeaf length={half} bells={bells} jaali={jaali}/></group>
+    </group>
+    <group ref={right} position={alongX ? [door.width - .06, 0, 0] : [0, 0, door.width - .06]} userData={label}>
+      <group rotation={[0, alongX ? Math.PI : Math.PI / 2, 0]}><PoojaLeaf length={half} bells={bells} jaali={jaali}/></group>
     </group>
   </group>;
 }
