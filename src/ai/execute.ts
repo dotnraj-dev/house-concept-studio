@@ -195,7 +195,7 @@ export function previewActions(plan: Plan, start: PlanEdits, actions: CommandAct
         const at = a.side === 'north' ? r.y : a.side === 'south' ? r.y + r.h : a.side === 'west' ? r.x : r.x + r.w;
         const outward: [number, number] = a.side === 'west' ? [-1, 0] : a.side === 'east' ? [1, 0] : a.side === 'north' ? [0, -1] : [0, 1];
         const id = `window-ai-${r.id}-${a.side}-${Object.keys(e.data.windows).length + 1}`;
-        e = addWindow(e, {id, floor: r.floor, axis: along ? 'x' : 'z', x: along ? start : at, z: along ? at : start, width, outward, roomId: r.id, sill: wet ? 5.8 : kitchen ? 3.35 : 2.1, height: wet ? 1.5 : kitchen ? 4 : 5.4});
+        e = addWindow(e, {id, floor: r.floor, axis: along ? 'x' : 'z', x: along ? start : at, z: along ? at : start, width, outward, roomId: r.id, sill: wet ? 5.8 : kitchen ? 3.35 : 2.1, height: wet ? 1.5 : kitchen ? 4 : 5.4}, p);
         touched.add(r.id); changes.push(`Add a ${+width.toFixed(1)} ft window on the ${a.side} wall of ${r.label}`); break;
       }
       case 'removeWindow': case 'resizeWindow': {
@@ -203,13 +203,13 @@ export function previewActions(plan: Plan, start: PlanEdits, actions: CommandAct
         if (!list.length) throw new Error(`${r.label} has no window${a.side ? ` on the ${a.side} wall` : ''}.`);
         const sides = [...new Set(list.map(sideOfWindow))];
         if (sides.length > 1 && !a.side) throw new Ambiguous(`window`, sides.map(s => `${s} window of ${r.label}`));
-        for (const w of list) e = a.op === 'removeWindow' ? removeWindow(e, w.id) : resizeWindow(e, w, a.width);
+        for (const w of list) e = a.op === 'removeWindow' ? removeWindow(e, w.id) : resizeWindow(e, w, a.width, p);
         touched.add(r.id); changes.push(a.op === 'removeWindow' ? `Remove the ${sides[0]} window${list.length > 1 ? 's' : ''} of ${r.label}` : `Make the ${sides[0]} window of ${r.label} ${a.width} ft wide`); break;
       }
       case 'addObject': {
         const r = resolveRoom(p, a.room, selection, floor), w = a.kind === 'sofa' ? 5 : a.kind === 'painting' ? 2.8 : 2, h = a.kind === 'sofa' ? 2.7 : a.kind === 'painting' ? .5 : 2;
         const [x, y] = placeIn(r, w, h, a.side), label = a.kind[0].toUpperCase() + a.kind.slice(1);
-        e = addObject(e, {id: `object-ai-${Date.now().toString(36)}-${changes.length}`, kind: a.kind, label, roomId: r.id, floor: r.floor, x, y, w, h, angle: 0});
+        e = addObject(e, {id: `object-ai-${Date.now().toString(36)}-${changes.length}`, kind: a.kind, label, roomId: r.id, floor: r.floor, x, y, w, h, angle: 0}, p);
         touched.add(r.id); changes.push(`Add a ${a.kind} in ${r.label}${a.side && a.side !== 'center' ? ` (${a.side} side)` : ''}`); break;
       }
       case 'moveObject': {
@@ -218,11 +218,11 @@ export function previewActions(plan: Plan, start: PlanEdits, actions: CommandAct
         const turned = Math.abs(Math.sin(o.angle)) > .7, same = r.id === o.roomId;
         let [x, y] = placeIn(r, turned ? o.h : o.w, turned ? o.w : o.h, a.side);
         if (same && (a.side === 'east' || a.side === 'west')) y = o.y; else if (same && (a.side === 'north' || a.side === 'south')) x = o.x;
-        e = moveObject(e, o, x, y, r.id, r.floor); touched.add(r.id);
+        e = moveObject(e, o, x, y, r.id, r.floor, p); touched.add(r.id);
         changes.push(`Move ${o.label} to ${target ? r.label : `the ${a.side && a.side !== 'center' ? a.side + ' side' : 'centre'} of ${r.label}`}${target && a.side && a.side !== 'center' ? ` (${a.side} side)` : ''}`); break;
       }
       case 'removeObject': { const o = resolveObject(p, a.object, selection, floor); e = removeObject(e, o.id); touched.add(o.roomId); changes.push(`Remove ${o.label}`); break; }
-      case 'rotateObject': { const o = resolveObject(p, a.object, selection, floor); e = rotateObject(e, o, o.angle + a.degrees * Math.PI / 180); touched.add(o.roomId); changes.push(`Rotate ${o.label} by ${a.degrees}°`); break; }
+      case 'rotateObject': { const o = resolveObject(p, a.object, selection, floor); e = rotateObject(e, o, o.angle + a.degrees * Math.PI / 180, p); touched.add(o.roomId); changes.push(`Rotate ${o.label} by ${a.degrees}°`); break; }
       case 'setInterior': {
         const r = resolveRoom(p, a.room, selection, floor), options = INTERIOR_OPTIONS[a.field] as Record<string, string>;
         const key = Object.keys(options).find(k => norm(k) === norm(a.value)) || Object.keys(options).find(k => norm(options[k]).includes(norm(a.value)));

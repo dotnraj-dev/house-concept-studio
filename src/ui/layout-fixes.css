@@ -68,3 +68,7 @@ html .brand-mark,html .brand-mark svg{color:var(--ui-brand-on,#fff)!important;st
 .workspace-notice{background:var(--ui-surface-2,#f4f4f4)!important;color:var(--ui-text,#111)!important;border-bottom:1px solid var(--ui-line,#e3e3e3)}
 /* Inspector checkboxes sit beside their text. */
 .inspector-tool-slot label:has(input[type=checkbox]){display:flex!important;flex-direction:row!important;align-items:center;gap:8px;text-align:left}
+/* Plan toolbar gained PNG download in B3: tighter buttons so everything fits; wraps cleanly on narrow canvases. */
+.workspace-plan .plan-options{max-width:calc(100% - 150px);flex-wrap:wrap;justify-content:center;row-gap:2px;border-radius:22px}
+.workspace-plan .plan-options button{padding:0 8px!important;font-size:12.5px!important;height:28px;min-height:28px}
+.workspace-plan .plan-options label{font-size:12.5px}

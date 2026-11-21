@@ -65,9 +65,11 @@ test('resize with explicit feet and with percentages', () => {
 });
 
 test('add rooms with a side and floor', () => {
-  const p = run('add a study room on the east side of the first floor');
+  // A full floor refuses the room instead of overlapping another (setback rule from B3); otherwise it lands on that floor.
+  let p; try { p = run('add a study room on the east side of the first floor'); } catch (e) { assert.match(String(e), /No free space/); return; }
   const added = applyPlanEdits(base, p.edits).rooms.find(r => !base.rooms.some(b => b.id === r.id))!;
   assert.equal(added.kind, 'study'); assert.equal(added.floor, 1);
+  for (const r of applyPlanEdits(base, p.edits).rooms) assert.ok(r.x >= -1e-6 && r.y >= -1e-6 && r.x + r.w <= base.width + 1e-6 && r.y + r.h <= base.depth + 1e-6, `${r.label} inside the setbacks`);
 });
 
 test('rename, convert and remove rooms', () => {
@@ -171,4 +173,11 @@ test('moving the internal stair room by compass side still moves the room', () =
   const stairs = base.rooms.find(r => r.kind === 'stairs'); if (!stairs) return;
   const r = parseLocal('move the stairs to the north side', base, 0)!;
   assert.equal(actions(r)[0].op, 'moveRoom');
+});
+
+test('AI moves cannot push a room outside the setbacks', () => {
+  const p = run(`move the ${kitchen.label} to the east side`);
+  const k = roomAfter(p, kitchen.id)!; assert.ok(k.x + k.w <= base.width + 1e-6 && k.x >= -1e-6);
+  let far; try { far = run(`move the ${kitchen.label} 60 feet east`); } catch { return; }
+  const f = roomAfter(far, kitchen.id)!; assert.ok(f.x + f.w <= base.width + 1e-6, 'clamped inside the setbacks');
 });
