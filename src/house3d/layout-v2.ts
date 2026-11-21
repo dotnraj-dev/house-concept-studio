@@ -6,10 +6,11 @@ import type {Direction,Plan,Room} from '../types';
 import {pointInPolygon,pointSegmentDistance} from '../geometry';
 import {doorBlocks,doorTargetAngle} from './doors';
 import {FLOOR_HEIGHT,WALL_HEIGHT} from '../building-dimensions';
+import {externalStair} from '../terrace';
 export {FLOOR_HEIGHT};
 export type Axis='x'|'z';
 export type WallPiece={id:string;floor:number;x:number;z:number;w:number;d:number;bottom:number;height:number;exterior:boolean;rooms?:string[]};
-export type DoorSpec={id:string;floor:number;x:number;z:number;axis:Axis;width:number;main:boolean;balcony?:boolean;facing?:Direction;rooms?:string[];arch?:boolean;inner?:boolean;swing?:number};
+export type DoorSpec={id:string;floor:number;x:number;z:number;axis:Axis;width:number;main:boolean;unitEntrance?:boolean;balcony?:boolean;facing?:Direction;rooms?:string[];arch?:boolean;inner?:boolean;swing?:number};
 export type WindowSpec={id:string;floor:number;x:number;z:number;axis:Axis;width:number;outward:[number,number];sill?:number;height?:number;openableFraction?:number;roomId:string;style?:WindowDesign};
 export type HouseLayout={walls:WallPiece[];doors:DoorSpec[];windows:WindowSpec[]};
 export type Interaction={id:string;label:string;action:'seat'|'window'|'door'|'shelf'|'tv'|'chimney'|'stairs'|'table';floor:number;x:number;y:number;z:number;size:[number,number,number];view?:[number,number,number];look?:[number,number,number]};
@@ -28,6 +29,7 @@ export function makeHouseLayout(plan:Plan):HouseLayout{
  const ext=segments.filter(s=>s.floor===0&&s.facing&&!s.owners.some(r=>r.kind==='portico')),requested=plan.design?.twoDoors?plan.design.outerFacing:plan.mainDoorFacing||plan.roadSide;
  const score=(s:Segment)=>s.owners.some(r=>r.kind==='foyer')?100:s.owners.some(r=>r.kind==='passage')?80:s.owners.some(r=>r.kind==='living')?60:s.owners.some(r=>r.kind==='bedroom')?10:0;
  const entrance=ext.filter(s=>s.facing===requested&&s.end-s.start>=3.1).sort((a,b)=>score(b)-score(a))[0]||ext.filter(s=>s.end-s.start>=3.1).sort((a,b)=>score(b)-score(a))[0];
+ const unitEntrances=new Set((plan.design?.terrace?.independentFloors||[]).map(f=>{const location=plan.design?.terrace?.stairLocation||'internal',facing=location==='front'?'north':location==='rear'?'south':'east',stair=externalStair(plan),at=stair?.y||plan.depth/2;return segments.filter(s=>s.floor===f&&s.facing===facing&&s.end-s.start>=3.1&&!s.owners.some(r=>['bathroom','kitchen','stairs','portico'].includes(r.kind))).sort((a,b)=>{const distance=(s:Segment)=>Math.abs((s.start+s.end)/2-at);return distance(a)-distance(b);})[0];}).filter((v):v is Segment=>!!v));
  const inner=segments.find(s=>{const foyer=s.owners.find(r=>r.kind==='foyer');if(!foyer||s.owners.length<2||s.end-s.start<3.1)return false;return plan.mainDoorFacing==='east'?s.axis==='z'&&near(foyer.x,s.at):plan.mainDoorFacing==='west'?s.axis==='z'&&near(foyer.x+foyer.w,s.at):plan.mainDoorFacing==='north'?s.axis==='x'&&near(foyer.y+foyer.h,s.at):s.axis==='x'&&near(foyer.y,s.at);});
  const openingAllowed=(s:Segment)=>{if(!plan.site)return true;const x=(s.axis==='x'?(s.start+s.end)/2:s.at)+plan.offsetX,y=(s.axis==='z'?(s.start+s.end)/2:s.at)+plan.offsetY;return Math.min(...plan.site.polygon.map((a,i)=>pointSegmentDistance({x,y},a,plan.site!.polygon[(i+1)%plan.site!.polygon.length])))>.35;};
  const add=(s:Segment,id:string,start:number,length:number,bottom=0,height=H)=>{if(length<.015)return;walls.push({id,floor:s.floor,x:s.axis==='x'?start:s.facing==='west'?s.at:s.facing==='east'?s.at-T:s.at-T/2,z:s.axis==='x'?(s.facing==='north'?s.at:s.facing==='south'?s.at-T:s.at-T/2):start,w:s.axis==='x'?length:T,d:s.axis==='x'?T:length,bottom,height,exterior:!!s.facing,rooms:s.owners.map(r=>r.id)});};
@@ -41,12 +43,12 @@ export function makeHouseLayout(plan:Plan):HouseLayout{
   const ensuiteDoor=!!attached&&!!related;
   if(s.owners.length>1&&s.owners.every(r=>['passage','foyer'].includes(r.kind))&&s!==inner&&!foyerBoundary&&!attached)continue;
   if(s.facing&&s.owners.every(r=>['portico','terrace'].includes(r.kind)))continue;
-  if((s===entrance||s===inner||ensuiteDoor||openConnection||(s.owners.length>1&&passage&&!foyerBoundary))&&len>=3.05){
+  if((s===entrance||unitEntrances.has(s)||s===inner||ensuiteDoor||openConnection||(s.owners.length>1&&passage&&!foyerBoundary))&&len>=3.05){
    const balcony=s.owners.some(r=>r.kind==='terrace'),width=Math.min(openConnection?len-.5:balcony?4.5:s===entrance?3.6:2.9,len-.3);let center=(s.start+s.end)/2;if(stairs){const direction=plan.design?.twoDoors?plan.design.outerFacing:plan.design?.houseFacing||'north',landingX=direction==='east'?stairs.x+stairs.w-2:direction==='west'?stairs.x+2:stairs.x+stairs.w/2,landingZ=direction==='north'?stairs.y+2:direction==='south'?stairs.y+stairs.h-2:stairs.y+stairs.h/2;center=Math.max(s.start+width/2+.15,Math.min(s.end-width/2-.15,s.axis==='x'?landingX:landingZ));}
    const target=s.owners.find(r=>!['passage','foyer'].includes(r.kind))||s.owners[0],swing=s.axis==='z'?(target.x+target.w/2<s.at?-1:1):(target.y+target.h/2>s.at?-1:1);
    if(ensuiteDoor&&s.owners.some(r=>r.kind==='bathroom'))center=s.start+width/2+.2;
    const left=center-width/2,right=center+width/2;add(s,id+'a',s.start,left-s.start);add(s,id+'b',right,s.end-right);add(s,id+'lintel',left,width,7,H-7);
-   doors.push({id:'door-'+id,floor:s.floor,x:s.axis==='x'?left:s.at,z:s.axis==='x'?s.at:left,axis:s.axis,width,swing,balcony,main:s===entrance,inner:s===inner,facing:s===inner?plan.mainDoorFacing:s.facing,rooms:s.owners.map(r=>r.id),arch:(ensuiteDoor&&s.owners.every(r=>r.kind!=='bathroom'))||openConnection||(fitoutOf(plan.design).openKitchen&&passage&&s.owners.some(r=>r.kind==='kitchen'))||(!balcony&&!!stairs)||(!balcony&&!s.facing&&s!==inner&&s.owners.some(r=>['living','lounge','dining','portico'].includes(r.kind)))});continue;
+   doors.push({id:'door-'+id,floor:s.floor,x:s.axis==='x'?left:s.at,z:s.axis==='x'?s.at:left,axis:s.axis,width,swing,balcony,main:s===entrance,unitEntrance:unitEntrances.has(s),inner:s===inner,facing:s===inner?plan.mainDoorFacing:s.facing,rooms:s.owners.map(r=>r.id),arch:(ensuiteDoor&&s.owners.every(r=>r.kind!=='bathroom'))||openConnection||(fitoutOf(plan.design).openKitchen&&passage&&s.owners.some(r=>r.kind==='kitchen'))||(!balcony&&!!stairs)||(!balcony&&!s.facing&&s!==inner&&s.owners.some(r=>['living','lounge','dining','portico'].includes(r.kind)))});continue;
   }
   const owner=s.owners[0];if(s.facing&&openingAllowed(s)&&len>=5&&!['stairs','passage','foyer'].includes(owner.kind)){
    const wet=owner.kind==='bathroom',sill=wet?5.8:owner.kind==='kitchen'?3.35:2.1,height=wet?1.5:owner.kind==='kitchen'?4:5.4,style=windowDesignFor(plan,owner),openableFraction=windowOpenableFraction(style),count=segments.filter(v=>v.floor===s.floor&&v.facing&&openingAllowed(v)&&v.owners[0]?.id===owner.id&&v.end-v.start>=5&&v!==entrance).length||1,need=(wet?.3/(.3048*.3048):owner.w*owner.h/8*(owner.kind==='kitchen'?1.25:1))/count/openableFraction/height,width=Math.min(wet?4:16,len-.8,Math.max(wet?2.2:4,need,facadeStyle(plan.design?.style)&&!wet&&roomFitout(plan,owner).window==='auto'?Math.min(8.5,len*.64):0)),left=(s.start+s.end-width)/2,right=left+width;add(s,id+'a',s.start,left-s.start);add(s,id+'b',right,s.end-right);add(s,id+'sill',left,width,0,sill);add(s,id+'head',left,width,sill+height,H-sill-height);
@@ -83,7 +85,8 @@ export function makeHouseLayout(plan:Plan):HouseLayout{
  return {walls,doors,windows};
 }
 export function collidesAt(plan:Plan,layout:HouseLayout,x:number,z:number,floor:number,openDoors:Set<string>,radius=.3,doorAngles?:ReadonlyMap<string,number>){
- if(floor>0&&(x<radius||x>plan.width-radius||z<radius||z>plan.depth-radius))return true;
+ const stair=externalStair(plan),onExternal=stair&&x>stair.x-stair.w/2+radius&&x<stair.x+stair.w/2-radius&&z>stair.y-stair.h/2+radius&&z<stair.y+stair.h/2-radius;
+ if(floor>0&&!onExternal&&(x<radius||x>plan.width-radius||z<radius||z>plan.depth-radius))return true;
  if(floor===0&&plan.site&&!pointInPolygon({x:x+plan.offsetX,y:z+plan.offsetY},plan.site.polygon))return true;
  for(const w of layout.walls)if(w.floor===floor&&w.bottom<6&&x+radius>w.x&&x-radius<w.x+w.w&&z+radius>w.z&&z-radius<w.z+w.d)return true;
  for(const d of layout.doors)if(d.floor===floor&&!d.arch&&doorBlocks(d,doorAngles?.get(d.id)??doorTargetAngle(d,openDoors.has(d.id)),x,z,radius))return true;
@@ -120,7 +123,7 @@ export function makeInteractions(plan:Plan,layout:HouseLayout):Interaction[]{
  for(const room of plan.rooms){const frame=furnishingFrame(plan,room),r=frame.local,cx=r.x+r.w/2,cz=r.y+r.h/2;
   const push=(item:Omit<Interaction,'floor'>)=>{const [x,z]=frame.transform(item.x,item.z),convert=(p:[number,number,number]):[number,number,number]=>{const [a,b]=frame.transform(p[0],p[2]);return [a,p[1],b];};items.push({...item,floor:room.floor,x,z,size:Math.abs(Math.sin(frame.angle))>.5?[item.size[2],item.size[1],item.size[0]]:item.size,view:item.view?convert(item.view):undefined,look:item.look?convert(item.look):undefined});};
   const furnished=plan.design?.furnished!==false;
-  if(r.kind==='stairs')push({id:'stairs-'+r.id,label:room.floor===(plan.levels||1)-1?'Go down one floor':'Go up one floor',action:'stairs',x:cx,y:1.5,z:r.y+2,size:[Math.min(3,r.w-1),2,2]});
+  if(r.kind==='stairs')push({id:'stairs-'+r.id,label:room.floor===(plan.levels||1)-1?'Go to terrace':'Go up one floor',action:'stairs',x:cx,y:1.5,z:r.y+2,size:[Math.min(3,r.w-1),2,2]});
   if(furnished&&['living','lounge'].includes(r.kind)){const {sofa,tv}=livingFurniture(r),x=sofa.x,z=sofa.z;push({id:'sofa-'+r.id,label:'Sit on the sofa',action:'seat',x,y:1.2,z,size:[Math.min(6.3,r.w*.6),2.7,2.9],view:[x,2.9,z-.25],look:[tv.x,3.8,tv.z]});push({id:'tv-'+r.id,label:'Switch TV on / off',action:'tv',x:tv.x,y:4.1,z:tv.z,size:[3.5,2.2,.5]});}
 
   if(r.kind==='kitchen')push({id:'shelf-'+r.id,label:'Open kitchen storage',action:'shelf',x:kitchenCounter(r).x,y:1.5,z:r.y+r.h-1.75,size:[kitchenCounter(r).w,2.8,.6]});
@@ -128,6 +131,8 @@ export function makeInteractions(plan:Plan,layout:HouseLayout):Interaction[]{
   if(furnished&&r.kind==='dining')push({id:'table-'+r.id,label:'Sit at the dining table',action:'table',x:cx,y:1.4,z:cz,size:[4.5,2.8,3.2],view:[cx,3.1,cz+3],look:[cx,3,cz]});
   for(const fit of roomFitments(plan,room,layout))if(['fridge','wardrobe','loft','prayer','upper','sideboard','ac'].includes(fit.kind))items.push({id:fit.id,label:fit.kind==='ac'?'Switch AC on / off':'Open / close '+fit.kind,action:'shelf',floor:room.floor,x:fit.x,y:fit.bottom+fit.height/2,z:fit.z,size:[fit.w+.12,fit.height,fit.d+.15]});
   if(!['bathroom','terrace','portico','stairs','passage','foyer'].includes(r.kind)&&roomFitout(plan,room).fan)items.push({id:'fan-'+room.id,label:'Switch ceiling fan on / off',action:'shelf',floor:room.floor,x:room.x+room.w/2,y:8.5,z:room.y+room.h/2,size:[3.8,.7,3.8]});
- }return items;
+ }
+ const stair=externalStair(plan);if(stair)for(let f=0;f<(plan.levels||1);f++)items.push({id:`external-stair-${f}`,label:f===(plan.levels||1)-1?'Go to terrace':'Go up external stair',action:'stairs',floor:f,x:stair.x,y:1.5,z:stair.y-stair.h/2+2,size:[Math.min(3,stair.w-1),2,2]});
+ return items;
 }
 export function entrancePose(plan:Plan,layout:HouseLayout){const d=layout.doors.find(d=>d.main),f=d?.facing||'north',n:[number,number]=f==='north'?[0,-1]:f==='south'?[0,1]:f==='east'?[1,0]:[-1,0],x=d?d.x+(d.axis==='x'?d.width/2:0):plan.width/2,z=d?d.z+(d.axis==='z'?d.width/2:0):0;return {x,z,n};}

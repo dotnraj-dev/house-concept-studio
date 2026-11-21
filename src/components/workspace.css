@@ -115,9 +115,16 @@
 .future-plan-tools{display:flex;gap:5px}.plan-toolstrip>span{color:#9ba48e;font-size:9px;margin-left:auto}
 .workspace-plan .furnished-plan{flex:1;min-height:0;position:relative;display:flex;flex-direction:column;margin:0 24px 50px}
 .workspace-plan .plan-options{flex-shrink:0;padding:4px 0 9px;font-size:9px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:#99a28b}
-.workspace-plan .plan-options>span{display:none}
+.workspace-plan .plan-options>span:not(.plan-zoom-level){display:none}
+.workspace-plan .plan-options{justify-content:flex-start;flex-wrap:wrap}
+.workspace-plan .plan-options{position:relative;z-index:6;background:var(--ui-surface,#f1f2ec)}
+.workspace-plan .plan-zoom-level{font-size:var(--ui-font-sm,12px);font-variant-numeric:tabular-nums;color:var(--ui-text,#263c39);min-width:42px}
+.workspace-plan .plan-svg .svg-compass{display:none}
+.workspace-plan .plan-svg g[data-room-id]>rect,.workspace-plan .plan-svg line,.workspace-plan .plan-svg path,.workspace-plan .plan-svg polyline{vector-effect:non-scaling-stroke}
+.plan-scale-bar{position:absolute;right:10px;bottom:54px;z-index:4;padding:5px 8px;background:var(--ui-surface,#fff);color:var(--ui-text,#263c39);font-size:11px;pointer-events:none}
+.plan-scale-bar>div{height:6px;border-left:2px solid currentColor;border-right:2px solid currentColor;border-bottom:2px solid currentColor}
 .workspace-plan .plan-svg{display:block;flex:1;width:100%;max-height:100%;min-height:0;overflow:visible}
-@media(min-width:1280px){.workspace-plan .furnished-plan{overflow:auto}.workspace-plan .plan-svg{flex:none;height:1180px;max-height:none;min-height:1180px}}
+@media(min-width:1280px){.workspace-plan .furnished-plan{overflow:hidden}.workspace-plan .plan-svg{flex:1;height:auto;max-height:100%;min-height:0}}
 .workspace-plan .room-clickable{cursor:pointer}
 .canvas-floor{position:absolute;bottom:54px;left:18px;display:flex;align-items:center;gap:8px;background:#fcfcf7e8;border:1px solid #dce3d3;border-radius:6px;padding:5px 8px;z-index:5;color:#8a9b7c;font-size:9px}
 .canvas-floor select{font-size:10px;color:#506b48;border:0;background:none;padding:4px;max-width:140px}

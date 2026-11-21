@@ -13,14 +13,15 @@ export function SiteFinish({type,repeat,color='#ffffff'}:{type:string;repeat:[nu
 }
 function Box({at,size,color,surface}:{at:Vec;size:Vec;color:string;surface?:string}){return <mesh position={at} castShadow receiveShadow><boxGeometry args={size}/>{surface?<Suspense fallback={<meshStandardMaterial color={color}/>}><SiteFinish type={surface} repeat={[size[0]/5,Math.max(size[1],size[2])/5]} color={color}/></Suspense>:<meshStandardMaterial color={color} roughness={.77}/>}</mesh>;}
 /** Closed hipped roof with world-scale UVs and a real ridge above the outer eaves. */
-export function HipRoof({w,d,base,pitch,eave,color}:{w:number;d:number;base:number;pitch:number;eave:number;color:string}){
- const geo=useMemo(()=>{const a=w/2+eave,b=d/2+eave,h=Math.min(a,b)*pitch,rx=Math.max(0,a-b),rz=Math.max(0,b-a);
+export function HipRoof({w,d,base,pitch,eave,color,rearTerraceDepth=0}:{w:number;d:number;base:number;pitch:number;eave:number;color:string;rearTerraceDepth?:number}){
+ const roofDepth=d-rearTerraceDepth;
+ const geo=useMemo(()=>{const a=w/2+eave,b=roofDepth/2+eave,h=Math.min(a,b)*pitch,rx=Math.max(0,a-b),rz=Math.max(0,b-a);
  const pos:number[]=[],uv:number[]=[];const face=(p:Vec,q:Vec,r:Vec,u:Vec)=>{for(const pt of [p,q,r]){pos.push(...pt);uv.push((pt[0]*u[0]+pt[2]*u[2])/3,pt[1]*Math.hypot(1,pitch)/(pitch*3));}};
  const A:Vec=[-a,0,-b],B:Vec=[a,0,-b],C:Vec=[a,0,b],D:Vec=[-a,0,b],N:Vec=[-rx,h,-rz],S:Vec=[rx,h,rz];
  const edges:[Vec,Vec,Vec,Vec][]=[[A,B,N,rx?S:N],[B,C,rz?N:S,S],[C,D,S,rx?N:S],[D,A,rz?S:N,N]];
  for(const [p,q,r,t] of edges){const l=Math.hypot(q[0]-p[0],q[2]-p[2]),u:Vec=[(q[0]-p[0])/l,0,(q[2]-p[2])/l];face(q,p,r,u);if(r!==t)face(q,r,t,u);}
  const g=new BufferGeometry();g.setAttribute('position',new Float32BufferAttribute(pos,3));g.setAttribute('uv',new Float32BufferAttribute(uv,2));g.computeVertexNormals();return g;
- },[w,d,pitch,eave]);useEffect(()=>()=>geo.dispose(),[geo]);return <group position={[w/2,base,d/2]}><Box at={[0,0,0]} size={[w+2*eave,.23,d+2*eave]} color="#674f3f"/>{Math.abs(w-d)>.5&&<Box at={[0,Math.min(w/2+eave,d/2+eave)*pitch+.02,0]} size={[Math.max(.24,w-d),.22,Math.max(.24,d-w)]} color="#9d7157"/>}<mesh geometry={geo} castShadow receiveShadow><Suspense fallback={<meshStandardMaterial color={color} side={DoubleSide}/>}><SiteFinish type="clayroof" color={color} repeat={[1,1]}/></Suspense></mesh></group>;
+ },[w,roofDepth,pitch,eave]);useEffect(()=>()=>geo.dispose(),[geo]);return <group position={[w/2,base,roofDepth/2]}><Box at={[0,0,0]} size={[w+2*eave,.23,roofDepth+2*eave]} color="#674f3f"/>{Math.abs(w-roofDepth)>.5&&<Box at={[0,Math.min(w/2+eave,roofDepth/2+eave)*pitch+.02,0]} size={[Math.max(.24,w-roofDepth),.22,Math.max(.24,roofDepth-w)]} color="#9d7157"/>}<mesh geometry={geo} castShadow receiveShadow><Suspense fallback={<meshStandardMaterial color={color} side={DoubleSide}/>}><SiteFinish type="clayroof" color={color} repeat={[1,1]}/></Suspense></mesh></group>;
 }
 function Neighbour({w,d,h,building}:{w:number;d:number;h:number;building:boolean}){
  const floors=Math.max(1,Math.min(6,Math.round(h/10))),cols=Math.max(1,Math.min(4,Math.floor(w/6)));

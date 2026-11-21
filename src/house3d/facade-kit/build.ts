@@ -99,8 +99,6 @@ export function buildFacade(plan:Plan,layout:HouseLayout,textures:Texture[]=[],o
  if(s.pitched)root.add(TiledRoof(plan,m,.38,1.15));
  else{
   root.add(CurvedParapet(plan,m,s.rounded));
-  root.add(StairHeadroom(c,m,s.headroomHeight));
-  root.add(WaterTankScreen(c,m,!options.servicesVisible));
  }
  root.add(CompoundWall(c,m,s.gate));
  front.add(FacadeLights(c,[{u:1,v:5.1},{u:Math.max(2,accentWidth-.8),v:5.1},{u:1,v:FLOOR_HEIGHT+4.5},{u:c.length-1,v:FLOOR_HEIGHT+5}],m));

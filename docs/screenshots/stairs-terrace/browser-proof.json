@@ -1,0 +1,33 @@
+{
+  "navigation": {
+    "cursorAnchorErrorFeet": 0.033826576556768,
+    "fitRestored": true,
+    "oneToOne": true,
+    "twoFingerGesture": true,
+    "viewOnlyRoomStayedPut": true,
+    "editorPersisted": true
+  },
+  "internal": {
+    "terracePlan": true,
+    "threeDCanvas": true,
+    "terraceWalk": true,
+    "pageErrors": []
+  },
+  "external": {
+    "tankBefore": [
+      35.9,
+      61
+    ],
+    "tankAfter": [
+      27.25,
+      53.25
+    ],
+    "tankDragged": true,
+    "pageErrors": []
+  },
+  "pitched": {
+    "singleStoreyTerrace": true,
+    "threeDCanvas": true,
+    "pageErrors": []
+  }
+}
