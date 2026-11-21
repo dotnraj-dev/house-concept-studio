@@ -148,3 +148,27 @@ test('mocked provider: key stays server-side, strict schema is requested, answer
   assert.equal((await interpretCommand('make it face north', ctx, {apiKey: 'k'}, reply({type: 'clarify', summary: null, message: null, actions: null, question: 'Which?', options: [{label: 'Move', command: 'move it north'}, {label: 'Window', command: 'add a window on the north'}]}))).type, 'clarify');
   await assert.rejects(interpretCommand('x', ctx, {apiKey: 'k'}, (async () => new Response('nope', {status: 500})) as typeof fetch), /unavailable/);
 });
+
+test('stairs, terrace and tank commands are understood for free and change project options, not rooms', () => {
+  const opts = (text: string) => { const r = parseLocal(text, base, 0); assert.ok(r && r.type === 'actions', `not parsed: ${text} -> ${JSON.stringify(r)}`); return previewActions(base, emptyEdits(), r.actions, r.summary, null, 0); };
+  const spiral = opts('spiral stair outside on the side');
+  assert.deepEqual(spiral.terrace, {stairLocation: 'side', stairType: 'spiral'});
+  assert.equal(spiral.edits.past.length, 0, 'no plan edit');
+  assert.equal(opts('move the staircase to the rear').terrace?.stairLocation, 'rear');
+  assert.deepEqual(opts('put a 2000 litre tank on the headroom').terrace, {tankCapacity: 2000, ...(base.design?.services.some(s => s.type === 'tank') ? {tankMount: 'headroom'} : {})});
+  assert.equal(opts('water thotti 1.5k litres terrace slab-la podu').terrace?.tankCapacity, 1500);
+  assert.equal(opts('water thotti 1.5k litres terrace slab-la podu').terrace?.tankMount, 'slab');
+  if ((base.levels || 1) > 1) {
+    const ind = opts('make the first floor an independent portion');
+    assert.deepEqual(ind.terrace?.independentFloors, [1]); assert.equal(ind.terrace?.stairLocation, 'side');
+  }
+  assert.deepEqual(actions(parseLocal('show the terrace', base, 0)), [{op: 'view', target: 'terrace'}]);
+  assert.equal(parseLocal('make the tank bigger', base, 0)?.type, 'clarify');
+  assert.throws(() => opts('stairs inside the house'), /already use/);
+});
+
+test('moving the internal stair room by compass side still moves the room', () => {
+  const stairs = base.rooms.find(r => r.kind === 'stairs'); if (!stairs) return;
+  const r = parseLocal('move the stairs to the north side', base, 0)!;
+  assert.equal(actions(r)[0].op, 'moveRoom');
+});

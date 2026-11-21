@@ -4,6 +4,7 @@ import {Button, IconButton, Input, Kbd} from '../ui';
 import {api} from '../api';
 import type {Plan} from '../types';
 import type {PlanEdits} from '../editor-model';
+import type {TerraceOptions} from '../types';
 import {parseLocal} from '../ai/local-commands';
 import {Ambiguous, buildCommandContext, clarifyFrom, previewActions, type Preview, type ViewRequest} from '../ai/execute';
 import type {CommandAction, CommandResult} from '../ai/command-schema';
@@ -12,11 +13,11 @@ import './command-bar.css';
 type Speech = {lang: string; interimResults: boolean; continuous: boolean; start: () => void; stop: () => void; onresult: ((e: {results: ArrayLike<ArrayLike<{transcript: string}> & {isFinal: boolean}>}) => void) | null; onend: (() => void) | null; onerror: ((e: {error: string}) => void) | null};
 type Pending = {preview: Preview; actions: CommandAction[]; summary: string; start: PlanEdits; source: string};
 type Clarify = Extract<CommandResult, {type: 'clarify'}>;
-const EXAMPLES = ['move the kitchen to the east side', 'add a window on the south side of the bedroom', 'pooja room-a north side-ku maathu', 'marble tv wall in the hall', 'show first floor'];
+const EXAMPLES = ['move the kitchen to the east side', 'add a window on the south side of the bedroom', 'pooja room-a north side-ku maathu', 'spiral stair outside on the side', 'put a 2000 litre tank on the headroom', 'make the first floor independent'];
 
-export function CommandBar({plan, edits, floor, selection, editable, onApply, onView, onHighlight}: {
+export function CommandBar({plan, edits, floor, selection, editable, onApply, onTerrace, onView, onHighlight}: {
   plan: Plan; edits: PlanEdits; floor: number; selection: string | null; editable: boolean;
-  onApply: (next: PlanEdits) => void; onView: (view: ViewRequest) => void; onHighlight: (roomId: string) => void;
+  onApply: (next: PlanEdits) => void; onTerrace: (patch: Partial<TerraceOptions>) => void; onView: (view: ViewRequest) => void; onHighlight: (roomId: string) => void;
 }) {
   const [text, setText] = useState(''), [open, setOpen] = useState(false), [busy, setBusy] = useState(false), [listening, setListening] = useState(false);
   const [pending, setPending] = useState<Pending | null>(null), [question, setQuestion] = useState<Clarify | null>(null);
@@ -73,8 +74,11 @@ export function CommandBar({plan, edits, floor, selection, editable, onApply, on
       try { next = previewActions(plan, edits, pending.actions, pending.summary, selection, floor); }
       catch (e) { setMessage(`The plan changed since this preview: ${(e as Error).message}`); setPending(null); return; }
     }
-    onApply(next.edits); next.views.forEach(onView);
-    setMessage(`Applied ${next.changes.length} change${next.changes.length === 1 ? '' : 's'}. Undo reverses it in one step.`); setPending(null); setText('');
+    if (next.edits !== edits) onApply(next.edits);
+    if (next.terrace) onTerrace(next.terrace);
+    next.views.forEach(onView);
+    const planned = next.edits !== edits, settings = !!next.terrace;
+    setMessage(`Applied ${next.changes.length} change${next.changes.length === 1 ? '' : 's'}.${planned ? ' Undo reverses the plan edits in one step.' : ''}${settings ? ' Stair and tank settings are also in the Inspector; ask again to change them back.' : ''}`); setPending(null); setText('');
   }
 
   function listen() {

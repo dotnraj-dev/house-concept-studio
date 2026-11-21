@@ -66,3 +66,5 @@ html .brand-mark,html .brand-mark svg{color:var(--ui-brand-on,#fff)!important;st
 .company-logo-field~.form-grid{margin-top:14px}
 /* Workspace notices follow the black-and-white theme. */
 .workspace-notice{background:var(--ui-surface-2,#f4f4f4)!important;color:var(--ui-text,#111)!important;border-bottom:1px solid var(--ui-line,#e3e3e3)}
+/* Inspector checkboxes sit beside their text. */
+.inspector-tool-slot label:has(input[type=checkbox]){display:flex!important;flex-direction:row!important;align-items:center;gap:8px;text-align:left}

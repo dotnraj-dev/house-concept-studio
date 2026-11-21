@@ -1,6 +1,7 @@
 // Turns validated command actions into editor changes, using exactly the functions behind the 2D tools.
 // The result is a preview (new PlanEdits plus a readable change list); the caller applies it on "Apply".
-import type {Plan, Room, RoomKind} from '../types';
+import type {Plan, Room, RoomKind, TerraceOptions} from '../types';
+import {terraceChecks, terraceLevel, terraceOptions} from '../terrace';
 import type {WindowSpec} from '../house3d/layout';
 import {makeHouseLayout} from '../house3d/layout';
 import {furnitureObjects} from '../house3d/furniture-objects';
@@ -14,7 +15,8 @@ import type {CommandAction, CommandContext, CommandResult} from './command-schem
 
 type Direction = 'north' | 'south' | 'east' | 'west';
 export type ViewRequest = Extract<CommandAction, {op: 'view'}>;
-export type Preview = {edits: PlanEdits; changes: string[]; views: ViewRequest[]; touched: string[]; newIssues: string[]};
+export type Preview = {edits: PlanEdits; changes: string[]; views: ViewRequest[]; touched: string[]; newIssues: string[]; terrace?: Partial<TerraceOptions>};
+const STAIR_WORDS = {internal: 'inside the house', front: 'outside at the front', side: 'outside on the side', rear: 'outside at the rear'} as const;
 export class Ambiguous extends Error {
   constructor(public ref: string, public choices: string[]) { super(`“${ref}” matches ${choices.length} items.`); }
 }
@@ -43,6 +45,7 @@ export function buildCommandContext(plan: Plan, selection: string | null, floor:
     rooms: plan.rooms.slice(0, 120).map(r => ({id: r.id, label: r.label, kind: r.kind, floor: r.floor, x: +r.x.toFixed(2), y: +r.y.toFixed(2), w: +r.w.toFixed(2), h: +r.h.toFixed(2), ...(r.attachedTo ? {attachedTo: r.attachedTo} : {})})),
     windows: layout.windows.slice(0, 300).map(w => ({id: w.id, room: label.get(w.roomId) || w.roomId, side: sideOfWindow(w), width: +w.width.toFixed(2)})),
     objects: planObjects(plan).slice(0, 300).map(o => ({id: o.id, label: o.label, room: label.get(o.roomId) || o.roomId})),
+    terrace: (({stairLocation, stairType, tankMount, tankCapacity, independentFloors}) => ({stairLocation, stairType, tankMount, tankCapacity, independentFloors}))(terraceOptions(plan)),
   };
 }
 
@@ -123,12 +126,33 @@ function placeIn(r: Room, w: number, h: number, side?: string): [number, number]
 }
 
 export function previewActions(plan: Plan, start: PlanEdits, actions: CommandAction[], summary: string, selection: string | null, floor: number): Preview {
-  let e = start; const changes: string[] = [], views: ViewRequest[] = [], touched = new Set<string>();
+  let e = start, terrace: Partial<TerraceOptions> | undefined; const changes: string[] = [], views: ViewRequest[] = [], touched = new Set<string>();
+  const options = () => ({...terraceOptions(plan), ...terrace});
   const current = () => applyPlanEdits(plan, e);
   for (const a of actions) {
     const p = current();
     switch (a.op) {
-      case 'view': views.push(a); changes.push(a.target === 'floor' ? `Show floor ${a.floor ?? 0}` : a.target === 'undo' || a.target === 'redo' ? a.target[0].toUpperCase() + a.target.slice(1) : `Switch to ${a.target} view`); break;
+      case 'terrace': {
+        const now = options(), patch: Partial<TerraceOptions> = {}, top = terraceLevel(plan);
+        if (a.stairLocation && a.stairLocation !== now.stairLocation) { patch.stairLocation = a.stairLocation; changes.push(`Place the stair ${STAIR_WORDS[a.stairLocation]}`); }
+        if (a.stairType && a.stairType !== now.stairType) {
+          if ((patch.stairLocation ?? now.stairLocation) === 'internal' && a.stairType === 'spiral') { patch.stairLocation = 'side'; changes.push('Place the stair outside on the side (a spiral stair is external)'); }
+          patch.stairType = a.stairType; changes.push(`Use a ${a.stairType === 'spiral' ? 'spiral' : 'dog-legged'} stair`);
+        }
+        if (a.tankMount && a.tankMount !== now.tankMount) { patch.tankMount = a.tankMount; changes.push(a.tankMount === 'headroom' ? 'Put the water tank on the stair headroom roof' : 'Put the water tank on the terrace slab'); }
+        if (a.tankCapacity !== undefined && a.tankCapacity !== now.tankCapacity) { patch.tankCapacity = a.tankCapacity; changes.push(`Make the water tank ${a.tankCapacity.toLocaleString('en-IN')} litres`); }
+        if (a.independentFloor !== undefined) {
+          const f = a.independentFloor; if (f < 1 || f >= top) throw new Error(top > 1 ? `Choose a floor from 1 to ${top - 1}.` : 'This house has only a ground floor.');
+          const on = a.independent !== false, list = now.independentFloors.filter(v => v !== f);
+          if (on !== now.independentFloors.includes(f)) {
+            patch.independentFloors = on ? [...list, f].sort() : list; changes.push(on ? `Make floor ${f} an independent dwelling with its own entrance` : `Make floor ${f} part of the main house`);
+            if (on && (patch.stairLocation ?? now.stairLocation) === 'internal') { patch.stairLocation = 'side'; changes.push('Place the stair outside on the side so floor ' + f + ' has a separate entry'); }
+          }
+        }
+        if (!Object.keys(patch).length) throw new Error('The stair and tank already use those settings.');
+        terrace = {...terrace, ...patch}; break;
+      }
+      case 'view': views.push(a); changes.push(a.target === 'floor' ? `Show floor ${a.floor ?? 0}` : a.target === 'terrace' ? 'Show the terrace plan' : a.target === 'undo' || a.target === 'redo' ? a.target[0].toUpperCase() + a.target.slice(1) : `Switch to ${a.target} view`); break;
       case 'addRoom': {
         const f = a.floor ?? floor; if (f >= (p.levels || 1)) throw new Error(`Floor ${f} does not exist in this plan.`);
         const [dw, dh] = sizeFor(a.kind), w = snap(a.w ?? dw), h = snap(a.h ?? dh), [x, y] = freeSpot(p, f, w, h, a.side);
@@ -209,7 +233,12 @@ export function previewActions(plan: Plan, start: PlanEdits, actions: CommandAct
   }
   const after = applyPlanEdits(plan, e), oldIds = new Set((applyPlanEdits(plan, start).checks || []).map(c => c.id));
   const newIssues = [...new Map((after.checks || []).filter(c => c.status === 'conflict' && !oldIds.has(c.id)).map(c => [c.id, c.detail])).values()];
-  return {edits: squash(start, e, 'AI: ' + summary.slice(0, 80)), changes, views, touched: [...touched], newIssues};
+  if (terrace) {
+    const design = plan.design, before = new Set(terraceChecks(plan).filter(c => c.status !== 'pass').map(c => c.id));
+    const next = design ? terraceChecks({...plan, design: {...design, terrace: {...terraceOptions(plan), ...terrace}}}) : [];
+    newIssues.push(...next.filter(c => c.status !== 'pass' && !before.has(c.id)).map(c => c.detail));
+  }
+  return {edits: e === start ? start : squash(start, e, 'AI: ' + summary.slice(0, 80)), changes, views, touched: [...touched], newIssues, ...(terrace ? {terrace} : {})};
 }
 
 /** Ambiguity found while resolving names becomes a clarifying question with clickable options. */

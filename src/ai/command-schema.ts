@@ -8,9 +8,12 @@ export const DIRECTIONS = ['north', 'south', 'east', 'west'] as const;
 export const PLACES = [...DIRECTIONS, 'center'] as const;
 export const ROOM_KINDS = ['living', 'dining', 'kitchen', 'bedroom', 'bathroom', 'toilet', 'pooja', 'study', 'store', 'utility', 'balcony', 'sit-out', 'empty room', 'lounge', 'foyer'] as const;
 export const OBJECT_KINDS = ['chair', 'sofa', 'table', 'stool', 'plant', 'lamp', 'painting'] as const;
-export const VIEW_TARGETS = ['2d', '3d', 'present', 'walk', 'front', 'floor', 'undo', 'redo'] as const;
+export const VIEW_TARGETS = ['2d', '3d', 'present', 'walk', 'front', 'floor', 'terrace', 'undo', 'redo'] as const;
+export const STAIR_LOCATIONS = ['internal', 'front', 'side', 'rear'] as const;
+export const STAIR_TYPES = ['dogleg', 'spiral'] as const;
+export const TANK_MOUNTS = ['headroom', 'slab'] as const;
 export const INTERIOR_FIELDS = Object.keys(INTERIOR_OPTIONS) as [keyof typeof INTERIOR_OPTIONS, ...(keyof typeof INTERIOR_OPTIONS)[]];
-export const OPS = ['addRoom', 'removeRoom', 'moveRoom', 'resizeRoom', 'renameRoom', 'changeKind', 'attachBathroom', 'detachBathroom', 'addWindow', 'removeWindow', 'resizeWindow', 'addObject', 'moveObject', 'removeObject', 'rotateObject', 'setInterior', 'view'] as const;
+export const OPS = ['addRoom', 'removeRoom', 'moveRoom', 'resizeRoom', 'renameRoom', 'changeKind', 'attachBathroom', 'detachBathroom', 'addWindow', 'removeWindow', 'resizeWindow', 'addObject', 'moveObject', 'removeObject', 'rotateObject', 'setInterior', 'terrace', 'view'] as const;
 
 const ref = z.string().trim().min(1).max(80);
 const feet = z.number().finite().min(2).max(80);
@@ -34,6 +37,9 @@ export const ActionSchema = z.discriminatedUnion('op', [
   z.object({op: z.literal('removeObject'), object: ref}),
   z.object({op: z.literal('rotateObject'), object: ref, degrees: z.number().finite().min(-360).max(360)}),
   z.object({op: z.literal('setInterior'), room: ref, field: z.enum(INTERIOR_FIELDS), value: z.string().trim().min(1).max(30)}),
+  // Stair, terrace and overhead tank options (project settings, not room geometry).
+  z.object({op: z.literal('terrace'), stairLocation: z.enum(STAIR_LOCATIONS).optional(), stairType: z.enum(STAIR_TYPES).optional(), tankMount: z.enum(TANK_MOUNTS).optional(),
+    tankCapacity: z.number().int().min(200).max(20000).optional(), independentFloor: z.number().int().min(1).max(9).optional(), independent: z.boolean().optional()}),
   z.object({op: z.literal('view'), target: z.enum(VIEW_TARGETS), floor: floor.optional()}),
 ]);
 export type CommandAction = z.infer<typeof ActionSchema>;
@@ -56,6 +62,7 @@ export const CommandContextSchema = z.object({
   rooms: z.array(z.object({id: z.string().max(80), label: z.string().max(80), kind: z.string().max(30), floor, x: z.number(), y: z.number(), w: z.number(), h: z.number(), attachedTo: z.string().max(80).optional()})).max(120),
   windows: z.array(z.object({id: z.string().max(120), room: z.string().max(80), side: dir, width: z.number()})).max(300),
   objects: z.array(z.object({id: z.string().max(120), label: z.string().max(80), room: z.string().max(80)})).max(300),
+  terrace: z.object({stairLocation: z.enum(STAIR_LOCATIONS), stairType: z.enum(STAIR_TYPES), tankMount: z.enum(TANK_MOUNTS), tankCapacity: z.number(), independentFloors: z.array(z.number().int()).max(9)}).optional(),
 });
 export type CommandContext = z.infer<typeof CommandContextSchema>;
 export const CommandRequestSchema = z.object({text: z.string().trim().min(2).max(500), context: CommandContextSchema});
@@ -69,8 +76,9 @@ const actionJson = {
     op: {type: 'string', enum: OPS}, kind: nullable('string'), room: nullable('string'), bathroom: nullable('string'), bedroom: nullable('string'),
     object: nullable('string'), side: nullable('string'), label: nullable('string'), field: nullable('string'), value: nullable('string'), target: nullable('string'),
     floor: nullable('integer'), w: nullable('number'), h: nullable('number'), dx: nullable('number'), dy: nullable('number'), scale: nullable('number'), width: nullable('number'), degrees: nullable('number'),
+    stairLocation: nullable('string'), stairType: nullable('string'), tankMount: nullable('string'), tankCapacity: nullable('integer'), independentFloor: nullable('integer'), independent: nullable('boolean'),
   },
-  required: ['op', 'kind', 'room', 'bathroom', 'bedroom', 'object', 'side', 'label', 'field', 'value', 'target', 'floor', 'w', 'h', 'dx', 'dy', 'scale', 'width', 'degrees'],
+  required: ['op', 'kind', 'room', 'bathroom', 'bedroom', 'object', 'side', 'label', 'field', 'value', 'target', 'floor', 'w', 'h', 'dx', 'dy', 'scale', 'width', 'degrees', 'stairLocation', 'stairType', 'tankMount', 'tankCapacity', 'independentFloor', 'independent'],
 };
 export const COMMAND_JSON_SCHEMA = {
   type: 'object', additionalProperties: false,

@@ -10,6 +10,7 @@ const TANGLISH: [RegExp, string][] = [
   [/\b(maa?thu|maa?ttru|maa?tru|maathunga|shift pannu|move pannu)\b/g, 'move'], [/\b(podu|vainga|vai|add pannu|serthu|sethu)\b/g, 'add'],
   [/\b(eduthudu|eduthu vidu|eduthuru|thookku|thukku|remove pannu|delete pannu|venam|vendam)\b/g, 'remove'],
   [/\b(perusa|periya|perisa|peridha)\b/g, 'bigger'], [/\b(chinna|chinnadha|kammi)\b/g, 'smaller'],
+  [/\bthani\b/g, 'separate'], [/\b(padikattu|padigal|padi)\b/g, 'stair'], [/\b(thanni |water )?thotti\b/g, 'tank'],
   [/\bjannal\b/g, 'window'], [/\bpadam\b/g, 'painting'], [/\bsamayal arai\b/g, 'kitchen'], [/\bpadukkai arai\b/g, 'bedroom'],
   [/\b(side|wall|room|floor)-?(ku|kku|la|le|il)\b/g, '$1'], [/([a-z])-(a|ah|ai|ku|kku|la)\b/g, '$1'],
 ];
@@ -72,6 +73,34 @@ function floorOf(t: string, current: number): number | undefined {
 const objectIn = (t: string) => OBJECT_KINDS.find(k => new RegExp(`\\b${k}s?\\b`).test(t)) || (/\b(photo|frame|picture|wall art)\b/.test(t) ? 'painting' as const : undefined);
 const title = (s: string) => s.trim().replace(/\b\w/g, c => c.toUpperCase());
 
+/** Stair position/type, overhead tank and independent-floor requests. */
+function parseTerrace(t: string, fl: number | undefined): CommandAction[] | CommandResult | null {
+  const negative = /\b(not|no longer|remove|cancel|merge|combine|part of the (main )?house)\b/.test(t);
+  if (/\b(independent|separate|rental|rent out|own entrance|separate entrance|portion|tenant)\b/.test(t) && /\b(floor|upstairs|portion|house|dwelling)\b/.test(t)) {
+    if (fl === undefined || fl < 1) return {type: 'clarify', question: 'Which floor should have its own entrance?', options: [{label: 'First floor', command: 'make the first floor independent'}, {label: 'Second floor', command: 'make the second floor independent'}]};
+    return [{op: 'terrace', independentFloor: fl, independent: !negative}];
+  }
+  if (/\btanks?\b/.test(t)) {
+    const a: Extract<CommandAction, {op: 'terrace'}> = {op: 'terrace'};
+    const n = /(\d+(?:\.\d+)?)\s*(k|kl|thousand)?\s*(l|ltr|litres?|liters?)?\b/.exec(t);
+    if (n && (n[2] || n[3] || +n[1] >= 200)) a.tankCapacity = Math.round(+n[1] * (n[2] ? 1000 : 1));
+    if (/\b(head ?room|stair (block|room|roof|cabin)|mumty|mumpty)\b/.test(t)) a.tankMount = 'headroom';
+    else if (/\b(slab|terrace|roof|maadi)\b/.test(t)) a.tankMount = 'slab';
+    if (/\b(bigger|larger|increase)\b/.test(t) && !a.tankCapacity) return {type: 'clarify', question: 'How large should the water tank be?', options: [{label: '1,500 litres', command: 'make the water tank 1500 litres'}, {label: '2,000 litres', command: 'make the water tank 2000 litres'}, {label: '3,000 litres', command: 'make the water tank 3000 litres'}]};
+    return a.tankCapacity || a.tankMount ? [a] : null;
+  }
+  if (/\b(stairs?|staircase|steps)\b/.test(t)) {
+    const a: Extract<CommandAction, {op: 'terrace'}> = {op: 'terrace'};
+    if (/\bspiral\b/.test(t)) a.stairType = 'spiral'; else if (/\b(dog-?leg(ged)?|normal|regular|straight)\b/.test(t)) a.stairType = 'dogleg';
+    if (/\b(inside|internal|interior|indoor)\b/.test(t)) a.stairLocation = 'internal';
+    else if (/\bfront\b/.test(t)) a.stairLocation = 'front';
+    else if (/\b(rear|back(side)?)\b/.test(t)) a.stairLocation = 'rear';
+    else if (/\b(side|outside|external|exterior|outdoor)\b/.test(t) && !/\b(north|south|east|west)\b/.test(t)) a.stairLocation = 'side';
+    return a.stairType || a.stairLocation ? [a] : null;
+  }
+  return null;
+}
+
 function parseStep(t: string, plan: Plan, floor: number): CommandAction[] | CommandResult | null {
   const dir = DIR.exec(t)?.[1] as Dir | undefined, rooms = roomMentions(t, plan), named = rooms.filter(r => r.ref !== 'selected'), first = rooms[0]?.ref;
   const add = /\b(add|put|place|create|new|need|want|insert|include|give)\b/.test(t), remove = /\b(remove|delete|drop|close|block|without|get rid of)\b/.test(t);
@@ -84,7 +113,10 @@ function parseStep(t: string, plan: Plan, floor: number): CommandAction[] | Comm
   if (/^(present|presentation|start presentation|present mode)$/.test(t)) return [{op: 'view', target: 'present'}];
   if (/^(show |open |go to )?(the )?(2d|plan|floor plan)( view)?$/.test(t)) return [{op: 'view', target: '2d'}];
   if (/^(show |open |go to )?(the )?(3d|model)( view)?$/.test(t)) return [{op: 'view', target: '3d'}];
+  if (/^(show |open |go to |view )?(the )?(terrace|roof|maadi|mottai maadi)( plan| level| view)?$/.test(t)) return [{op: 'view', target: 'terrace'}];
   const fl = floorOf(t, floor);
+  const terrace = parseTerrace(t, fl);
+  if (terrace) return terrace;
   if (/^(show|open|go to|view)\b/.test(t) && fl !== undefined && !named.length) return [{op: 'view', target: 'floor', floor: fl}];
   // Bathroom attachment
   if (/\b(attach|attached|ensuite|en-suite|connect|detach|common)\b/.test(t) && /\b(bath|bathroom|toilet)/.test(t)) {
