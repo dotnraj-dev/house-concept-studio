@@ -27,7 +27,7 @@ export async function demoApi<T>(url:string,options:RequestInit):Promise<T>{
   if(url==='/extract'&&!json(options).useAI)return localExtract(json(options).text) as T;
   if(url==='/integrations/status')return {openai:{configured:false,textModel:'gpt-6.1-sol',speechModel:'gpt-transcribe'},runpod:{configured:false,endpointId:''},'gpu-worker':{configured:false,workerUrl:'http://127.0.0.1:8787',hourlyRateInr:59.32}} as T;
   if(url.startsWith('/integrations/'))throw new Error('Provider credentials are available only on the full server.');
-  if(url==='/extract'||url==='/transcribe')throw new Error('AI and voice require an API key on the VPS. Demo mode does not call external services.');
+  if(url==='/extract'||url==='/transcribe'||url==='/commands')throw new Error('AI and voice require an API key on the VPS. Demo mode does not call external services.');
   if(url==='/me/password')return {ok:true} as T;
   throw new Error(`Unknown demo request: ${method} ${url}`);
 }

@@ -7,7 +7,9 @@ import {CEILING_LEVEL,GROUND_LEVEL} from '../building-dimensions';
 import {TVJoinery,WovenRug,KitchenDetails,DiningDetails,BathroomDetails,VanityDetails,KitchenSink,KitchenStorage} from './InteriorDetails';
 import {Block} from './Surface';
 import {StaticBatcher} from './StaticBatcher';
-import {InteriorKit,ModernHood} from './InteriorKit';
+import {InteriorKit,ModernHood,PoojaDoor} from './InteriorKit';
+import {GRANITE_COLORS,interiorOf} from '../interior-options';
+import {fitoutOf} from '../fitout';
 import {Architecture,EntryGarden} from './Architecture';
 import {plotEdges} from '../site-context';
 import {bathroomFixtures} from './bathroom';
@@ -175,7 +177,7 @@ function Furniture({room,sourceRoom,frameAngle,plan,layout,assets,openShelves,tv
   </group>;}
   if(room.kind==='kitchen'){const q=kitchenCounter(room);return <group>
     <KitchenStorage room={room} open={openShelves.has(`shelf-${room.id}`)}/>
-    <Block position={[q.x,base+2.99,q.z]} size={[q.w,.14,1.85]} color="#1b1c1f" surface="quartz"/><KitchenDetails room={room} hasWindows={layout.windows.some(w=>w.roomId===room.id)}/>
+    <Block position={[q.x,base+2.99,q.z]} size={[q.w,.14,1.85]} color={GRANITE_COLORS[interiorOf(sourceRoom).granite]} surface="quartz"/><KitchenDetails room={room} hasWindows={layout.windows.some(w=>w.roomId===room.id)}/>
     <KitchenSink position={[q.sinkX,base+3.075,q.z]}/>
 
     <Chimney position={[q.hobX,base+5.4,room.y+room.h-1]} on={chimneyOn.has(`chimney-${room.id}`)} assets={assets}/>
@@ -275,7 +277,7 @@ export function HouseScene({onSelect,plan,layout,interactions,assets,mode,cutawa
       return <Block key={'wet-'+room.id+'-'+w.id} position={[cx+(along?0:side*(w.w/2+.008)),room.floor*FLOOR_HEIGHT+w.bottom+w.height/2,cz+(along?side*(w.d/2+.008):0)]} size={along?[w.w,w.height,.014]:[.014,w.height,w.d]} color="#ffffff" surface="bathwall" opacity={xray?.18:1}/>;
     }))}
     {layout.walls.filter(w=>w.bottom===0&&w.height>1).map(w=><Block key={'skirt-'+w.id} position={[w.x+w.w/2,w.floor*FLOOR_HEIGHT+.18,w.z+w.d/2]} size={[w.w+.015,.25,w.d+.035]} color="#bfb6a8" surface="limestone"/>)}
-    {layout.doors.filter(door=>!door.arch).map(door=><Door key={door.id} door={door} open={openDoors.has(door.id)} angles={doorAngles} style={doorDesignFor(plan,door)}/>)}
+    {layout.doors.filter(door=>!door.arch).map(door=>door.double?<Suspense key={door.id} fallback={null}><PoojaDoor door={door} open={openDoors.has(door.id)} angles={doorAngles} bells={fitoutOf(plan.design).faith==='hindu'}/></Suspense>:<Door key={door.id} door={door} open={openDoors.has(door.id)} angles={doorAngles} style={doorDesignFor(plan,door)}/>)}
     {layout.windows.map(window=><Window key={window.id} window={window} assets={assets} recipe={roomFitout(plan,plan.rooms.find(r=>r.id===window.roomId)!).window==='auto'?facadeStyle(plan.design?.style):undefined} furnished={furnished&&!plan.rooms.some(r=>r.id===window.roomId&&r.kind==='bathroom')}/>)}
     {!kit&&!shellCutaway&&facadePieces(plan,layout).map(piece=><Block key={piece.id} position={piece.position} size={piece.size} color={piece.surface==='timber'?finish.trim:piece.color} surface={piece.surface}/>)}
     {!kit&&!shellCutaway&&(!plan.design?.roof||plan.design.roof==='flat')&&<>

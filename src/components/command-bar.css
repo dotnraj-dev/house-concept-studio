@@ -1,0 +1,37 @@
+/* AI command bar docked at the bottom of the 2D/3D canvas. Uses the shared design tokens only. */
+.command-bar{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);width:min(560px,calc(100% - 32px));z-index:8;display:flex;flex-direction:column;gap:8px;pointer-events:none;transition:width var(--ui-normal) var(--ui-ease)}
+.command-bar>*{pointer-events:auto}
+.command-bar.expanded{width:min(680px,calc(100% - 32px))}
+.command-input{display:flex;align-items:center;gap:6px;padding:6px 6px 6px 14px;background:var(--ui-surface);border:1px solid var(--ui-line-strong);border-radius:999px;box-shadow:var(--ui-shadow-md);transition:box-shadow var(--ui-normal) var(--ui-ease),border-color var(--ui-normal) var(--ui-ease)}
+.command-bar.expanded .command-input{box-shadow:var(--ui-shadow-lg);border-color:var(--ui-text)}
+.command-input:focus-within{box-shadow:var(--ui-shadow-lg),var(--ui-focus)}
+.command-icon{color:var(--ui-muted);flex-shrink:0}
+.command-input .ui-input{flex:1;min-width:0;border:0!important;background:transparent!important;box-shadow:none!important;padding:6px 4px;font-size:var(--ui-text-md);color:var(--ui-text)}
+.command-input .ui-input:focus{outline:none;box-shadow:none}
+.command-input .ui-icon-button{border-radius:999px;flex-shrink:0}
+.command-input .listening{background:var(--ui-danger-soft);color:var(--ui-danger)}
+.command-cost{font-size:var(--ui-text-xs);color:var(--ui-subtle);white-space:nowrap}
+.command-input .ui-kbd{margin-right:6px}
+.command-result{position:relative;background:var(--ui-surface);border:1px solid var(--ui-line);border-radius:var(--ui-radius-lg);box-shadow:var(--ui-shadow-lg);padding:14px 44px 14px 16px;animation:command-rise var(--ui-normal) var(--ui-ease) both;max-height:min(46vh,360px);overflow:auto}
+.command-result-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin-bottom:8px}
+.command-result-head strong{font-size:var(--ui-text-md);color:var(--ui-text)}
+.command-source{font-size:var(--ui-text-xs);color:var(--ui-muted);background:var(--ui-surface-2);border:1px solid var(--ui-line);border-radius:999px;padding:1px 8px}
+.command-changes{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:4px}
+.command-changes li{display:flex;gap:8px;align-items:flex-start;font-size:var(--ui-text-sm);color:var(--ui-text)}
+.command-changes svg{margin-top:2px;flex-shrink:0}
+.command-issues{margin:0 0 10px;padding:8px 10px 8px 26px;background:var(--ui-warning-soft);border-radius:var(--ui-radius-sm);font-size:var(--ui-text-xs);color:var(--ui-text)}
+.command-actions,.command-options{display:flex;flex-wrap:wrap;gap:8px}
+.command-message{margin:0;font-size:var(--ui-text-sm);color:var(--ui-text)}
+.command-close{position:absolute;top:8px;right:8px}
+.command-examples{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;animation:command-rise var(--ui-normal) var(--ui-ease) both}
+.command-examples button{font:inherit;font-size:var(--ui-text-xs);color:var(--ui-text);background:var(--ui-surface);border:1px solid var(--ui-line);border-radius:999px;padding:5px 10px;box-shadow:var(--ui-shadow-sm);cursor:pointer;transition:transform var(--ui-fast) var(--ui-ease),border-color var(--ui-fast) var(--ui-ease)}
+.command-examples button:hover{transform:translateY(-1px);border-color:var(--ui-line-strong)}
+.command-examples button:focus-visible{outline:none;box-shadow:var(--ui-focus)}
+@keyframes command-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (max-width:767px){
+ .command-bar{bottom:116px;width:calc(100% - 24px)}
+ .command-bar.expanded{width:calc(100% - 24px)}
+ .command-cost,.command-input .ui-kbd,.command-examples{display:none}
+ .command-input .ui-input{font-size:16px}
+}
+@media (prefers-reduced-motion:reduce){.command-result,.command-examples{animation:none}}

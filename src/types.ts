@@ -54,10 +54,10 @@ export type Project = { id: string; title: string; requirements: Requirements; p
 export type Ratios = { front: number; middle: number; livingShare: number; kitchenShare: number };
 export const DEFAULT_RATIOS: Ratios = { front: .34, middle: .29, livingShare: .57, kitchenShare: .5 };
 export type RoomKind = 'living'|'dining'|'kitchen'|'bedroom'|'bathroom'|'toilet'|'pooja'|'study'|'store'|'utility'|'balcony'|'sit-out'|'empty room'|'portico'|'lounge'|'terrace'|'stairs'|'passage'|'foyer';
-export type Room = { featureWidth?:number; featureX?:number; attachedTo?:string; id: string; kind: RoomKind; label: string; floor: number; x: number; y: number; w: number; h: number };
+export type Room = { interior?:import("./interior-options").RoomInterior; featureWidth?:number; featureX?:number; attachedTo?:string; customOpenings?:boolean; furnitureFacing?:Direction; id: string; kind: RoomKind; label: string; floor: number; x: number; y: number; w: number; h: number };
 export type Plan = { rooms: Room[]; valid: boolean; width: number; depth: number; plotWidth: number; plotDepth: number; offsetX: number; offsetY: number; roadSide: Requirements['roadSide']; toiletStyle: Requirements['toiletStyle']; pooja: boolean; warnings: string[]; variantName: string; site?: SiteAnalysis; design?: DesignBrief; checks?: DesignCheck[]; levels?: number; mainDoorFacing?: Direction; editor?:PlanEdits };
 export type Asset = { id: string; name: string; category: string; width: number; depth: number; height: number; license: string; source: string; fileUrl: string; createdAt: string };
-export type Settings = { companyName: string; costPerSqft: number; sideSetback: number; frontSetback: number; rearSetback: number; currency: string };
+export type Settings = { companyName: string; costPerSqft: number; sideSetback: number; frontSetback: number; rearSetback: number; currency: string; companyLogo?: string; companyTagline?: string; companyAddress?: string; companyPhone?: string; companyEmail?: string; companyWebsite?: string; companyGstin?: string };
 export const DEFAULT_SETTINGS: Settings = { companyName: 'House Concept Studio', costPerSqft: 0, sideSetback: 3, frontSetback: 5, rearSetback: 3, currency: 'INR' };
 
 export type Direction = 'north'|'east'|'south'|'west';
@@ -78,6 +78,8 @@ export type QuoteExtra = { id:string; label:string; quantity:number; rate:number
 export type DesignBrief = {
   editor?:PlanEdits;
   editorEnabled?:boolean;
+  adaptPlan?:boolean;
+  moveFurniture?:boolean;
   terrace?:TerraceOptions;
   fitout?:HomeFitout; tnRules?:TNSiteRules; siteContext?:SiteContext; guideAnswers?:Record<string,string>;
   version:2; customerEmail:string; language:string; household:string; authority:string;

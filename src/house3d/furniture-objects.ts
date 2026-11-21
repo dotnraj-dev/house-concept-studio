@@ -22,5 +22,10 @@ export function furnitureObjects(plan:Plan,room:Room):EditorObject[]{
   const table=diningFurniture(frame.local);put('table','Dining table','dining',table.x,table.z,table.w,table.d);
   table.chairs.forEach((chair,i)=>put(`chair-${i}`,`Dining chair ${i+1}`,'chair',chair.x,chair.z,chair.w,chair.d));
  }
- return items.flatMap(item=>{const override=plan.editor?.data.objects[item.id];return override===null?[]:[override||item];});
+ return items.flatMap(item=>{
+  const override=plan.editor?.data.objects[item.id];if(override===null)return [];
+  const o=override||item,c=Math.abs(Math.cos(o.angle)),s=Math.abs(Math.sin(o.angle)),halfW=(o.w*c+o.h*s)/2,halfH=(o.w*s+o.h*c)/2;
+  if(halfW*2>room.w-.2||halfH*2>room.h-.2)return [];
+  return [{...o,x:Math.max(room.x+.1+halfW,Math.min(o.x,room.x+room.w-.1-halfW)),y:Math.max(room.y+.1+halfH,Math.min(o.y,room.y+room.h-.1-halfH))}];
+ });
 }
