@@ -1,4 +1,4 @@
-import {MeshPhysicalMaterial,MeshDepthMaterial,RGBADepthPacking,DoubleSide,RepeatWrapping,SRGBColorSpace,type Texture,type Material} from 'three';
+import {MeshPhysicalMaterial,MeshDepthMaterial,RGBADepthPacking,DoubleSide,RepeatWrapping,SRGBColorSpace,Vector2,type Texture,type Material} from 'three';
 import type {FacadeStyle} from '../facade-styles';
 export const KIT_TEXTURE_PATHS=['paint-color','paint-normal','timber-color','timber-normal','facade-stone-color','facade-stone-normal','facade-stone-roughness'].map(n=>'/assets/materials/'+n+'.jpg').concat(['star','cross','flower'].map(n=>'/assets/materials/jaali-'+n+'.png'));
 export type MaterialSet=ReturnType<typeof kitMaterials>;
@@ -7,15 +7,15 @@ export function kitMaterials(style:FacadeStyle,sources:Texture[]=[],lightPower=1
  const texture=(i:number)=>{if(!sources[i])return null;const t=sources[i].clone();t.wrapS=t.wrapT=RepeatWrapping;t.anisotropy=8;if([0,2,4,7,8,9].includes(i))t.colorSpace=SRGBColorSpace;t.needsUpdate=true;owned.push(t);return t;};
  const paintMap=texture(0),paintNormal=texture(1),woodMap=texture(2),woodNormal=texture(3),stoneMap=texture(4),stoneNormal=texture(5),stoneRough=texture(6);
  const make=(options:ConstructorParameters<typeof MeshPhysicalMaterial>[0])=>{const m=new MeshPhysicalMaterial(options);materials.push(m);return m;};
- const paint=make({color:style.frame,normalMap:paintNormal,roughness:.78});
- const wall=make({color:style.wall,normalMap:paintNormal,roughness:.82});
- const side=make({color:style.side,normalMap:paintNormal,roughness:.84});
- const soffit=make({color:style.soffit,map:woodMap,normalMap:woodNormal,roughness:.65});
+ const paint=make({color:style.frame,normalMap:paintNormal,normalScale:new Vector2(.12,.12),roughness:.78});
+ const wall=make({color:style.wall,normalMap:paintNormal,normalScale:new Vector2(.12,.12),roughness:.82});
+ const side=make({color:style.side,normalMap:paintNormal,normalScale:new Vector2(.12,.12),roughness:.84});
+ const soffit=make({color:style.soffit,map:woodMap,normalMap:woodNormal,normalScale:new Vector2(.18,.18),roughness:.67});
  const accent=make({color:style.accent,map:paintMap,roughness:.73});
- const stone=make({color:style.stone,map:stoneMap,normalMap:stoneNormal,roughnessMap:stoneRough,roughness:.88});
- const timber=make({color:style.timber,map:woodMap,normalMap:woodNormal,roughness:.5,clearcoat:.12});
+ const stone=make({color:style.stone,map:stoneMap,normalMap:stoneNormal,normalScale:new Vector2(.28,.28),roughnessMap:stoneRough,roughness:.9});
+ const timber=make({color:style.timber,map:woodMap,normalMap:woodNormal,normalScale:new Vector2(.2,.2),roughness:.64,clearcoat:.08});
  const metal=make({color:style.trim,metalness:.22,roughness:.43});
- const glass=make({color:'#bdd8d0',transparent:true,opacity:.24,roughness:.08,metalness:.04,depthWrite:false,side:DoubleSide,clearcoat:1});
+ const glass=make({color:'#bdd8d0',transparent:true,opacity:.24,roughness:.08,metalness:.04,depthWrite:false,side:DoubleSide,clearcoat:.8,clearcoatRoughness:.09,envMapIntensity:1.2});
  const warm=make({color:'#ffe2a8',emissive:'#ffc477',emissiveIntensity:2*lightPower,roughness:.3});
  const tile=make({color:'#a95637',roughness:.76}),dark=make({color:'#464a43',roughness:.75});
  const jaali={} as Record<'star'|'cross'|'flower',{material:Material;depth:Material}>;

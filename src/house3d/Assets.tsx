@@ -14,8 +14,7 @@ export const FREE_MODELS = {
   basin:'furniture-kit/bathroomsink', toilet:'furniture-kit/toilet',
   chimney:'furniture-kit/hoodmodern', shelf:'furniture-kit/bookcasecloseddoors',
   kitchen:'furniture-kit/kitchencabinet', fridge:'furniture-kit/kitchenfridge',
-  door:'innerscene/door', curtain:'innerscene/curtain', car:'car-kit/sedan', plant:'furniture-kit/pottedplant',
-  tree:'nature-kit/tree-palmshort', bush:'nature-kit/plant-bushlarge',
+  door:'innerscene/door', curtain:'innerscene/curtain', car:'', plant:'furniture-kit/pottedplant',
   coffee:'furniture-kit/tablecoffee',
 } as const;
 
@@ -90,7 +89,11 @@ export function AssetModel({category,assets,position,size,rotation=0,fit='contai
 }
 
 /** Library GLBs per category; several entries give variety, chosen deterministically from the position. */
-const LIBRARY:Partial<Record<string,string[]>>={plant:['plant/potted_plant_01.glb','plant/potted_plant_02.glb'],shelf:['shelf/wooden_display_shelves_01.glb']};
+const LIBRARY:Partial<Record<string,string[]>>={
+ plant:['plant/potted_plant_01.glb','plant/potted_plant_02.glb'],
+ shelf:['shelf/wooden_display_shelves_01.glb'],
+ coffee:['coffee/modern_coffee_table_01.glb','coffee/coffee_table_round_01.glb']
+};
 const LIBRARY_TURN:Partial<Record<string,number>>={};
 function variant(position:[number,number,number],count:number){return Math.abs(Math.round(position[0]*7+position[2]*13))%count;}
 

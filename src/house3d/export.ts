@@ -41,6 +41,8 @@ export function prepareExport(root:Object3D){
   };
   copy.traverse(object=>{if(object.userData.interactionId||object.userData.runtimeOnly)remove.push(object);});
   remove.forEach(object=>object.removeFromParent());
+  // Camera-dependent visibility gates are presentation optimizations, not export edits.
+  copy.traverse(object=>{if(object.userData.runtimeVisibilityGate)object.visible=true;});
   const cloneMaterial=(source:Material)=>{
     if(materials.has(source))return materials.get(source)!;
     const material=source.clone() as MeshStandardMaterial;materials.set(source,material);

@@ -30,7 +30,7 @@ import {facadePieces} from './facade';
 import {livingFurniture,bedroomFurniture,diningFurniture,kitchenCounter} from './furniture';
 
 type Mode='overview'|'walk'|'tour';
-type Props={onSelect?:(selection:Selection)=>void;plan:Plan;layout:HouseLayout;interactions:Interaction[];assets:Asset[];mode:Mode;cutaway:boolean;contextVisible?:boolean;lightPower?:number;showServices?:boolean;xray?:boolean;
+type Props={onSelect?:(selection:Selection)=>void;plan:Plan;layout:HouseLayout;interactions:Interaction[];assets:Asset[];mode:Mode;cutaway:boolean;contextVisible?:boolean;lightPower?:number;wetRoad?:boolean;showServices?:boolean;xray?:boolean;
   openDoors:Set<string>;doorAngles:Map<string,number>;openShelves:Set<string>;tvOn:Set<string>;chimneyOn:Set<string>;onInteract:(id:string)=>void};
 
 export {Block} from './Surface';
@@ -45,7 +45,7 @@ function Door({door,open,angles,style}:{door:DoorSpec;open:boolean;angles:Map<st
     <Block position={alongX?[door.width,3.45,0]:[0,3.45,door.width]} size={[.19,6.9,.19]} color="#d8c5a7" surface="timber"/>
     <Block position={alongX?[door.width/2,6.82,0]:[0,6.82,door.width/2]} size={alongX?[door.width+.19,.18,.22]:[.22,.18,door.width+.19]} color="#d8c5a7" surface="timber"/>
     <group ref={pivot} position={[alongX?.06:0,0,alongX?0:.06]} userData={{actionId:door.id,label:door.main?'Open / close entrance door':'Open / close room door'}}>
-      <Block position={alongX?[door.width/2,3.35,0]:[0,3.35,door.width/2]} size={alongX?[door.width-.1,6.65,.13]:[.13,6.65,door.width-.1]} color={door.balcony?'#bad3d5':door.main?'#765136':'#ae8c66'} surface={door.balcony?undefined:'timber'} opacity={door.balcony?.2:1}/>
+      <Block position={alongX?[door.width/2,3.35,0]:[0,3.35,door.width/2]} size={alongX?[door.width-.1,6.65,.13]:[.13,6.65,door.width-.1]} color={door.balcony?'#bad3d5':door.main?'#765136':'#ae8c66'} surface={door.balcony?undefined:'timber'} opacity={door.balcony?.2:1} metalness={door.balcony?.04:0}/>
       {door.balcony&&[.12,door.width-.12].map(u=><Block key={u} position={alongX?[u,3.35,0]:[0,3.35,u]} size={alongX?[.1,6.65,.16]:[.16,6.65,.1]} color="#444a45"/>)}
       {(!door.balcony?(style==='panel'?[2.05,4.75]:style==='flush'?[1.4,5.65]:[]):[.08,6.62]).map(y=><Block key={y} position={alongX?[door.width/2,y,-.075]:[-.075,y,door.width/2]} size={alongX?[door.width-.25,door.balcony?.1:style==='flush'?.035:2.13,.035]:[.035,door.balcony?.1:style==='flush'?.035:2.13,door.width-.25]} color={door.balcony?'#444a45':'#c8aa7f'} surface={door.balcony?undefined:'timber'}/>)}
       {!door.balcony&&style==='slatted'&&Array.from({length:Math.floor(door.width/.16)},(_,i)=><Block key={'batten-'+i} position={alongX?[.12+i*.16,3.35,-.09]:[-.09,3.35,.12+i*.16]} size={alongX?[.09,6.4,.035]:[.035,6.4,.09]} color="#8d6b48" surface="timber"/>)}
@@ -83,7 +83,7 @@ function WindowJoinery({window:w,height:h,frameColor}:{window:WindowSpec;height:
   {[-1,1].map(s=><group key={s}><Block position={[s*(width/2-.06),0,0]} size={[.12,h,.28]} color={color} surface={timber?'timber':undefined}/><Block position={[0,s*h/2,0]} size={[width+.12,.12,.28]} color={color} surface={timber?'timber':undefined}/></group>)}
   {style==='louvred'?Array.from({length:Math.max(3,Math.floor(h/.27))},(_,i)=><group key={i} position={[0,-h/2+.14+i*.27,0]} rotation={[.4,0,0]}><Block position={[0,0,0]} size={[width-.18,.29,.035]} color="#b6c8c2" opacity={.7}/></group>):
   Array.from({length:panelCount},(_,i)=><group key={i} position={[-width/2+(i+.5)*panel,0,sliding?i%2*.095:0]}>
-   <Block position={[0,0,0]} size={[panel-.13,h-.17,.035]} color="#c1d3d3" opacity={.24} metalness={.12} roughness={.09}/>
+   <Block position={[0,0,0]} size={[panel-.13,h-.17,.035]} color="#c1d3d3" opacity={.24} metalness={.04} roughness={.09}/>
    {[-1,1].map(s=><group key={s}><Block position={[s*(panel/2-.045),0,0]} size={[.075,h-.08,.16]} color={color} surface={timber?'timber':undefined}/><Block position={[0,s*(h/2-.06),0]} size={[panel-.03,.075,.16]} color={color} surface={timber?'timber':undefined}/></group>)}
    <Block position={[panel/2-.2,-.25,-.12]} size={[.045,.28,.08]} color={timber?'#b99b58':'#69746c'} metalness={.65}/>
    {style==='heritage'&&[-.22,.22].map(y=><Block key={y} position={[0,y*h,0]} size={[panel-.1,.045,.07]} color={color} surface="timber"/>)}
@@ -124,13 +124,13 @@ function Handrail({start,end}:{start:[number,number,number];end:[number,number,n
 /** Room spotlights are only active where they can be seen: in the cutaway overview, or on the floor the
  * camera is on while walking/touring. Every active light adds cost to every lit pixel, so 14 always-on
  * room spots made the exterior view and walkthrough far slower without visible benefit. */
- function RoomLight({room,plan,interior,walking}:{room:Room;plan:Plan;interior:boolean;walking:boolean}){
+ function RoomLight({room,interior,walking,exteriorGlow}:{room:Room;interior:boolean;walking:boolean;exteriorGlow:boolean}){
   const target=useMemo(()=>new Object3D(),[]);
   const light=useRef<SpotLight>(null);
-    useFrame(({camera,invalidate})=>{if(!light.current)return;const x=camera.position.x+plan.width/2,z=camera.position.z+plan.depth/2;const occupied=Math.floor((camera.position.y+.5)/FLOOR_HEIGHT)===room.floor&&x>=room.x-1&&x<=room.x+room.w+1&&z>=room.y-1&&z<=room.y+room.h+1;const on=interior&&(!walking||occupied);if(light.current.visible!==on){light.current.visible=on;invalidate();}});
+    useFrame(({invalidate})=>{if(!light.current)return;const on=interior?!walking:exteriorGlow;if(light.current.visible!==on){light.current.visible=on;invalidate();}});
   return <group position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT,room.y+room.h/2]}>
     <primitive object={target} position={[0,.1,0]}/>
-    <spotLight ref={light} visible={false} position={[0,CEILING_LEVEL-.5,0]} target={target} color="#fff2df" intensity={48} angle={1.12} penumbra={.72} castShadow={false}
+    <spotLight ref={light} visible={false} position={[0,CEILING_LEVEL-.5,0]} target={target} color="#fff0da" intensity={exteriorGlow&&!interior?38:28} angle={1.12} penumbra={.82} castShadow={false}
       distance={24} decay={2} shadow-mapSize={[512,512]} shadow-bias={-.0008} shadow-normalBias={.025}/>
     {['living','lounge','dining'].includes(room.kind)&&[-1,1].flatMap(a=>[-1,1].map(b=><group key={a+'-'+b} position={[a*room.w*.31,CEILING_LEVEL-.1,b*room.h*.31]}><mesh><cylinderGeometry args={[.19,.19,.04,20]}/><meshStandardMaterial color="#eee8d9" emissive="#ffd9a0" emissiveIntensity={1.8}/></mesh></group>))}
     <mesh position={[room.w*.26,CEILING_LEVEL-.18,room.h*.23]}><cylinderGeometry args={[.4,.4,.065,24]}/><meshStandardMaterial color="#fff4d9" emissive="#ffe2a9" emissiveIntensity={1.1}/></mesh>
@@ -220,7 +220,7 @@ function Site({plan,boundary=true}:{plan:Plan;boundary?:boolean}){
  return <group><mesh rotation={[-Math.PI/2,0,0]} position={[0,GROUND_LEVEL-.06,0]} receiveShadow><shapeGeometry args={[shape]}/><Suspense fallback={<meshStandardMaterial color="#a2af8c"/>}><SiteFinish type="lawn" repeat={[.15,.15]}/></Suspense></mesh>{boundary&&polygon.map((p,i)=>{const q=polygon[(i+1)%polygon.length],dx=q.x-p.x,dz=q.y-p.y,length=Math.hypot(dx,dz);if((plan.design?.siteContext?.edges.find(e=>e.edge===p.id)?.use|| (p.road?'road':'open'))==='road')return null;return <group key={i} position={[(p.x+q.x)/2-plan.offsetX,GROUND_LEVEL+1.1,(p.y+q.y)/2-plan.offsetY]} rotation={[0,-Math.atan2(dz,dx),0]}><Block position={[0,0,0]} size={[length,2.2,.25]} color="#d8d0bd" surface="stone"/></group>;})}</group>;
 }
 
-export function HouseScene({onSelect,plan,layout,interactions,assets,mode,cutaway,contextVisible=true,lightPower=1,showServices=false,xray=false,openDoors,doorAngles,openShelves,tvOn,chimneyOn,onInteract}:Props){
+export function HouseScene({onSelect,plan,layout,interactions,assets,mode,cutaway,contextVisible=true,lightPower=1,wetRoad=false,showServices=false,xray=false,openDoors,doorAngles,openShelves,tvOn,chimneyOn,onInteract}:Props){
   const floorCount=plan.levels||Math.max(1,...plan.rooms.map(r=>r.floor+1));
   const finish=palette(plan.design?.style),kit=!!facadeStyle(plan.design?.style);
   const furnished=plan.design?.furnished!==false;
@@ -237,8 +237,17 @@ export function HouseScene({onSelect,plan,layout,interactions,assets,mode,cutawa
       const inside=plan.rooms.find(r=>r.floor===f&&x>r.x&&x<r.x+r.w&&z>r.y&&z<r.y+r.h);
       onSelect(inside?{kind:'room',id:inside.id}:{kind:'facade'});
     }}><StaticBatcher/>
-    <Site plan={plan} boundary={!kit}/>{!shellCutaway&&!kit&&<><Architecture plan={plan} layout={layout} assets={assets}/><EntryGarden plan={plan} layout={layout} assets={assets}/></>}{!shellCutaway&&kit&&<><Suspense fallback={null}><FacadeKit plan={plan} layout={layout} servicesVisible={showServices} lightPower={lightPower}/></Suspense><EntryGarden plan={plan} layout={layout} assets={assets} pathOnly/></>}{contextVisible&&<group userData={{siteContext:true}} position={[0,GROUND_LEVEL,0]}><SiteWorld plan={plan}/></group>}
+    <Site plan={plan} boundary={!kit}/>{!shellCutaway&&!kit&&<><Architecture plan={plan} layout={layout} assets={assets}/><EntryGarden plan={plan} layout={layout} assets={assets}/></>}{!shellCutaway&&kit&&<><Suspense fallback={null}><FacadeKit plan={plan} layout={layout} servicesVisible={showServices} lightPower={lightPower}/></Suspense><EntryGarden plan={plan} layout={layout} assets={assets} pathOnly/></>}{contextVisible&&<group userData={{siteContext:true}} position={[0,GROUND_LEVEL,0]}><SiteWorld plan={plan} wetRoad={wetRoad}/></group>}
     <Block position={[plan.width/2,GROUND_LEVEL/2,plan.depth/2]} size={[plan.width,-GROUND_LEVEL,plan.depth]} color="#ddd8ce" surface="concrete"/>
+    {!shellCutaway&&kit&&plan.rooms.filter(r=>r.kind==='bedroom'&&roomFitout(plan,r).ac&&(r.x<.5||r.x+r.w>plan.width-.5)).slice(0,2).map(r=>{
+      const east=r.x+r.w>plan.width-.5,side=east?1:-1,first=r.y+r.h*.25;
+      const blocked=layout.windows.some(w=>w.roomId===r.id&&w.axis==='z'&&Math.abs(w.z+w.width/2-first)<2.3);
+      const z=blocked?r.y+r.h*.75:first,y=r.floor*FLOOR_HEIGHT+7.25,x=east?plan.width+.68:-.68;
+      return <group key={'outdoor-ac-'+r.id} name={'Outdoor AC · '+r.label}>
+        <LibraryModel file="acoutdoor/exterior_aircon_unit.glb" position={[x,y,z]} size={[2.15,1.65,1.25]} rotation={side*Math.PI/2} solid={false}/>
+        {[-.58,.58].map(offset=><Block key={offset} position={[x-side*.35,y-.9,z+offset]} size={[.65,.075,.11]} color="#8f9694" metalness={.55}/>)}
+      </group>;
+    })}
     {plan.rooms.filter(room=>room.floor>0&&room.kind!=='stairs').map(room=><Block key={`slab-${room.id}`}
       position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT-.17,room.y+room.h/2]} size={[room.w,.34,room.h]} color="#ddd8ce" surface="concrete" opacity={shellCutaway ? .56 : 1}/>)}
     {plan.rooms.map(room=><group key={room.id} userData={{roomId:room.id}}>
@@ -249,7 +258,7 @@ export function HouseScene({onSelect,plan,layout,interactions,assets,mode,cutawa
       <RoomFitoutScene assets={assets} plan={plan} room={room} layout={layout} open={openShelves} hideHigh={shellCutaway}/>
        <InteriorKit plan={plan} room={room} layout={layout} interior={cutaway} walking={false} hideHigh={shellCutaway}/>
       {!shellCutaway&&!['portico','terrace','stairs'].includes(room.kind)&&<Block position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT+CEILING_LEVEL,room.y+room.h/2]} size={[room.w,.10,room.h]} color="#faf8f0" surface="paint" opacity={xray?.18:1}/>}
-       {!['portico','terrace','stairs'].includes(room.kind)&&room.floor<8&&<RoomLight room={room} plan={plan} interior={mode!=='overview'||cutaway} walking={mode!=='overview'}/>}
+       {!['portico','terrace','stairs'].includes(room.kind)&&room.floor<8&&<RoomLight room={room} interior={mode!=='overview'||cutaway} walking={mode!=='overview'} exteriorGlow={lightPower>2&&room.y<plan.depth*.5&&['living','lounge','dining','bedroom'].includes(room.kind)}/>}
       {!kit&&room.floor>0&&room.kind==='terrace'&&<>
         {room.y===0&&<Block position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT+1.8,room.y+.15]} size={[room.w,3.5,.14]} color="#bed3d0" opacity={.48}/>}
         {room.x===0&&<Block position={[room.x,room.floor*FLOOR_HEIGHT+1.8,room.y+room.h/2]} size={[.14,3.5,room.h]} color="#bed3d0" opacity={.48}/>}

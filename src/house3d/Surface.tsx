@@ -12,6 +12,8 @@ import {PBR_SURFACES,surfaceTexture,type PbrSurface,type Surface} from './materi
 const materialCache=new Map<string,Material>();
 const preparedTextures=new WeakSet<Texture>();
 const flatTextureCache=new Map<string,Texture>();
+const tileFeet:Record<PbrSurface,number>={porcelain:2.5,bathwall:2,bathfloor:2,quartz:4,rug:3,stackstone:4,pavers:3,marble:4,paint:5,limestone:4,plaster:5,tile:2,timber:3,woodfloor:4,stone:4,fabric:3};
+const normalStrength:Record<PbrSurface,number>={porcelain:.1,bathwall:.18,bathfloor:.16,quartz:.12,rug:.34,stackstone:.36,pavers:.3,marble:.12,paint:.08,limestone:.22,plaster:.12,tile:.16,timber:.2,woodfloor:.16,stone:.27,fabric:.32};
 
 function prepare(texture:Texture,color:boolean){
   if(preparedTextures.has(texture))return texture;
@@ -33,10 +35,10 @@ function PbrMaterial({surface,color,metalness,opacity,emissive,neutralBase=false
     if(cached)return cached;
     const [map,normalMap,roughnessMap]=[prepare(loaded[0],true),prepare(loaded[1],false),prepare(loaded[2],false)];
     const glossy=['marble','quartz','porcelain'].includes(surface);
-    const params={color,map:neutralBase?null:map,normalMap,normalScale:new Vector2(surface==='fabric'||surface==='rug'?.45:.18),roughnessMap,
-      roughness:glossy?1:surface==='woodfloor'?.72:1,metalness,transparent:opacity<1,opacity,emissive:emissive||'#000000',emissiveIntensity:emissive?.35:0};
+    const params={color,map:neutralBase?null:map,normalMap,normalScale:new Vector2(normalStrength[surface],normalStrength[surface]),roughnessMap,
+      roughness:surface==='woodfloor'?.85:1,metalness,transparent:opacity<1,opacity,emissive:emissive||'#000000',emissiveIntensity:emissive?.35:0};
     // Physical shading is only needed for the clearcoat on polished stone/porcelain; everything else uses Standard.
-    const created=glossy?new MeshPhysicalMaterial({...params,clearcoat:.32,clearcoatRoughness:.15}):new MeshStandardMaterial(params);
+    const created=glossy?new MeshPhysicalMaterial({...params,clearcoat:.28,clearcoatRoughness:.2}):new MeshStandardMaterial(params);
     materialCache.set(key,created);
     return created;
   },[loaded[0],loaded[1],loaded[2],surface,color,metalness,opacity,emissive,neutralBase]);
@@ -55,7 +57,8 @@ function flatMaterial({surface,size,color,metalness,roughness,opacity,emissive}:
   const key=['flat',surface||'',map?.uuid||'',color,metalness,finalRoughness,opacity,emissive||''].join('|');
   const cached=materialCache.get(key);
   if(cached)return cached;
-  const created=new MeshStandardMaterial({color,map,metalness,roughness:finalRoughness,transparent:opacity<1,opacity,emissive:emissive||'#000000',emissiveIntensity:emissive?.35:0});
+  const params={color,map,metalness,roughness:finalRoughness,transparent:opacity<1,opacity,emissive:emissive||'#000000',emissiveIntensity:emissive?.35:0};
+  const created=opacity<.65&&metalness>.02?new MeshPhysicalMaterial({...params,metalness:.03,clearcoat:.75,clearcoatRoughness:.08,envMapIntensity:1.25,depthWrite:false}):new MeshStandardMaterial(params);
   materialCache.set(key,created);
   return created;
 }
@@ -63,7 +66,7 @@ function flatMaterial({surface,size,color,metalness,roughness,opacity,emissive}:
 export function Block({position,size,color,metalness=0,roughness,opacity=1,emissive,surface,solid=false,neutralBase=false}:{position:[number,number,number];size:[number,number,number];color:string;metalness?:number;roughness?:number;opacity?:number;emissive?:string;surface?:Surface;solid?:boolean;neutralBase?:boolean}){
   const pbr=surface&&PBR_SURFACES.includes(surface as PbrSurface);
   const flat=useMemo(()=>pbr?null:flatMaterial({surface,size,color,metalness,roughness,opacity,emissive}),[pbr,surface,size[0],size[1],size[2],color,metalness,roughness,opacity,emissive]);
-  const geometry=useMemo(()=>architecturalBox(size,position,surface==='stackstone'?6.5:5),[...size,...position,surface]);
+  const geometry=useMemo(()=>architecturalBox(size,position,surface&&surface in tileFeet?tileFeet[surface as PbrSurface]:5),[...size,...position,surface]);
   useEffect(()=>()=>geometry.dispose(),[geometry]);
   return <mesh geometry={geometry} userData={{solid}} position={position} castShadow={opacity===1} receiveShadow>
     {pbr?<Suspense fallback={<meshStandardMaterial color={color}/>}><PbrMaterial surface={surface as PbrSurface} color={color}

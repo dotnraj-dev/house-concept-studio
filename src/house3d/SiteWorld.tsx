@@ -1,6 +1,6 @@
 import {Streetscape} from './StreetscapeScene';
 import {useMemo,useEffect,Suspense} from 'react';
-import {BufferGeometry,Float32BufferAttribute,DoubleSide,RepeatWrapping,SRGBColorSpace} from 'three';
+import {BufferGeometry,Float32BufferAttribute,DoubleSide,RepeatWrapping,SRGBColorSpace,Vector2} from 'three';
 import {useTexture} from '@react-three/drei';
 import {surroundings} from '../site-context';
 import type {Plan} from '../types';
@@ -9,7 +9,7 @@ type Vec=[number,number,number];
 export function SiteFinish({type,repeat,color='#ffffff'}:{type:string;repeat:[number,number];color?:string}){
  const [src,norm]=useTexture(['/assets/materials/'+type+'-color.jpg','/assets/materials/'+type+'-normal.jpg']);
  const maps=useMemo(()=>[src,norm].map((s,i)=>{const m=s.clone();m.wrapS=m.wrapT=RepeatWrapping;m.repeat.set(...repeat);if(!i)m.colorSpace=SRGBColorSpace;m.anisotropy=4;m.needsUpdate=true;return m;}),[src,norm,...repeat]);
- useEffect(()=>()=>maps.forEach(m=>m.dispose()),[maps]);return <meshStandardMaterial color={color} map={maps[0]} normalMap={maps[1]} roughness={.85} side={DoubleSide}/>;
+ useEffect(()=>()=>maps.forEach(m=>m.dispose()),[maps]);return <meshStandardMaterial color={color} map={maps[0]} normalMap={maps[1]} normalScale={new Vector2(type==='clayroof'?.32:.2)} roughness={type==='clayroof'?.79:.85} side={DoubleSide}/>;
 }
 function Box({at,size,color,surface}:{at:Vec;size:Vec;color:string;surface?:string}){return <mesh position={at} castShadow receiveShadow><boxGeometry args={size}/>{surface?<Suspense fallback={<meshStandardMaterial color={color}/>}><SiteFinish type={surface} repeat={[size[0]/5,Math.max(size[1],size[2])/5]} color={color}/></Suspense>:<meshStandardMaterial color={color} roughness={.77}/>}</mesh>;}
 /** Closed hipped roof with world-scale UVs and a real ridge above the outer eaves. */
@@ -30,4 +30,4 @@ function Neighbour({w,d,h,building}:{w:number;d:number;h:number;building:boolean
  {[-1,1].map(sign=><group key={sign}>{Array.from({length:cols},(_,i)=><group key={i} position={[w*((i+.5)/cols-.5),(f+.55)*h/floors,sign*(d*.5+.075)]}><Box at={[0,0,0]} size={[Math.min(3,w*.6),Math.min(3.8,h*.42),.17]} color="#665e53"/><Box at={[0,0,sign*.1]} size={[Math.min(2.7,w*.5),Math.min(3.4,h*.34),.08]} color="#93a8a5"/><Box at={[0,Math.min(2.1,h*.23),0]} size={[Math.min(4,w*.78),.16,.9]} color="#b4a793"/></group>)}</group>)}</group>)}
  {!building&&<group position={[-w/2,0,-d/2]}><HipRoof w={w} d={d} base={h+.15} pitch={.36} eave={.65} color="#cda287"/></group>}</group>;
 }
-export function SiteWorld({plan}:{plan:Plan}){return <Streetscape plan={plan}/>;}
+export function SiteWorld({plan,wetRoad=false}:{plan:Plan;wetRoad?:boolean}){return <Streetscape plan={plan} wetRoad={wetRoad}/>;}

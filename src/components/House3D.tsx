@@ -55,10 +55,10 @@ export function House3D({active=true,plan,floor,assets,projectId,canRender=false
   const {active:loading,progress}=useProgress();
   const device=useDevice(),touch=useTouch(),motion=useRef(emptyMotion()),compass=useRef<HTMLDivElement>(null);
   const [quality,setQuality]=useState<QualityChoice>(()=>qualityChoice(readDevice('quality',device,'auto')));
-  const [autoLevel,setAutoLevel]=useState<QualityLevel>('high'),[fps,setFps]=useState(0);
+  const [autoLevel,setAutoLevel]=useState<QualityLevel>('balanced'),[fps,setFps]=useState(0);
   const actualQuality=quality==='auto'?autoLevel:quality,qualityConfig=QUALITY[actualQuality];
-  useEffect(()=>{setQuality(qualityChoice(readDevice('quality',device,'auto')));setAutoLevel('high');},[device]);
-  const chooseQuality=(value:string)=>{const q=qualityChoice(value);setQuality(q);setAutoLevel('high');setFps(0);saveDevice('quality',device,q);};
+  useEffect(()=>{setQuality(qualityChoice(readDevice('quality',device,'auto')));setAutoLevel('balanced');},[device]);
+  const chooseQuality=(value:string)=>{const q=qualityChoice(value);setQuality(q);setAutoLevel('balanced');setFps(0);saveDevice('quality',device,q);};
   const sampleFps=useCallback((value:number)=>setFps(value),[]);
   const chooseAuto=useCallback((level:QualityLevel)=>{setAutoLevel(level);setFps(0);},[]);
 
@@ -207,7 +207,7 @@ export function House3D({active=true,plan,floor,assets,projectId,canRender=false
         <ExteriorLightRig plan={plan} choice={mood} extent={extent} study={study?sun:undefined}/>
         <mesh rotation={[-Math.PI/2,0,0]} position={[0,GROUND_LEVEL-.18,0]} receiveShadow><planeGeometry args={[2000,2000]}/><meshStandardMaterial color="#969c91" roughness={1}/></mesh>
         {study&&<ClimateOverlay paths={paths} shift={[-plan.width/2,0,-plan.depth/2]}/>}
-        <HouseScene onSelect={present?undefined:onSelect} lightPower={exteriorLighting(mood,plan.design?.style).fixtures} contextVisible={contextVisible} plan={displayPlan} layout={layout} interactions={interactions} assets={assets} mode={mode} cutaway={cutaway} showServices={showServices} xray={xray}
+        <HouseScene onSelect={present?undefined:onSelect} lightPower={exteriorLighting(mood,plan.design?.style).fixtures} wetRoad={exteriorLighting(mood,plan.design?.style).label==='Sunset'} contextVisible={contextVisible} plan={displayPlan} layout={layout} interactions={interactions} assets={assets} mode={mode} cutaway={cutaway} showServices={showServices} xray={xray}
           openDoors={openDoors} doorAngles={doorAngles} openShelves={openShelves} tvOn={tvOn} chimneyOn={chimneyOn} onInteract={interact}/>
         <InteriorLighting plan={displayPlan}/><InteriorReflections plan={displayPlan} layout={layout} enabled={qualityConfig.reflections&&reflections&&!cutaway&&!xray}/><CameraRig active={active} touch={motion} plan={plan} layout={layout} interactions={interactions} mode={mode} floor={floor} command={command} tourId={tourId}
           openDoors={openDoors} doorAngles={doorAngles} onInteract={interact} onHover={setHover} onTourDone={()=>overview()} onLockChange={setLocked}/>

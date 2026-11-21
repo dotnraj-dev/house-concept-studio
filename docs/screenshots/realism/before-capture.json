@@ -1,0 +1,159 @@
+{
+  "phase": "before",
+  "viewport": [
+    1280,
+    1000
+  ],
+  "demoProject": "facade-30x50-g1",
+  "shots": [
+    {
+      "style": "tn-contemporary-slats",
+      "filename": "before-tn-contemporary-slats-front.png",
+      "lighting": "recipe",
+      "quality": "high",
+      "fpsText": "High · 13.2 Fps",
+      "camera": [
+        -15.71705764030251,
+        4.000000000000001,
+        -79.65685765909762
+      ],
+      "fov": 45,
+      "draws": 1,
+      "triangles": 1
+    },
+    {
+      "style": "tn-jaali-stone",
+      "filename": "before-tn-jaali-stone-front.png",
+      "lighting": "recipe",
+      "quality": "high",
+      "fpsText": "High · 6 Fps",
+      "camera": [
+        -15.71705764030251,
+        4.000000000000001,
+        -79.65685765909762
+      ],
+      "fov": 45,
+      "draws": 1,
+      "triangles": 1
+    },
+    {
+      "style": "tn-curved-villa",
+      "filename": "before-tn-curved-villa-front.png",
+      "lighting": "recipe",
+      "quality": "balanced",
+      "fpsText": "Balanced · 12.8 Fps",
+      "camera": [
+        -15.71705764030251,
+        4.000000000000001,
+        -79.65685765909762
+      ],
+      "fov": 45,
+      "draws": 715,
+      "triangles": 1850034
+    },
+    {
+      "style": "tn-tiled-bungalow",
+      "filename": "before-tn-tiled-bungalow-front.png",
+      "lighting": "recipe",
+      "quality": "low",
+      "fpsText": "Low",
+      "camera": [
+        -15.71705764030251,
+        4.000000000000001,
+        -79.65685765909762
+      ],
+      "fov": 45,
+      "draws": 716,
+      "triangles": 1887686
+    },
+    {
+      "style": "tn-narrow-g2",
+      "filename": "before-tn-narrow-g2-front.png",
+      "lighting": "recipe",
+      "quality": "low",
+      "fpsText": "Low · 22.5 Fps",
+      "camera": [
+        -15.71705764030251,
+        4.000000000000001,
+        -79.65685765909762
+      ],
+      "fov": 45,
+      "draws": 709,
+      "triangles": 1851670
+    },
+    {
+      "room": "living",
+      "label": "Ground · Living room",
+      "filename": "before-living.png",
+      "quality": "low",
+      "fpsText": "Low · 0.8 Fps",
+      "camera": [
+        -7.799999999999999,
+        5.150000002184512,
+        -16.436300000000003
+      ]
+    },
+    {
+      "room": "dining",
+      "label": "Ground · Dining",
+      "filename": "before-dining.png",
+      "quality": "low",
+      "fpsText": "Low · 13.7 Fps",
+      "camera": [
+        -1.25,
+        5.150000000000001,
+        15.980000000000004
+      ]
+    },
+    {
+      "room": "kitchen",
+      "label": "Ground · Kitchen",
+      "filename": "before-kitchen.png",
+      "quality": "low",
+      "fpsText": "Low · 13.7 Fps",
+      "camera": [
+        -10.8,
+        5.15,
+        2.9400000000000013
+      ]
+    },
+    {
+      "room": "bedroom",
+      "label": "Ground · Parents bedroom",
+      "filename": "before-bedroom.png",
+      "quality": "low",
+      "fpsText": "Low · 13.7 Fps",
+      "camera": [
+        4.300000000000001,
+        5.15,
+        -5.139999999999999
+      ]
+    },
+    {
+      "room": "bathroom",
+      "label": "Ground · Bathroom 1",
+      "filename": "before-bathroom.png",
+      "quality": "low",
+      "fpsText": "Low · 13.7 Fps",
+      "camera": [
+        -1.3499999999999996,
+        5.15,
+        10.21
+      ]
+    },
+    {
+      "room": "lounge",
+      "label": "Floor 1 · Family lounge",
+      "filename": "before-lounge.png",
+      "quality": "low",
+      "fpsText": "Low · 13.7 Fps",
+      "camera": [
+        6.199999999999999,
+        15.15,
+        -6.740000000000002
+      ]
+    }
+  ],
+  "errors": [],
+  "capturedAt": "2026-11-21T14:18:32.518Z"
+}

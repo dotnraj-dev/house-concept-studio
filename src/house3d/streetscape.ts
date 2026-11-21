@@ -1,4 +1,4 @@
-import {Group,BufferGeometry,Mesh,MeshStandardMaterial,Float32BufferAttribute,Color,Shape,ShapeGeometry,PlaneGeometry,LatheGeometry,Vector2,type Material} from 'three';
+import {Group,BufferGeometry,Mesh,MeshStandardMaterial,Float32BufferAttribute,Color,Shape,ShapeGeometry,PlaneGeometry,LatheGeometry,Vector2,DataTexture,RGBAFormat,UnsignedByteType,RepeatWrapping,SRGBColorSpace,type Material} from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import type {Plan} from '../types';
@@ -28,6 +28,8 @@ function neighbourGeometry(tiled:boolean){
    add([4,4.1,.05],[x,f*9.5+5,-d/2-.18],'#91a5a4');
    add([.07,4.2,.1],[x,f*9.5+5,-d/2-.25],'#4c5959');
    add([5,.14,1.25],[x,f*9.5+7.5,-d/2-.35],'#e2e4db');
+   for(let j=-1;j<=1;j++)add([.055,4.05,.08],[x+j*1.15,f*9.5+5,-d/2-.29],'#5e6761');
+   add([4.9,.12,.5],[x,f*9.5+2.5,-d/2-.31],'#e7e1d2');
   }
  }
  add([3,6.8,.15],[0,3.4,-d/2-.12],'#736b59');
@@ -37,6 +39,8 @@ function neighbourGeometry(tiled:boolean){
   add([8,.45,3.3],[4,9.4,-d/2-1],'#dfe1d9');
   for(const x of [.2,7.8])add([.3,8.8,.5],[x,14,-d/2-.7],'#e8e8de');
   for(let x=.3;x<8;x+=.6)add([.035,3,.07],[x,11.1,-d/2-2.35],'#536365');
+  add([4.8,2.1,4.4],[-4,h+4.5,5],'#afb9b0');
+  for(let x=-6.7;x<-1.2;x+=.65)add([.13,2.5,.15],[x,h+5.5,2.7],'#697871');
  }else{
   // Profiled pitched slabs with real slope, white fascia and a clay ridge.
   for(const sign of [-1,1]){
@@ -44,6 +48,10 @@ function neighbourGeometry(tiled:boolean){
    const tint=new Color('#9f7660'),rgb=[];for(let i=0;i<g.attributes.position.count;i++)rgb.push(tint.r,tint.g,tint.b);
    g.setAttribute('color',new Float32BufferAttribute(rgb,3));parts.push(g);
   }
+  add([13,.26,3.2],[0,h-.15,-d/2-1.1],'#d9d5c5');
+  for(const x of [-5.5,5.5])add([.42,8.4,.42],[x,4.2,-d/2-2.4],'#e0dacb');
+  for(let i=0;i<3;i++)add([5.4,.16,.7],[0,.08+i*.15,-d/2-3.8-i*.55],'#c5bba5');
+  add([.3,.3,d+1],[0,h+3.9,0],'#8c5c43');
  }
  const merged=mergeGeometries(parts,false);parts.forEach(p=>p.dispose());if(!merged)throw new Error('Neighbour geometry could not be batched');return merged;
 }
@@ -61,11 +69,16 @@ export function streetscapeStats(root:Group){
  return {drawCalls:draws,triangles:Math.round(triangles),instances:instancesCount};
 }
 /** Illustrative scenery is kept separate from measured boundary observations. */
-export function buildStreetscape(plan:Plan){
+export function buildStreetscape(plan:Plan,wetRoad=false){
  const root=new Group();root.name='Tamil Nadu streetscape · illustrative background';
  const owned:Material[]=[];
  const material=(color:string,options:ConstructorParameters<typeof MeshStandardMaterial>[0]={})=>{const m=new MeshStandardMaterial({color,roughness:.84,...options});owned.push(m);return m;};
- const paint=material('#e3e4d9'),kerb=material('#b4b9b4'),paving=material('#b9b9ad'),asphalt=material('#424b4e',{roughness:plan.design?.style==='tn-curved-villa'?.5:.91}),marking=material('#c2c6b8');
+ // Fine patches vary the road response without turning the sunset surface into a mirror.
+ const roadPixels=new Uint8Array(128*128*4),roadRandom=seeded(817);
+ for(let y=0;y<128;y++)for(let x=0;x<128;x++){const i=(y*128+x)*4,grain=(roadRandom()-.5)*17+Math.sin(x*.19+y*.11)*4;
+  roadPixels[i]=roadPixels[i+1]=roadPixels[i+2]=Math.round(239+grain);roadPixels[i+3]=255;}
+ const roadMap=new DataTexture(roadPixels,128,128,RGBAFormat,UnsignedByteType);roadMap.colorSpace=SRGBColorSpace;roadMap.wrapS=roadMap.wrapT=RepeatWrapping;roadMap.repeat.set(22,3);roadMap.needsUpdate=true;
+ const paint=material('#e3e4d9'),kerb=material('#b4b9b4'),paving=material('#b9b9ad'),asphalt=material('#424b4e',{map:roadMap,roughness:wetRoad?.52:.91,metalness:wetRoad?.055:0}),marking=material('#c2c6b8');
  const foliage=material('#ffffff',{vertexColors:true,side:2,roughness:.83}),bark=material('#ffffff',{vertexColors:true});
  const muted=material('#ffffff',{vertexColors:true}),distant=material('#748b7d',{roughness:1,side:2}),distantBuilding=material('#a2aca4');
  const contexts=surroundings(plan),polygon=plotEdges(plan),c=faceContext(plan,makeHouseLayout(plan));
@@ -115,6 +128,7 @@ export function buildStreetscape(plan:Plan){
  const gateSpans=c.openings.filter(o=>o.kind==='door'||o.kind==='portico').map(o=>[o.u-.9,o.u+o.w+.9]);
  const openU=(u:number)=>!gateSpans.some(([a,b])=>u>a&&u<b);
  const shrubs:Pose[]=[],pots:Pose[]=[],treeRoots:Pose[]=[];
+ const gardenRandom=seeded(179);
  const roadVertices=polygon.findIndex(p=>p.road);
  if(roadVertices>=0){
   const a=polygon[roadVertices],b=polygon[(roadVertices+1)%polygon.length],dx=b.x-a.x,dz=b.y-a.y,len=Math.hypot(dx,dz),signed=polygon.reduce((s,p,i)=>s+p.x*polygon[(i+1)%polygon.length].y-p.y*polygon[(i+1)%polygon.length].x,0);
@@ -122,7 +136,8 @@ export function buildStreetscape(plan:Plan){
   for(let t=1.4;t<len-1;t+=2.1){
    const x=a.x+dx*t/len+nx*.8-plan.offsetX,z=a.y+dz*t/len+nz*.8-plan.offsetY,u=c.u(x,z);
    if(!openU(u))continue;
-   pots.push({at:[x,0,z],scale:[1,.7,1]});shrubs.push({at:[x,.9,z],scale:[.9,1.25,.9]});
+   const spread=.78+gardenRandom()*.4,height=.92+gardenRandom()*.46;
+   pots.push({at:[x,0,z],scale:[spread,.7,spread]});shrubs.push({at:[x,.9,z],rotation:[0,gardenRandom()*Math.PI*2,0],scale:[spread,height,spread]});
    if(!treeRoots.length&&t>2){trees.frangipani.push({at:[x,.2,z],scale:[.42,.55,.42]});treeRoots.push({at:[x,0,z]});}
   }
  }
@@ -148,5 +163,5 @@ export function buildStreetscape(plan:Plan){
  root.add(instances(profile(1,1,1,.035),distantBuilding,blocks,'Distant building silhouettes'));
  root.userData={illustrative:true,modelUnits:'feet',illustrativeNeighbourFootprints:footprints,...streetscapeStats(root)};
  const geometries=new Set<BufferGeometry>();root.traverse(o=>{if((o as Mesh).isMesh)geometries.add((o as Mesh).geometry);});
- return {root,dispose:()=>{geometries.forEach(g=>g.dispose());owned.forEach(m=>m.dispose());}};
+ return {root,dispose:()=>{geometries.forEach(g=>g.dispose());owned.forEach(m=>m.dispose());roadMap.dispose();}};
 }

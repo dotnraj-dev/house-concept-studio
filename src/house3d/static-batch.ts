@@ -42,7 +42,15 @@ function dynamicAncestor(o: Object3D, root: Object3D): boolean {
   return false;
 }
 
-export type Candidate = {mesh: Mesh; materialKey: string};
+export type Candidate = {mesh: Mesh; materialKey: string; zone: string};
+
+function batchZone(mesh:Object3D,root:Object3D):string{
+ for(let p:Object3D|null=mesh.parent;p&&p!==root.parent;p=p.parent){
+  if(p.userData.batchZone)return String(p.userData.batchZone);
+  if(p.userData.roomId)return `room:${p.userData.roomId}`;
+ }
+ return 'site';
+}
 
 /** Static, opaque, single-material meshes under root that are safe to merge. */
 export function collectCandidates(root: Object3D): Candidate[] {
@@ -57,7 +65,7 @@ export function collectCandidates(root: Object3D): Candidate[] {
     if (material.transparent || (material as any).opacity < 1) return;
     if (!effectivelyVisible(mesh) || dynamicAncestor(mesh, root)) return;
     const key = materialSignature(material);
-    if (key) out.push({mesh, materialKey: key});
+    if (key) out.push({mesh, materialKey: key, zone: batchZone(mesh,root)});
   });
   return out;
 }
@@ -69,16 +77,16 @@ function geometryKey(g: BufferGeometry): string {
 /** Fingerprint of everything that would change the batches: membership, materials, shadows, transforms. */
 export function sceneFingerprint(candidates: Candidate[]): string {
   const parts: string[] = [];
-  for (const {mesh, materialKey} of candidates) {
+  for (const {mesh, materialKey,zone} of candidates) {
     const e = mesh.matrixWorld.elements;
-    parts.push(`${mesh.uuid}:${mesh.geometry.uuid}:${mesh.castShadow ? 1 : 0}${mesh.receiveShadow ? 1 : 0}:${materialKey}:${e[0].toFixed(4)},${e[2].toFixed(4)},${e[5].toFixed(4)},${e[12].toFixed(3)},${e[13].toFixed(3)},${e[14].toFixed(3)}`);
+    parts.push(`${mesh.uuid}:${mesh.geometry.uuid}:${mesh.castShadow ? 1 : 0}${mesh.receiveShadow ? 1 : 0}:${zone}:${materialKey}:${e[0].toFixed(4)},${e[2].toFixed(4)},${e[5].toFixed(4)},${e[12].toFixed(3)},${e[13].toFixed(3)},${e[14].toFixed(3)}`);
   }
   return parts.join(';');
 }
 
 /** Like sceneFingerprint but without transforms: membership, materials, shadows and geometry only. */
 export function membershipFingerprint(candidates: Candidate[]): string {
-  return candidates.map(({mesh, materialKey}) => `${mesh.uuid}:${mesh.geometry.uuid}:${mesh.castShadow ? 1 : 0}${mesh.receiveShadow ? 1 : 0}:${materialKey}`).join(';');
+  return candidates.map(({mesh, materialKey,zone}) => `${mesh.uuid}:${mesh.geometry.uuid}:${mesh.castShadow ? 1 : 0}${mesh.receiveShadow ? 1 : 0}:${zone}:${materialKey}`).join(';');
 }
 
 export function matrixKey(mesh: Mesh): string { return mesh.matrixWorld.elements.map(v => v.toFixed(4)).join(','); }
@@ -89,7 +97,7 @@ export type BatchResult ={group: Group; batched: Mesh[]; drawCalls: number};
 export function buildBatches(candidates: Candidate[], minPerBatch = 2): BatchResult {
   const groups = new Map<string, Candidate[]>();
   for (const c of candidates) {
-    const key = `${c.materialKey}#${c.mesh.castShadow ? 1 : 0}${c.mesh.receiveShadow ? 1 : 0}#${geometryKey(c.mesh.geometry)}`;
+    const key = `${c.zone}#${c.materialKey}#${c.mesh.castShadow ? 1 : 0}${c.mesh.receiveShadow ? 1 : 0}#${geometryKey(c.mesh.geometry)}`;
     const list = groups.get(key);
     if (list) list.push(c); else groups.set(key, [c]);
   }

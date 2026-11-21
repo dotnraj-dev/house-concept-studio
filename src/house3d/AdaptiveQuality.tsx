@@ -17,7 +17,8 @@ export function AdaptiveQuality({sceneVersion,moving,stamp,choice,level,ready,on
  useFrame(()=>{
   // Static overview shadows are reused after animations settle. High and walk/tour
   // retain live maps. This changes render scheduling, never the house or export.
-  gl.shadowMap.autoUpdate=level==='high'||moving||performance.now()<shadowUntil.current;
+  // Sun and building geometry are static between edits. Reuse their shadow map while walking.
+  gl.shadowMap.autoUpdate=performance.now()<shadowUntil.current;
   if(!ready||!active.current||document.hidden)return;
   const now=performance.now();if(!began.current)began.current=now;
   invalidate();if(now-began.current<1600){sample.current.last=now;return;}

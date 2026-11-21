@@ -1,0 +1,202 @@
+{
+  "phase": "after",
+  "viewport": [
+    1280,
+    1000
+  ],
+  "demoProject": "facade-30x50-g1",
+  "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001506) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "shots": [
+    {
+      "style": "tn-contemporary-slats",
+      "filename": "after-tn-contemporary-slats-front.png",
+      "lighting": "recipe",
+      "quality": "balanced",
+      "fpsText": "Balanced · 15 Fps",
+      "camera": [
+        -15.71705764030251,
+        4.000000000000001,
+        -79.65685765909762
+      ],
+      "fov": 45,
+      "draws": 1181,
+      "triangles": 2258306
+    },
+    {
+      "style": "tn-jaali-stone",
+      "filename": "after-tn-jaali-stone-front.png",
+      "lighting": "recipe",
+      "quality": "low",
+      "fpsText": "Low",
+      "camera": [
+        -15.71705764030251,
+        4.000000000000001,
+        -79.65685765909762
+      ],
+      "fov": 45,
+      "draws": 1159,
+      "triangles": 2068046
+    },
+    {
+      "style": "tn-curved-villa",
+      "filename": "after-tn-curved-villa-front.png",
+      "lighting": "recipe",
+      "quality": "low",
+      "fpsText": "Low · 21.6 Fps",
+      "camera": [
+        -15.71705764030251,
+        4.000000000000001,
+        -79.65685765909762
+      ],
+      "fov": 45,
+      "draws": 1165,
+      "triangles": 2081950
+    },
+    {
+      "style": "tn-tiled-bungalow",
+      "filename": "after-tn-tiled-bungalow-front.png",
+      "lighting": "recipe",
+      "quality": "low",
+      "fpsText": "Low · 23.9 Fps",
+      "camera": [
+        -15.71705764030251,
+        4.000000000000001,
+        -79.65685765909762
+      ],
+      "fov": 45,
+      "draws": 1170,
+      "triangles": 2166450
+    },
+    {
+      "style": "tn-narrow-g2",
+      "filename": "after-tn-narrow-g2-front.png",
+      "lighting": "recipe",
+      "quality": "low",
+      "fpsText": "Low · 19.5 Fps",
+      "camera": [
+        -15.71705764030251,
+        4.000000000000001,
+        -79.65685765909762
+      ],
+      "fov": 45,
+      "draws": 1163,
+      "triangles": 2130434
+    },
+    {
+      "room": "living",
+      "label": "Ground · Living room",
+      "filename": "after-living.png",
+      "quality": "low",
+      "fpsText": "Low · 17 Fps",
+      "camera": [
+        -7.799999999999999,
+        5.15,
+        -16.436300000000003
+      ]
+    },
+    {
+      "room": "dining",
+      "label": "Ground · Dining",
+      "filename": "after-dining.png",
+      "quality": "low",
+      "fpsText": "Low · 17 Fps",
+      "camera": [
+        -1.25,
+        5.15,
+        15.980000000000004
+      ]
+    },
+    {
+      "room": "kitchen",
+      "label": "Ground · Kitchen",
+      "filename": "after-kitchen.png",
+      "quality": "low",
+      "fpsText": "Low · 17 Fps",
+      "camera": [
+        -10.8,
+        5.15,
+        2.9400000000000013
+      ]
+    },
+    {
+      "room": "bedroom",
+      "label": "Ground · Parents bedroom",
+      "filename": "after-bedroom.png",
+      "quality": "low",
+      "fpsText": "Low · 17 Fps",
+      "camera": [
+        4.300000000000001,
+        5.15,
+        -5.139999999999999
+      ]
+    },
+    {
+      "room": "bathroom",
+      "label": "Ground · Bathroom 1",
+      "filename": "after-bathroom.png",
+      "quality": "low",
+      "fpsText": "Low · 17 Fps",
+      "camera": [
+        -1.3499999999999996,
+        5.15,
+        10.21
+      ]
+    },
+    {
+      "room": "lounge",
+      "label": "Floor 1 · Family lounge",
+      "filename": "after-lounge.png",
+      "quality": "low",
+      "fpsText": "Low · 17 Fps",
+      "camera": [
+        6.199999999999999,
+        15.15,
+        -6.740000000000002
+      ]
+    }
+  ],
+  "performanceSamples": [
+    {
+      "view": "walk",
+      "preset": "golden",
+      "quality": "low",
+      "fps": 42.5,
+      "draws": 114,
+      "triangles": 171626
+    },
+    {
+      "view": "front",
+      "preset": "day",
+      "quality": "low",
+      "fps": 22,
+      "draws": 1178,
+      "triangles": 2211460
+    },
+    {
+      "view": "front",
+      "preset": "golden",
+      "quality": "low",
+      "fps": 21.7,
+      "draws": 1178,
+      "triangles": 2211460
+    },
+    {
+      "view": "front",
+      "preset": "sunset",
+      "quality": "low",
+      "fps": 21.7,
+      "draws": 1178,
+      "triangles": 2211460
+    },
+    {
+      "view": "front",
+      "preset": "dusk",
+      "quality": "low",
+      "fps": 19.9,
+      "draws": 1178,
+      "triangles": 2211460
+    }
+  ],
+  "errors": [],
+  "capturedAt": "2026-11-21T15:22:19.201Z"
+}

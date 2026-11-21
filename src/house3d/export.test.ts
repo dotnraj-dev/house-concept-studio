@@ -22,6 +22,15 @@ test('roughness packing preserves roughness and does not invent metallic surface
   assert.deepEqual([...packedMetalRoughPixels(rough,new Uint8ClampedArray([0,0,17,255,0,0,31,255]))],[0,88,17,255,0,220,31,255]);
 });
 
+test('camera visibility culling never removes surrounding geometry from an export',()=>{
+  const root=new Group(),gate=new Group();gate.userData.runtimeVisibilityGate=true;gate.visible=false;
+  gate.add(new Mesh(new BoxGeometry(2,2,2),new MeshStandardMaterial()));root.add(gate);
+  const exported=prepareExport(root);
+  assert.equal(exported.root.children[0].visible,true);
+  assert.equal(gate.visible,false,'the live viewer retains its current culling state');
+  exported.dispose();
+});
+
 test('opaque JPEG export stays compact while alpha-cut images keep their encoding',()=>{
   const image={src:'/assets/materials/paint-color.jpg',width:1024,height:1024};
   const texture=new Texture(image as unknown as HTMLImageElement),root=new Group();
