@@ -30,7 +30,10 @@ const reqSchema = requirementsSchema;
 const ratiosSchema = z.object({ front: z.number().min(.25).max(.42), middle: z.number().min(.22).max(.36), livingShare: z.number().min(.38).max(.68), kitchenShare: z.number().min(.40).max(.60) });
 const projectSchema = z.object({ title: z.string().min(1).max(180), requirements: reqSchema, paragraph: z.string().max(10000), transcript: z.string().max(20000), selectedVariant: z.number().int().min(0).max(2), ratios: ratiosSchema, status: z.enum(['concept','review','approved']) });
 const userSchema = z.object({ name: z.string().min(1).max(120), email: z.email().max(200), password: z.string().min(12).max(200), permissions: z.array(z.enum(FEATURES)).max(FEATURES.length) });
-const settingsSchema = z.object({ companyName: z.string().min(1).max(160), costPerSqft: z.number().min(0).max(100000), sideSetback: z.number().min(0).max(100), frontSetback: z.number().min(0).max(100), rearSetback: z.number().min(0).max(100), currency: z.literal('INR') });
+const settingsSchema = z.object({ companyName: z.string().min(1).max(160), costPerSqft: z.number().min(0).max(100000), sideSetback: z.number().min(0).max(100), frontSetback: z.number().min(0).max(100), rearSetback: z.number().min(0).max(100), currency: z.literal('INR'),
+  companyLogo: z.string().max(400_000).regex(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/).optional().or(z.literal('')),
+  companyTagline: z.string().max(120).optional(), companyAddress: z.string().max(300).optional(), companyPhone: z.string().max(40).optional(),
+  companyEmail: z.string().max(160).optional(), companyWebsite: z.string().max(160).optional(), companyGstin: z.string().max(20).optional() });
 const assetFields = z.object({ name: z.string().min(1).max(120), category: z.string().min(1).max(80), width: z.coerce.number().positive().max(100), depth: z.coerce.number().positive().max(100), height: z.coerce.number().positive().max(100), license: z.string().min(1).max(200), source: z.string().max(500) });
 
 function projectRow(row: any) { return { id: row.id, ownerId: row.owner_id, title: row.title, requirements: normalizeRequirements(row.requirements),

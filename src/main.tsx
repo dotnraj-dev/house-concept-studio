@@ -6,6 +6,7 @@ import './brief.css';
 import './components/workspace.css';
 import './ui/ui.css';
 import './ui/theme-mono.css';
+import './ui/layout-fixes.css';
 
 // The studio uses one white-and-black theme only (customer decision 2026-11-21): pin light mode before the app reads it.
 try{localStorage.setItem('hcs-theme','light');}catch{}
