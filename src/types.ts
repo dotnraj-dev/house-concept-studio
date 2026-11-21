@@ -72,10 +72,13 @@ export type SiteAnalysis = { polygon:PlotVertex[]; area:number; footprint:Rect; 
 export type RoomRequest = { id:string; kind:RoomKind; label:string; floor:number; mode:'auto'|'preferred'|'exact'; w:number; h:number; zone:Zone; facing:Direction|'any'; priority:'required'|'preferred'; toiletStyle:'western'|'indian' };
 export type VastuRule = { id:string; target:string; zone:Zone; facing:Direction|'any'; priority:'required'|'preferred'; note:string };
 export type LevelProgram = { floor:number; name:string; bedrooms:number; bathrooms:number; kitchen:boolean; living:boolean; rental:boolean; future:boolean };
+export type TerraceOptions={stairLocation:'internal'|'front'|'side'|'rear';stairType:'dogleg'|'spiral';independentFloors:number[];tankMount:'headroom'|'slab';tankCapacity:number};
 export type ServiceNode = { id:string; type:'tank'|'sump'|'septic'|'borewell'|'pump'|'sewer'|'rainwater'; label:string; x:number; y:number; level:number; capacity:number; side:Direction; locked:boolean };
 export type QuoteExtra = { id:string; label:string; quantity:number; rate:number; included:boolean; category:'interior'|'construction'|'service' };
 export type DesignBrief = {
   editor?:PlanEdits;
+  editorEnabled?:boolean;
+  terrace?:TerraceOptions;
   fitout?:HomeFitout; tnRules?:TNSiteRules; siteContext?:SiteContext; guideAnswers?:Record<string,string>;
   version:2; customerEmail:string; language:string; household:string; authority:string;
   plotMode:'rectangle'|'polygon'; vertices:PlotVertex[]; surveyImage?:string; measurement:'surveyed'|'approximate';
@@ -97,7 +100,7 @@ export const DEFAULT_DESIGN: DesignBrief = {
 };
 export function designOf(req:Requirements):DesignBrief {
   const d=req.design;
-  return {...DEFAULT_DESIGN,...d,setbacks:{...DEFAULT_DESIGN.setbacks,...d?.setbacks},
+  return {...DEFAULT_DESIGN,...d,terrace:{stairLocation:'internal',stairType:'dogleg',independentFloors:[],tankMount:d?.services.some(s=>s.type==='tank')?'slab':'headroom',tankCapacity:1000,...d?.terrace},setbacks:{...DEFAULT_DESIGN.setbacks,...d?.setbacks},
     mainDoorFacing:d?.mainDoorFacing||req.roadSide,houseFacing:d?.houseFacing||req.roadSide,outerFacing:d?.outerFacing||req.roadSide,
     vastuMode:d?.vastuMode||(req.vastu==='none'?'none':req.vastu==='essential'?'strict':'semi')};
 }

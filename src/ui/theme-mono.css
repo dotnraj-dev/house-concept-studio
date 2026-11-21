@@ -51,7 +51,7 @@ input[type=checkbox],input[type=radio],input[type=range]{accent-color:var(--ui-b
 ::-webkit-scrollbar-button{display:none;width:0;height:0}
 ::-webkit-scrollbar-corner{background:transparent}
 
-/* Overrides for hard-coded brand colours in the app stylesheets (443 declarations). */
+/* Overrides for hard-coded brand colours in the app stylesheets (446 declarations). */
 :root {
     color: #2c2c2c;
     background: #f4f4f4
@@ -976,6 +976,15 @@ th,td {
 }
 .workspace-plan .plan-options {
     color: #666666
+}
+.workspace-plan .plan-options {
+    background: var(--ui-surface,#efefef)
+}
+.workspace-plan .plan-zoom-level {
+    color: var(--ui-text,#313131)
+}
+.plan-scale-bar {
+    color: var(--ui-text,#313131)
 }
 .canvas-floor {
     border: 1px solid #dbdbdb;

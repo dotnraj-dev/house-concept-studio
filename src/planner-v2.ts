@@ -13,13 +13,19 @@ export function zoneMatches(zone:Zone,x:number,y:number,w:number,h:number){
  return (!zone.includes('north')||ny<=.45)&&(!zone.includes('south')||ny>=.55)&&(!zone.includes('east')||nx>=.55)&&(!zone.includes('west')||nx<=.45);
 }
 export function generatePlan(req:Requirements,settings:Settings,variant:number,ratios:Ratios):Plan{
- const original=designOf(req),fitout=fitoutOf(original),site=analyseSite(req,settings),actual=site.footprint;
+ const original=designOf(req),fitout=fitoutOf(original),site=analyseSite(req,settings);
+ const stairReserve=original.terrace?.stairType==='spiral'?6.3:7.1,frontReserve=original.terrace?.stairType==='spiral'?6.3:15.3;
+ let actual={...site.footprint};
+ if(original.terrace?.stairLocation==='side')actual.w=Math.max(0,actual.w-stairReserve);
+ if(original.terrace?.stairLocation==='front'){actual.y+=frontReserve;actual.h=Math.max(0,actual.h-frontReserve);}
+ if(original.terrace?.stairLocation==='rear')actual.h=Math.max(0,actual.h-frontReserve);
  const turn={north:0,east:1,south:2,west:3}[original.twoDoors?original.outerFacing:original.houseFacing];
  const order=['north','north-east','east','south-east','south','south-west','west','north-west'];
  const localZone=(z:Zone):Zone=>order.includes(z)?order[(order.indexOf(z)-turn*2+8)%8] as Zone:z;
  let d={...original,vastuRules:original.vastuRules.map(v=>({...v,zone:localZone(v.zone)})),roomRequests:original.roomRequests.map(q=>({...q,zone:localZone(q.zone),w:turn%2?q.h:q.w,h:turn%2?q.w:q.h}))};
  let fp={...actual,w:turn%2?actual.h:actual.w,h:turn%2?actual.w:actual.h};
  const levels=Math.max(1,Math.min(100,Math.floor(req.floors||1))),rooms:Room[]=[],checks:DesignCheck[]=[];
+ const internalStair=d.terrace?.stairLocation!=='front'&&d.terrace?.stairLocation!=='side'&&d.terrace?.stairLocation!=='rear';
  if(req.bedrooms+req.bathrooms+d.levels.reduce((s,l)=>s+l.bedrooms+l.bathrooms,0)>1000)return {rooms:[],valid:false,width:actual.w,depth:actual.h,plotWidth:req.plotWidth,plotDepth:req.plotDepth,offsetX:actual.x,offsetY:actual.y,roadSide:req.roadSide,toiletStyle:req.toiletStyle,pooja:req.pooja,variantName:'Concept',site,design:original,levels,checks:[],warnings:['This brief exceeds the interactive scene limit. Split large buildings into separate projects.']};
  const warnings=[...site.issues],plotWidth=site.polygon.length?Math.max(...site.polygon.map(p=>p.x)):req.plotWidth,plotDepth=site.polygon.length?Math.max(...site.polygon.map(p=>p.y)):req.plotDepth;
  const base={rooms,width:Math.max(1,actual.w),depth:Math.max(1,actual.h),plotWidth,plotDepth,offsetX:fp.x,offsetY:fp.y,roadSide:req.roadSide,toiletStyle:req.toiletStyle,pooja:req.pooja,variantName:['Balanced home','Open living','Private rooms'][variant]||'Balanced home',site,design:original,checks,levels,mainDoorFacing:d.mainDoorFacing};
@@ -35,14 +41,14 @@ export function generatePlan(req:Requirements,settings:Settings,variant:number,r
  let bedIndex=0;
  const requestFor=(r:Room)=>d.roomRequests.find(q=>q.id===r.id);
  for(let f=0;f<levels;f++){
-  const custom=d.levels.find(l=>l.floor===f),beds=custom?custom.bedrooms:Math.floor(req.bedrooms/levels)+(f>=levels-req.bedrooms%levels?1:0),baths=custom?custom.bathrooms:Math.floor(req.bathrooms/levels)+(f>=levels-req.bathrooms%levels?1:0);
+  const custom=d.levels.find(l=>l.floor===f),independent=!!d.terrace?.independentFloors.includes(f),beds=custom?custom.bedrooms:Math.floor(req.bedrooms/levels)+(f>=levels-req.bedrooms%levels?1:0),baths=Math.max(independent?1:0,custom?custom.bathrooms:Math.floor(req.bathrooms/levels)+(f>=levels-req.bathrooms%levels?1:0));
   const foyerDepth=f===0&&d.twoDoors?5:0;
   if(foyerDepth)add({id:'0-foyer',kind:'foyer',label:'Entrance foyer',floor:f,x:corridorX,y:0,w:corridor,h:foyerDepth});
   add({id:`${f}-passage`,kind:'passage',label:'Clear passage',floor:f,x:corridorX,y:foyerDepth,w:corridor,h:fp.h-foyerDepth});
-  if(levels>1)add({id:`${f}-stairs`,kind:'stairs',label:f===levels-1?'Stair landing':'Stairs',floor:f,x:stairWest?0:rightX,y:fp.h-stairD,w:stairWest?leftW:rightW,h:stairD});
+  if(internalStair)add({id:`${f}-stairs`,kind:'stairs',label:f===levels-1?'Stair to terrace':'Stairs',floor:f,x:stairWest?0:rightX,y:fp.h-stairD,w:stairWest?leftW:rightW,h:stairD});
   const items:Room[]=[];const put=(kind:RoomKind,label:string,index=0)=>items.push({id:`${f}-${kind}-${index}`,kind,label,floor:f,x:0,y:0,w:0,h:0});
-  if(f===0||custom?.living||(!custom&&f>0))put(f===0?'living':'lounge',f===0?'Living room':'Family lounge');
-  if(f===0||custom?.kitchen){put('kitchen',custom?.rental?'Rental kitchen':'Kitchen');put('dining','Dining');}
+  if(f===0||custom?.living||independent||(!custom&&f>0))put(f===0?'living':'lounge',f===0?'Living room':independent?'Independent living':'Family lounge');
+  if(f===0||custom?.kitchen||independent){put('kitchen',custom?.rental||independent?'Unit kitchen':'Kitchen');put('dining','Dining');}
   for(let n=0;n<beds;n++)put('bedroom',f===0&&n===0&&req.elderlyBedroom?'Parents bedroom':`Bedroom ${++bedIndex}`,n);
   for(let n=0;n<baths;n++)put('bathroom',`Bathroom ${n+1}`,n);
   if(f===0&&req.pooja&&fitout.prayerMode==='room')put('pooja',fitout.faith==='hindu'?'Pooja room':'Prayer room');if(f===0&&req.utility&&fitout.utilityMode==='laundry')put('utility','Laundry & utility');if(f===0&&req.parking)put('portico','Car portico');
@@ -56,7 +62,7 @@ export function generatePlan(req:Requirements,settings:Settings,variant:number,r
   }
   const weights=(r:Room)=>{const q=requestFor(r),t=req.requestedSizes[r.kind as keyof Requirements['requestedSizes']];return q&&q.w>0&&q.h>0?q.w*q.h:t?.w&&t?.h?t.w*t.h:((AREA[r.kind]||80)+(suiteFor.has(r.id)?80:0))*(r.kind==='living'&&req.livingPriority==='spacious'?1.3:r.kind==='kitchen'&&req.kitchenPriority==='spacious'?1.25:1);};
   const ruleFor=(r:Room)=>rules.find(v=>v.target===r.id||v.target===r.kind||(r.kind==='pooja'&&v.target.startsWith('pooja-'))||(r.kind==='kitchen'&&v.target==='cooking'));
-  const west:Room[]=[],east:Room[]=[],capacity=[leftW*(fp.h-(levels>1&&stairWest?stairD:0)),rightW*(fp.h-(levels>1&&!stairWest?stairD:0))];
+  const west:Room[]=[],east:Room[]=[],capacity=[leftW*(fp.h-(internalStair&&stairWest?stairD:0)),rightW*(fp.h-(internalStair&&!stairWest?stairD:0))];
   for(const item of [...items].sort((a,b)=>weights(b)-weights(a))){
    const q=requestFor(item),zone=q?.zone&&q.zone!=='any'?q.zone:ruleFor(item)?.zone||'any';
    let side=zone.includes('west')?0:zone.includes('east')?1:item.kind==='portico'?1:item.kind==='living'?0:-1;
@@ -67,13 +73,13 @@ export function generatePlan(req:Requirements,settings:Settings,variant:number,r
   if(fitout.openKitchen){const kitchen=items.find(r=>r.kind==='kitchen'),dining=items.find(r=>r.kind==='dining');if(kitchen&&dining){const target=west.includes(kitchen)?west:east,other=target===west?east:west;if(other.includes(dining)){other.splice(other.indexOf(dining),1);target.push(dining);}}}
   const minDepth=(r:Room)=>requestFor(r)?.mode==='exact'?requestFor(r)!.h:suiteFor.has(r.id)?17:MIN[r.kind]?.[1]||4;
   for(let attempt=0;attempt<items.length;attempt++){
-   const groups=[west,east],caps=[fp.h-(levels>1&&stairWest?stairD:0),fp.h-(levels>1&&!stairWest?stairD:0)],totals=groups.map(g=>g.reduce((s,r)=>s+minDepth(r),0));
+   const groups=[west,east],caps=[fp.h-(internalStair&&stairWest?stairD:0),fp.h-(internalStair&&!stairWest?stairD:0)],totals=groups.map(g=>g.reduce((s,r)=>s+minDepth(r),0));
    const side=totals[0]>caps[0]+.01?0:totals[1]>caps[1]+.01?1:-1;if(side<0)break;
    const other=1-side,candidate=groups[side].filter(r=>!['living','portico',...(fitout.openKitchen?['kitchen','dining']:[])].includes(r.kind)&&!(requestFor(r)?.zone||ruleFor(r)?.zone||'any').includes(side?'east':'west')).sort((a,b)=>minDepth(a)-minDepth(b)).find(r=>totals[other]+minDepth(r)<=caps[other]&&(!suiteFor.has(r.id)||(other?rightW:leftW)>=14.5));
    if(!candidate)break;groups[side].splice(groups[side].indexOf(candidate),1);groups[other].push(candidate);
   }
   [west,east].forEach((group,side)=>{
-   const x=side?rightX:0,w=side?rightW:leftW,h=fp.h-(levels>1&&(side===0?stairWest:!stairWest)?stairD:0);
+   const x=side?rightX:0,w=side?rightW:leftW,h=fp.h-(internalStair&&(side===0?stairWest:!stairWest)?stairD:0);
    const order=(r:Room)=>{const q=requestFor(r),z=q?.zone&&q.zone!=='any'?q.zone:ruleFor(r)?.zone||'any';return z.includes('north')?-4:z.includes('south')?4:r.kind==='living'||r.kind==='lounge'||r.kind==='portico'?-3:r.kind==='bedroom'?2:r.kind==='kitchen'?-.5:0;};
    group.sort((a,b)=>order(a)-order(b)||(variant===2?b.kind.localeCompare(a.kind):a.kind.localeCompare(b.kind)));
    const minimum=group.filter(r=>requestFor(r)?.mode!=='exact').reduce((s,r)=>s+minDepth(r),0);

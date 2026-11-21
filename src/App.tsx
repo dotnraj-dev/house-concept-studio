@@ -106,7 +106,7 @@ export function App() {
   const currentPlan=useMemo(()=>generatePlan(project?.requirements||DEFAULT_REQUIREMENTS,settings,project?.selectedVariant||0,project?.ratios||DEFAULT_RATIOS),[project?.requirements,project?.selectedVariant,project?.ratios,settings]);
   const visibleRooms=currentPlan.rooms.filter(r=>r.floor===floor);
   const buildEstimate=quotation(currentPlan,project?.requirements||DEFAULT_REQUIREMENTS,settings).total;
-  useEffect(()=>{if(floor>=(project?.requirements.floors||1))setFloor(0);},[project?.requirements.floors]);
+  useEffect(()=>{if(floor>(project?.requirements.floors||1))setFloor(0);},[project?.requirements.floors]);
 
   async function handleLogin(e:React.FormEvent) {e.preventDefault();setBusy('login');try{const result=await login(loginEmail,loginPassword);setUser(result.user);await loadAll(result.user);notify('Welcome back.');}catch(error){notify((error as Error).message);}finally{setBusy('');}}
   async function handleLogout(){await logout().catch(()=>{});setUser(null);setProject(null);setProjects([]);localStorage.removeItem('hcs_last_project');setSection('overview');}

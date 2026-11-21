@@ -3,12 +3,13 @@ import {bathroomFixtures} from './house3d/bathroom';
 import {furnishingFrame,makeHouseLayout} from './house3d/layout';
 import { pointInPolygon, pointSegmentDistance } from './geometry';
 import type { DesignCheck, Plan, Point, ServiceNode } from './types';
+import {effectiveServices} from './terrace';
 export type PipeRoute={id:string;system:'supply'|'waste'|'rain';points:[number,number,number][];label:string};
 export const PIPE_COLORS={supply:'#2b83b7',waste:'#9b7249',rain:'#4c9a71'};
 export function serviceLayout(plan:Plan){
  const d=plan.design;if(!d)return {nodes:[] as ServiceNode[],pipes:[] as PipeRoute[],checks:[] as DesignCheck[]};
  const wallLayout=makeHouseLayout(plan);
- const nodes=d.services,pipes:PipeRoute[]=[],checks:DesignCheck[]=[];
+ const nodes=effectiveServices(plan),pipes:PipeRoute[]=[],checks:DesignCheck[]=[];
  const sx=plan.offsetX,sy=plan.offsetY,W=plan.width,H=plan.depth;
  const riser:Point={x:d.pipeSide==='west'?sx-.35:d.pipeSide==='east'?sx+W+.35:sx+W*.65,y:d.pipeSide==='north'?sy-.35:d.pipeSide==='south'?sy+H+.35:sy+H*.65};
  const tank=nodes.find(n=>n.type==='tank'||n.type==='sump'),outlet=nodes.find(n=>n.type===(d.sewerAvailable?'sewer':'septic'));

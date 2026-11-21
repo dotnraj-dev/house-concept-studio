@@ -39,6 +39,7 @@ import { CameraRig, type ViewCommand, type ViewerMode } from '../house3d/CameraR
 import { HouseScene } from '../house3d/HouseScene';
 import { FLOOR_HEIGHT, entrancePose, furnishingFrame, makeHouseLayout, makeInteractions, worldX, worldZ } from '../house3d/layout';
 import {FEET_TO_METRES,prepareExport} from '../house3d/export';
+import {headroom,terraceLevel} from '../terrace';
 
 function roomView(plan:Plan,room:Room|undefined,floor:number):ViewCommand{
   const landing=room?.kind==='stairs'?furnishingFrame(plan,room):null;
@@ -48,6 +49,7 @@ function roomView(plan:Plan,room:Room|undefined,floor:number):ViewCommand{
   return {id:Date.now(),floor,position:[worldX(plan,x),floor*FLOOR_HEIGHT+5.2,worldZ(plan,z)],
     look:[worldX(plan,x),floor*FLOOR_HEIGHT+4.5,worldZ(plan,z-5)]};
 }
+function terraceView(plan:Plan):ViewCommand{const r=headroom(plan),floor=terraceLevel(plan),x=Math.max(2,r.x-4),z=Math.max(2,r.y-6);return {id:Date.now()+Math.random(),floor,position:[worldX(plan,x),floor*FLOOR_HEIGHT+5.2,worldZ(plan,z)],look:[worldX(plan,r.x+r.w/2),floor*FLOOR_HEIGHT+4.5,worldZ(plan,r.y+2)]};}
 
 export function House3D({active=true,plan,floor,assets,projectId,canRender=false,onStyleChange,selection=null,onSelect,present=false,onOpenDock,climateTarget,studyOpen=false,ref}:{active?:boolean;plan:Plan;floor:number;assets:Asset[];projectId?:string;canRender?:boolean;onStyleChange?:(id:string)=>void;selection?:Selection;onSelect?:(v:Selection)=>void;present?:boolean;onOpenDock?:(tab:DockTab)=>void;climateTarget?:HTMLElement|null;studyOpen?:boolean;ref?:Ref<ViewerHandle>}){
   const {active:loading,progress}=useProgress();
@@ -127,9 +129,9 @@ export function House3D({active=true,plan,floor,assets,projectId,canRender=false
     if(item.action==='tv')return toggleSet(setTvOn,id);
     if(item.action==='chimney')return toggleSet(setChimneyOn,id);
     if(item.action==='stairs'){requestedMode.current='walk';
-      const nextFloor=item.floor===(plan.levels||1)-1?Math.max(0,item.floor-1):item.floor+1;
+      const nextFloor=item.floor+1;
       const destination=plan.rooms.find(room=>room.floor===nextFloor&&room.kind==='stairs')||plan.rooms.find(room=>room.floor===nextFloor&&room.kind==='lounge');
-      if(destination){lastFloor.current=nextFloor;onSelect?.({kind:'floor',floor:nextFloor});setMode('walk');setCommand(roomView(plan,destination,nextFloor));}
+      if(destination||nextFloor===terraceLevel(plan)){lastFloor.current=nextFloor;onSelect?.({kind:'floor',floor:nextFloor});setMode('walk');setCommand(destination?roomView(plan,destination,nextFloor):terraceView(plan));}
       return;
     }
     if(item.view&&item.look){requestedMode.current='walk';
@@ -145,7 +147,7 @@ export function House3D({active=true,plan,floor,assets,projectId,canRender=false
     lastFloor.current=floor;
     if(!active||mode!=='walk')return;
     const destination=plan.rooms.find(room=>room.floor===floor&&room.kind==='lounge')||plan.rooms.find(room=>room.floor===floor&&room.kind==='living')||plan.rooms.find(room=>room.floor===floor);
-    if(destination){setMode('walk');setCommand(roomView(plan,destination,floor));}
+    if(destination||floor===terraceLevel(plan)){setMode('walk');setCommand(destination?roomView(plan,destination,floor):terraceView(plan));}
   },[floor,plan]);
 
   const exitPointer=()=>{if(document.pointerLockElement===canvasRef.current)document.exitPointerLock();};
@@ -160,7 +162,7 @@ export function House3D({active=true,plan,floor,assets,projectId,canRender=false
     if(mode==='walk'){if(!touch)canvasRef.current?.requestPointerLock?.().catch(()=>{});return;}
     requestedMode.current='walk';lastFloor.current=0;onSelect?.({kind:'floor',floor:0});
     setMode('walk');setCommand(null);setHover('');
-    if(!touch)canvasRef.current?.requestPointerLock?.().catch(()=>{});
+    // Pointer lock starts when the user clicks the canvas after entering Walk.
   };
   const tour=()=>{
     requestedMode.current='tour';exitPointer();setCutaway(false);setOpenDoors(new Set(layout.doors.map(door=>door.id)));
@@ -168,7 +170,7 @@ export function House3D({active=true,plan,floor,assets,projectId,canRender=false
   };
 
   useImperativeHandle(ref,()=>({exportScene,camera:cameraPose,downloadModel,downloadCamera,front:frontView}));
-  const roomJump=(value:string)=>{requestedMode.current='walk';const r=plan.rooms.find(o=>o.id===value.replace(/^(shower|storage):/,''));if(!r)return;lastFloor.current=r.floor;onSelect?.({kind:'room',id:r.id});exitPointer();setMode('walk');setCommand(presentationPose(plan,r,layout,value.startsWith('shower:')?'shower':value.startsWith('storage:')?'storage':undefined));};
+  const roomJump=(value:string)=>{requestedMode.current='walk';if(value==='terrace-level'){lastFloor.current=terraceLevel(plan);onSelect?.({kind:'floor',floor:terraceLevel(plan)});exitPointer();setMode('walk');setCommand(terraceView(plan));return;}const r=plan.rooms.find(o=>o.id===value.replace(/^(shower|storage):/,''));if(!r)return;lastFloor.current=r.floor;onSelect?.({kind:'room',id:r.id});exitPointer();setMode('walk');setCommand(presentationPose(plan,r,layout,value.startsWith('shower:')?'shower':value.startsWith('storage:')?'storage':undefined));};
   const climatePanel=study&&<ClimatePanel study={inputs} onChange={setInputs} lat={site.latitude} lon={site.longitude} isDefault={!plan.design?.siteContext} elevation={sun.elevation} paths={paths.length} doors={!!openDoors.size} openDoors={()=>setOpenDoors(openDoors.size?new Set():new Set(layout.doors.filter(d=>!d.arch).map(d=>d.id)))}/>;
   return <div className={'house-viewer workspace-viewer '+(present?'present-viewer':'')+(touch?' touch-viewer':'')+(mode==='walk'?' walk-viewer':'')} ref={viewerRef}>
     <div className="canvas-tools" role="toolbar" aria-label="3D viewing tools">
@@ -192,7 +194,7 @@ export function House3D({active=true,plan,floor,assets,projectId,canRender=false
        <Button disabled={exporting||loading} onClick={downloadModel}>{exporting?'Exporting…':'Download 3D'}</Button><Button disabled={loading} onClick={downloadCamera}>Download camera settings</Button>
       </div></details></>}
     </div>
-    <div className="room-jump"><Select aria-label="Look inside a room" value="" onChange={e=>roomJump(e.target.value)}><option value="">Jump to a room…</option>{plan.rooms.filter(r=>!['portico','stairs','foyer','passage'].includes(r.kind)).map(r=><option key={r.id} value={r.id}>{r.floor===0?'Ground':'Floor '+r.floor} · {r.label}</option>)}{plan.rooms.filter(r=>r.floor===floor&&roomFitments(plan,r,layout).some(f=>['wardrobe','prayer','upper','sideboard'].includes(f.kind))).map(r=><option key={'storage:'+r.id} value={'storage:'+r.id}>Storage · {r.label}</option>)}{plan.rooms.filter(r=>r.floor===floor&&r.kind==='bathroom'&&showerZone(r,layout)).map(r=><option key={'shower:'+r.id} value={'shower:'+r.id}>Shower · {r.label}</option>)}</Select></div>
+    <div className="room-jump"><Select aria-label="Look inside a room" value="" onChange={e=>roomJump(e.target.value)}><option value="">Jump to a room…</option><option value="terrace-level">Terrace · roof deck</option>{plan.rooms.filter(r=>!['portico','stairs','foyer','passage'].includes(r.kind)).map(r=><option key={r.id} value={r.id}>{r.floor===0?'Ground':'Floor '+r.floor} · {r.label}</option>)}{plan.rooms.filter(r=>r.floor===floor&&roomFitments(plan,r,layout).some(f=>['wardrobe','prayer','upper','sideboard'].includes(f.kind))).map(r=><option key={'storage:'+r.id} value={'storage:'+r.id}>Storage · {r.label}</option>)}{plan.rooms.filter(r=>r.floor===floor&&r.kind==='bathroom'&&showerZone(r,layout)).map(r=><option key={'shower:'+r.id} value={'shower:'+r.id}>Shower · {r.label}</option>)}</Select></div>
     {!present&&<div className="quality-control" role="toolbar" aria-label="Rendering quality"><label>Quality<Select aria-label="Viewer quality" value={quality} onChange={e=>chooseQuality(e.target.value)}>{['auto','high','balanced','low'].map(q=><option key={q} value={q}>{q.charAt(0).toUpperCase()+q.slice(1)}</option>)}</Select></label><span data-quality={actualQuality}>{actualQuality} {fps>0?'· '+fps+' fps':''}</span></div>}
     {climateTarget?createPortal(climatePanel,climateTarget):climatePanel}
     <div className="house-canvas">

@@ -16,6 +16,8 @@ import {bathroomFixtures} from './bathroom';
 import {HipRoof,SiteWorld,SiteFinish} from './SiteWorld';
 import {palette} from '../regions';
 import { ServiceScene } from './ServiceScene';
+import {TerraceScene} from './TerraceScene';
+import {openTerraceDepth,pitchedRoof} from '../terrace';
 import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import { Suspense, useEffect, useMemo, useRef } from 'react';
@@ -124,10 +126,10 @@ function Handrail({start,end}:{start:[number,number,number];end:[number,number,n
 /** Room spotlights are only active where they can be seen: in the cutaway overview, or on the floor the
  * camera is on while walking/touring. Every active light adds cost to every lit pixel, so 14 always-on
  * room spots made the exterior view and walkthrough far slower without visible benefit. */
-function RoomLight({room,interior,walking}:{room:Room;interior:boolean;walking:boolean}){
+ function RoomLight({room,plan,interior,walking}:{room:Room;plan:Plan;interior:boolean;walking:boolean}){
   const target=useMemo(()=>new Object3D(),[]);
   const light=useRef<SpotLight>(null);
-  useFrame(({camera,invalidate})=>{if(!light.current)return;const on=interior&&(!walking||Math.floor((camera.position.y+.5)/FLOOR_HEIGHT)===room.floor);if(light.current.visible!==on){light.current.visible=on;invalidate();}});
+    useFrame(({camera,invalidate})=>{if(!light.current)return;const x=camera.position.x+plan.width/2,z=camera.position.z+plan.depth/2;const occupied=Math.floor((camera.position.y+.5)/FLOOR_HEIGHT)===room.floor&&x>=room.x-1&&x<=room.x+room.w+1&&z>=room.y-1&&z<=room.y+room.h+1;const on=interior&&(!walking||occupied);if(light.current.visible!==on){light.current.visible=on;invalidate();}});
   return <group position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT,room.y+room.h/2]}>
     <primitive object={target} position={[0,.1,0]}/>
     <spotLight ref={light} visible={false} position={[0,CEILING_LEVEL-.5,0]} target={target} color="#fff2df" intensity={48} angle={1.12} penumbra={.72} castShadow={false}
@@ -187,7 +189,7 @@ function Furniture({room,sourceRoom,frameAngle,plan,layout,assets,openShelves,tv
   if(room.kind==='foyer')return furnished&&shoeRack?<group><Block solid position={[room.x+.25,base+1.05,room.y+room.h-.7]} size={[.4,2.1,1.2]} color="#ba9a74" surface="timber"/></group>:null;
   if(room.kind==='stairs'){
     const {front,back,run,steps,rise,flightWidth}=stairDimensions(room);
-    return !room.label.includes('landing')?<group position={[0,base,0]}><Block position={[cx,-.13,room.y+front/2]} size={[room.w,.26,front]} color="#eee4d2" surface="stone"/>
+    return <group position={[0,base,0]}><Block position={[cx,-.13,room.y+front/2]} size={[room.w,.26,front]} color="#eee4d2" surface="stone"/>
       {Array.from({length:steps},(_,i)=><group key={i}>
         <Block position={[room.x+.3+flightWidth/2,(i+1)*rise-.09,room.y+front+(i+.5)*run/steps]}
           size={[flightWidth,.18,run/steps+.025]} color="#eee4d2" surface="stone"/>
@@ -201,9 +203,6 @@ function Furniture({room,sourceRoom,frameAngle,plan,layout,assets,openShelves,tv
         const height=index===0?t*FLOOR_HEIGHT/2:(2-t)*FLOOR_HEIGHT/2;
         return <Block key={`${t}-${x}`} position={[x,height+1.4,room.y+front+t*run]} size={[.07,2.8,.07]} color="#827568" metalness={.4}/>;
       }))}
-    </group>:<group>
-      <Block position={[cx,base-.13,room.y+front/2]} size={[room.w,.26,front]} color="#eee4d2" surface="stone"/>
-      <Handrail start={[room.x+.3,base+2.8,room.y+front]} end={[room.x+room.w/2-.1,base+2.8,room.y+front]}/>
     </group>;
   }
   if(room.kind==='portico')return <group>
@@ -250,9 +249,9 @@ export function HouseScene({onSelect,plan,layout,interactions,assets,mode,cutawa
         surface={room.kind==='bathroom'?'bathfloor':room.kind==='portico'?'concrete':plan.design?.floorFinish==='woodfloor'?'woodfloor':'porcelain'}/>}
       {(furnished||['kitchen','bathroom','stairs','pooja','utility','foyer','portico'].includes(room.kind))&&(()=>{const frame=furnishingFrame(plan,room);const rotate=!['portico','foyer','bathroom'].includes(room.kind);return <group position={rotate?[room.x+room.w/2,0,room.y+room.h/2]:[0,0,0]} rotation={[0,rotate?frame.angle:0,0]}><Furniture layout={layout} plan={plan} sourceRoom={room} frameAngle={rotate?frame.angle:0} room={rotate?frame.local:room} assets={assets} openShelves={openShelves} tvOn={tvOn} chimneyOn={chimneyOn} furnished={furnished} shoeRack={plan.design?.shoeRack} toiletStyle={plan.design?.roomRequests.find(q=>q.id===room.id)?.toiletStyle||(plan.toiletStyle==='both'?(plan.rooms.filter(r=>r.kind==='bathroom').findIndex(r=>r.id===room.id)%2?'indian':'western'):plan.toiletStyle)}/></group>;})()}
       <RoomFitoutScene assets={assets} plan={plan} room={room} layout={layout} open={openShelves} hideHigh={shellCutaway}/>
-      <InteriorKit plan={plan} room={room} layout={layout} interior={mode!=='overview'||cutaway} walking={mode!=='overview'} hideHigh={shellCutaway}/>
+       <InteriorKit plan={plan} room={room} layout={layout} interior={cutaway} walking={false} hideHigh={shellCutaway}/>
       {!shellCutaway&&!['portico','terrace','stairs'].includes(room.kind)&&<Block position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT+CEILING_LEVEL,room.y+room.h/2]} size={[room.w,.10,room.h]} color="#faf8f0" surface="paint" opacity={xray?.18:1}/>}
-      {!['portico','terrace','stairs'].includes(room.kind)&&room.floor<8&&<RoomLight room={room} interior={mode!=='overview'||cutaway} walking={mode!=='overview'}/>}
+       {!['portico','terrace','stairs'].includes(room.kind)&&room.floor<8&&<RoomLight room={room} plan={plan} interior={mode!=='overview'||cutaway} walking={mode!=='overview'}/>}
       {!kit&&room.floor>0&&room.kind==='terrace'&&<>
         {room.y===0&&<Block position={[room.x+room.w/2,room.floor*FLOOR_HEIGHT+1.8,room.y+.15]} size={[room.w,3.5,.14]} color="#bed3d0" opacity={.48}/>}
         {room.x===0&&<Block position={[room.x,room.floor*FLOOR_HEIGHT+1.8,room.y+room.h/2]} size={[.14,3.5,room.h]} color="#bed3d0" opacity={.48}/>}
@@ -273,11 +272,11 @@ export function HouseScene({onSelect,plan,layout,interactions,assets,mode,cutawa
     {layout.windows.map(window=><Window key={window.id} window={window} assets={assets} recipe={roomFitout(plan,plan.rooms.find(r=>r.id===window.roomId)!).window==='auto'?facadeStyle(plan.design?.style):undefined} furnished={furnished&&!plan.rooms.some(r=>r.id===window.roomId&&r.kind==='bathroom')}/>)}
     {!kit&&!shellCutaway&&facadePieces(plan,layout).map(piece=><Block key={piece.id} position={piece.position} size={piece.size} color={piece.surface==='timber'?finish.trim:piece.color} surface={piece.surface}/>)}
     {!kit&&!shellCutaway&&(!plan.design?.roof||plan.design.roof==='flat')&&<>
-      <Block position={[plan.width/2,floorCount*FLOOR_HEIGHT+.15,plan.depth/2]} size={[plan.width+1,.35,plan.depth+1]} color="#f1eee7" surface="concrete"/>
       {[0,plan.width].map(x=><Block key={x} position={[x,floorCount*FLOOR_HEIGHT+.75,plan.depth/2]} size={[.4,1.25,plan.depth+1]} color="#ded8ce"/>)}
       {[0,plan.depth].map(z=><Block key={z} position={[plan.width/2,floorCount*FLOOR_HEIGHT+.75,z]} size={[plan.width+1,1.25,.4]} color="#ded8ce"/>)}
     </>}
-    {!kit&&plan.design?.roof&&plan.design.roof!=='flat'&&!shellCutaway&&<HipRoof w={plan.width} d={plan.depth} base={floorCount*FLOOR_HEIGHT} pitch={finish.pitch||.46} eave={finish.eave} color={finish.roof}/>}
+    {!shellCutaway&&<TerraceScene plan={plan} layout={layout} includeDeck={!kit||pitchedRoof(plan)}/>}
+    {!kit&&plan.design?.roof&&plan.design.roof!=='flat'&&!shellCutaway&&<HipRoof w={plan.width} d={plan.depth} base={floorCount*FLOOR_HEIGHT} pitch={finish.pitch||.46} eave={finish.eave} color={finish.roof} rearTerraceDepth={openTerraceDepth(plan)}/>}
     {showServices&&<ServiceScene plan={plan}/>}
     {interactions.map(item=><mesh key={item.id} position={[item.x,item.floor*FLOOR_HEIGHT+item.y,item.z]}
       userData={{interactionId:item.id,label:item.label}} onClick={event=>{if(mode!=='overview')return;event.stopPropagation();onInteract(item.id);}}>

@@ -9,7 +9,7 @@ export type TNSiteRules={
  edgeRoles:Record<string,'front'|'rear'|'left'|'right'>;
 };
 export const DEFAULT_TN_SITE:TNSiteRules={area:'unknown',access:'unknown',roadWidthM:0,dwellings:1,restrictions:'unknown',sideChoice:'balanced',alignmentM:0,alignmentConfirmed:false,frontageM:0,edgeRoles:{}};
-export function tnSite(req:Requirements):TNSiteRules{return {...DEFAULT_TN_SITE,...req.design?.tnRules,edgeRoles:{...req.design?.tnRules?.edgeRoles}};}
+export function tnSite(req:Requirements):TNSiteRules{return {...DEFAULT_TN_SITE,...req.design?.tnRules,dwellings:Math.max(req.design?.tnRules?.dwellings||1,1+(req.design?.terrace?.independentFloors.length||0)),edgeRoles:{...req.design?.tnRules?.edgeRoles}};}
 const ft=(m:number)=>m/METRES_PER_FOOT;
 export function tnSetbackMinimums(req:Requirements){
  const t=tnSite(req),height=(req.floors*FLOOR_HEIGHT+PLINTH_HEIGHT)*METRES_PER_FOOT;
@@ -39,6 +39,7 @@ export function applyTNSetbacks(req:Requirements,vertices:PlotVertex[]){
 export function tnReview(req:Requirements,plan:Plan,layout:HouseLayout):DesignCheck[]{
  const t=tnSite(req),out:DesignCheck[]=[],height=(req.floors*FLOOR_HEIGHT+PLINTH_HEIGHT)*METRES_PER_FOOT;
  const add=(id:string,title:string,detail:string,status:DesignCheck['status']='warning')=>out.push({id:'tn-'+id,title,detail,status});
+ add('dwellings','Dwelling-unit count',`${t.dwellings} dwelling unit${t.dwellings===1?'':'s'} counted, including separately accessed upper floors. Confirm unit doors, stair access and parking with the authority.`,'pass');
  if(req.design?.roof&&req.design.roof!=='flat')add('roof','Check the sloping roof section','Automatic site-table selection is withheld for a sloping roof. Verify roof crown, eaves, habitable roof space and applicable height exclusions in the building section before using this profile.');
  if(!req.design?.authority.trim()||t.area==='unknown'||t.access==='unknown'||!t.roadWidthM||t.restrictions==='unknown'||!t.alignmentConfirmed)
   add('missing','Tamil Nadu site details needed','Record the approving authority, notified area category, road width, access, street alignment and special restrictions before applying the site tables.');

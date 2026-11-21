@@ -3,7 +3,7 @@ import type {MutableRefObject} from 'react';
 import {GROUND_LEVEL} from '../building-dimensions';
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Raycaster, Vector2, Vector3, type Mesh, type Object3D,type PerspectiveCamera } from 'three';
+import { Raycaster, Vector2, Vector3, type Object3D,type PerspectiveCamera } from 'three';
 import type { Plan } from '../types';
 import { furnishingFrame, entrancePose, collidesAt, FLOOR_HEIGHT, type HouseLayout, type Interaction, worldX, worldZ } from './layout';
 import {bathroomFixtures} from './bathroom';
@@ -44,7 +44,7 @@ export function CameraRig({active=true,touch,plan,layout,interactions,mode,floor
   const focusId=useRef(''),lastHover=useRef(''),currentFloor=useRef(floor),tourTime=useRef(0);
   const ray=useMemo(()=>{const r=new Raycaster();r.layers.enable(BATCHED_LAYER);return r;},[]);
   const tour=useMemo(()=>tourPoints(plan,layout),[plan,layout]);
-  const solids=useRef<ReturnType<typeof collectObstacles>>([]),solidStamp=useRef(-1);
+  const solids=useRef<ReturnType<typeof collectObstacles>>([]),solidStamp=useRef(-1),rayStamp=useRef(0),rayTargets=useRef<Object3D[]>([]);
 
   const aim=(position:Vector3,look:Vector3)=>{
     camera.position.copy(position);
@@ -144,7 +144,7 @@ export function CameraRig({active=true,touch,plan,layout,interactions,mode,floor
     }
     if(mode!=='walk')return;
     const now=performance.now();
-    if(now-solidStamp.current>200){solids.current=collectObstacles(scene);solidStamp.current=now;}
+    if(now-solidStamp.current>3000){solids.current=collectObstacles(scene);solidStamp.current=now;rayTargets.current=[];scene.traverse(object=>{if(object.userData.interactionId||object.userData.actionId)rayTargets.current.push(object);});}
     const step=Math.min(delta,.06);
     if(touch?.current.jump){if(jump.current<=.001)velocity.current=8;touch.current.jump=false;}
     if(touch?.current.interact){if(focusId.current)onInteract(focusId.current);touch.current.interact=false;}
@@ -176,23 +176,19 @@ export function CameraRig({active=true,touch,plan,layout,interactions,mode,floor
         if(zHeight!==null&&!collidesAt(plan,layout,camera.position.x+plan.width/2,z+sz,currentFloor.current,openDoors,.6,doorAngles)&&!obstacleBlocks(solids.current,afterX,{...afterX,z:afterX.z+sz,bottom:zHeight+jump.current})){
           camera.position.z+=sz;walkingHeight.current=zHeight;
         }
-        const nearest=Math.round(walkingHeight.current/FLOOR_HEIGHT);if(Math.abs(nearest*FLOOR_HEIGHT-walkingHeight.current)<.65)currentFloor.current=Math.max(0,Math.min((plan.levels||1)-1,nearest));
+        const nearest=Math.round(walkingHeight.current/FLOOR_HEIGHT);if(Math.abs(nearest*FLOOR_HEIGHT-walkingHeight.current)<.65)currentFloor.current=Math.max(0,Math.min(plan.levels||1,nearest));
       }
     }
     camera.position.y=walkingHeight.current+eye.current+jump.current;
     camera.rotation.order='YXZ';camera.rotation.set(pitch.current,yaw.current,0);
     camera.updateMatrixWorld();
 
+    if(now-rayStamp.current<180)return;
+    rayStamp.current=now;
     ray.setFromCamera(new Vector2(0,0),camera);
     ray.far=7;
     const actionFor=(object:Object3D)=>{for(let node:Object3D|null=object;node;node=node.parent)if(node.userData.interactionId||node.userData.actionId)return {id:node.userData.interactionId||node.userData.actionId,label:node.userData.label};return null;};
-    const hit=ray.intersectObjects(scene.children,true).find(entry=>{
-      if(actionFor(entry.object))return true;
-      const mesh=entry.object as Mesh;
-      if(!mesh.isMesh)return false;
-      const materials=Array.isArray(mesh.material)?mesh.material:[mesh.material];
-      return materials.some(material=>material.visible&&material.opacity>.15);
-    });
+    const hit=ray.intersectObjects(rayTargets.current,true).find(entry=>!!actionFor(entry.object));
     const action=hit? actionFor(hit.object):null;
     const id=action?.id || '';
     focusId.current=id;

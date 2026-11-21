@@ -1,6 +1,7 @@
-import {Group,ExtrudeGeometry,Mesh,LatheGeometry,Vector2,BufferGeometry,Float32BufferAttribute,DoubleSide} from 'three';
+import {Group,ExtrudeGeometry,Mesh,LatheGeometry,Vector2,BufferGeometry,Float32BufferAttribute,DoubleSide,Path} from 'three';
 import {FLOOR_HEIGHT} from '../../building-dimensions';
 import type {Plan} from '../../types';
+import {headroom,openTerraceDepth,terraceOptions} from '../../terrace';
 import type {FacadeContext,Rect} from './layout';
 import {beam,ring,solid,roundedPath,profile,instances,mount} from './geometry';
 import {SlatScreen} from './Screens';
@@ -17,7 +18,9 @@ export function FloorRibbon(plan:Plan,m:MaterialSet,floor:number){
 }
 export function CurvedParapet(plan:Plan,m:MaterialSet,rounded=false){
  const level=(plan.levels||1)*FLOOR_HEIGHT,g=new Group();g.name=rounded?'Curved roof parapet':'Profiled terrace parapet';
- const slab=new ExtrudeGeometry(roundedPath(plan.width+.75,plan.depth+.75,rounded?1.8:.10) as import('three').Shape,{depth:.32,bevelEnabled:true,bevelSize:.035,bevelThickness:.035,bevelSegments:2,curveSegments:24});
+ const shape=roundedPath(plan.width+.75,plan.depth+.75,rounded?1.8:.10) as import('three').Shape;
+ if(terraceOptions(plan).stairLocation==='internal'&&plan.rooms.some(r=>r.kind==='stairs')){const room=headroom(plan),hole=new Path(),x=room.x-plan.width/2,z=plan.depth/2-room.y-room.h;hole.moveTo(x,z);hole.lineTo(x+room.w,z);hole.lineTo(x+room.w,z+room.h);hole.lineTo(x,z+room.h);hole.closePath();shape.holes.push(hole);}
+ const slab=new ExtrudeGeometry(shape,{depth:.32,bevelEnabled:true,bevelSize:.035,bevelThickness:.035,bevelSegments:2,curveSegments:24});
  slab.rotateX(-Math.PI/2);const deck=solid(slab,m.paint,'Profiled roof deck');deck.position.set(plan.width/2,level+.05,plan.depth/2);g.add(deck);
  const parapet=ring(plan.width+.45,plan.depth+.45,.24,1.15,rounded);parapet.rotateX(-Math.PI/2);const wall=solid(parapet,m.paint,'Continuous parapet with rounded corners');wall.position.set(plan.width/2,level+1.55,plan.depth/2);g.add(wall);
  return g;
@@ -57,7 +60,7 @@ export function WaterTankScreen(c:FacadeContext,m:MaterialSet,includeTank=true){
 }
 export function TiledRoof(plan:Plan,m:MaterialSet,pitch=.38,eave=1.1){
  const g=new Group();g.name='Hipped terracotta roof with individual tile relief';
- const a=plan.width/2+eave,b=plan.depth/2+eave,base=(plan.levels||1)*FLOOR_HEIGHT+.2,poses=[];
+ const roofDepth=plan.depth-openTerraceDepth(plan),a=plan.width/2+eave,b=roofDepth/2+eave,base=(plan.levels||1)*FLOOR_HEIGHT+.2,poses=[];
  const pos:number[]=[],uv:number[]=[];const height=(x:number,z:number)=>Math.max(0,Math.min(a-Math.abs(x),b-Math.abs(z)))*pitch;
  for(let x=-a;x<a;x+=1)for(let z=-b;z<b;z+=1){const corners=[[x,z],[Math.min(a,x+1),z],[Math.min(a,x+1),Math.min(b,z+1)],[x,Math.min(b,z+1)]];
   for(const i of [0,2,1,0,3,2]){const [u,v]=corners[i];pos.push(u,height(u,v),v);uv.push(u,v);}
@@ -74,7 +77,7 @@ export function TiledRoof(plan:Plan,m:MaterialSet,pitch=.38,eave=1.1){
   poses.push({at:[x,height(x,z)+.035,z] as [number,number,number],rotation:side?[-Math.atan(slope),Math.PI/2,0] as [number,number,number]:[-Math.atan(slope),0,0] as [number,number,number]});
  }
  const tiles=instances(tile,m.tile,poses,'Instanced curved clay roof tiles');(m.tile as import('three').MeshStandardMaterial).side=DoubleSide;g.add(tiles);
- g.add(beam([plan.width+2*eave,.28,plan.depth+2*eave],m.paint,[0,-.10,0],.07));
+ g.add(beam([plan.width+2*eave,.28,roofDepth+2*eave],m.paint,[0,-.10,0],.07));
  const ridgeY=Math.min(a,b)*pitch;g.add(beam([.26,.22,Math.max(.3,2*(b-a))],m.tile,[0,ridgeY+.08,0],.10));
- g.position.set(plan.width/2,base,plan.depth/2);return g;
+ g.position.set(plan.width/2,base,roofDepth/2);return g;
 }
