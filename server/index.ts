@@ -18,6 +18,8 @@ import { getProvider, saveProvider, providerStatus, type Provider } from './inte
 import {workerBaseUrl,workerHealth} from './gpu-worker';
 import {storagePaths,validateHostingEnvironment,validRequestOrigin,buildIdentifier} from './runtime';
 import {getStoredFile,putStoredFile} from './files';
+import {interpretCommand} from './ai-commands';
+import {CommandRequestSchema} from '../src/ai/command-schema';
 import {equaliseLoginTiming,externalApi,loginByAccount,loginByIp,registerSecurity,tooMany,trustProxySetting} from './security';
 
 const app = Fastify({ logger: true, bodyLimit: 2 * 1024 * 1024, trustProxy: trustProxySetting() });
@@ -230,6 +232,17 @@ app.post('/api/extract', async (request, reply) => {
   if (!content) return reply.code(502).send({ error: 'AI returned no structured result.' });
   const parsed = JSON.parse(content);
   return { ...parsed, usage:output.usage };
+});
+
+// AI command bar: the browser tries the free local parser first and only calls this for harder sentences.
+app.post('/api/commands', async (request, reply) => {
+  const user = await requireUser(request, reply); if (!user || !requireFeature(user, 'projects.edit', reply)) return;
+  const {text, context} = CommandRequestSchema.parse(request.body);
+  const wait = externalApi.hit(`cmd:${user.id}`); if (wait) return tooMany(reply, wait, 'Hourly AI command limit reached. Simple commands still work without AI.');
+  const provider = await getProvider('openai');
+  if (!provider) return reply.code(503).send({ error: 'Configure an AI provider in Settings to use AI for this request. Simple commands work without a key.' });
+  try { return await interpretCommand(text, context, provider); }
+  catch (e) { const err = e as Error & {statusCode?:number;upstream?:number}; app.log.error(`AI command failed: ${err.upstream || err.message}`); return reply.code(err.statusCode || 502).send({ error: err.message }); }
 });
 
 app.get('/api/references/search',async(request,reply)=>{const user=await requireUser(request,reply);if(!user||!requireFeature(user,'assets.manage',reply))return;const {q}=z.object({q:z.string().min(2).max(100)}).parse(request.query);const wait=externalApi.hit(`refs:${user.id}`);if(wait)return tooMany(reply,wait,'Hourly reference search limit reached.');return searchReferences(q);});
